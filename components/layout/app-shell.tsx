@@ -15,6 +15,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Building2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
@@ -44,6 +45,7 @@ interface AppShellProps {
   currentRole: WorkspaceRole
   allMemberships: Array<{ role: WorkspaceRole; workspaces: Workspace }>
   workspaceSlug: string
+  pendingRequestCount?: number
 }
 
 export function AppShell({
@@ -53,6 +55,7 @@ export function AppShell({
   currentRole,
   allMemberships,
   workspaceSlug,
+  pendingRequestCount,
 }: AppShellProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
@@ -141,6 +144,58 @@ export function AppShell({
               </Link>
             )
           })}
+
+          {/* Agency section — visible only for owners */}
+          {currentRole === 'owner' && (
+            <>
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="mb-1.5 mt-4 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-white/35"
+                  >
+                    Agency
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <Link href="/agency/requests">
+                <motion.div
+                  whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    'mb-0.5 flex items-center rounded-lg px-2.5 py-[7px] text-[12px] transition-colors',
+                    collapsed ? 'justify-center gap-0' : 'gap-2.5',
+                    pathname === '/agency/requests'
+                      ? 'border border-white/15 bg-white/[0.12] font-medium text-white'
+                      : 'text-white/55 hover:bg-white/[0.08] hover:text-white/85'
+                  )}
+                >
+                  <Building2
+                    size={14}
+                    className={cn(pathname === '/agency/requests' ? 'text-white' : 'text-white/50')}
+                  />
+                  <AnimatePresence>
+                    {!collapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        className="overflow-hidden whitespace-nowrap"
+                      >
+                        Brand Requests
+                        {typeof pendingRequestCount === 'number' && pendingRequestCount > 0 && (
+                          <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-bold text-white">
+                            {pendingRequestCount}
+                          </span>
+                        )}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* User menu — hidden when collapsed */}

@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.4"
   }
@@ -45,6 +43,63 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_requests: {
+        Row: {
+          brand_name: string
+          contact_email: string
+          contact_name: string
+          created_at: string
+          description: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["brand_request_status"]
+          website_url: string
+          workspace_id: string | null
+        }
+        Insert: {
+          brand_name: string
+          contact_email: string
+          contact_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["brand_request_status"]
+          website_url: string
+          workspace_id?: string | null
+        }
+        Update: {
+          brand_name?: string
+          contact_email?: string
+          contact_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["brand_request_status"]
+          website_url?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -653,7 +708,11 @@ export type Database = {
       workspaces: {
         Row: {
           created_at: string
+          drive_connection_type:
+            | Database["public"]["Enums"]["drive_connection_type"]
+            | null
           drive_folder_id: string | null
+          drive_oauth_token: string | null
           id: string
           logo_url: string | null
           name: string
@@ -661,7 +720,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          drive_connection_type?:
+            | Database["public"]["Enums"]["drive_connection_type"]
+            | null
           drive_folder_id?: string | null
+          drive_oauth_token?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -669,7 +732,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          drive_connection_type?:
+            | Database["public"]["Enums"]["drive_connection_type"]
+            | null
           drive_folder_id?: string | null
+          drive_oauth_token?: string | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -711,10 +778,12 @@ export type Database = {
       }
     }
     Enums: {
+      brand_request_status: "pending" | "approved" | "rejected"
       brand_status: "pending" | "active"
       campaign_status: "draft" | "active" | "ended"
       collab_status: "n/a" | "pending" | "confirmed" | "not_added"
       download_status: "pending" | "downloaded" | "blocked" | "failed"
+      drive_connection_type: "agency" | "brand"
       job_status: "pending" | "processing" | "done" | "failed"
       job_type: "download" | "metrics_fetch"
       monitoring_status: "pending" | "active" | "paused"
@@ -847,10 +916,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      brand_request_status: ["pending", "approved", "rejected"],
       brand_status: ["pending", "active"],
       campaign_status: ["draft", "active", "ended"],
       collab_status: ["n/a", "pending", "confirmed", "not_added"],
       download_status: ["pending", "downloaded", "blocked", "failed"],
+      drive_connection_type: ["agency", "brand"],
       job_status: ["pending", "processing", "done", "failed"],
       job_type: ["download", "metrics_fetch"],
       monitoring_status: ["pending", "active", "paused"],

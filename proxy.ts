@@ -41,6 +41,8 @@ export async function proxy(request: NextRequest) {
     '/signup',
     '/auth/callback',
     '/invite',
+    '/request-access',
+    '/onboarding',
   ]
 
   const isPublicPath =

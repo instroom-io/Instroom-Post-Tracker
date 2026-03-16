@@ -143,18 +143,27 @@
 
 ---
 
-## D-011 · Google Drive via service account (not per-user OAuth)
+D-011 · Google Drive: flexible per-workspace OAuth ⚠️ REVISED
+Decision: Drive uploads use a per-workspace OAuth token, not a single shared service account. Each workspace configures its own Drive connection — either the agency's Google account or the brand's Google account.
+Replaces: Original D-011 which mandated a single service account for all workspaces.
+Rationale:
 
-**Decision:** Drive uploads use a single service account, not per-user OAuth.
+Agency clients have different preferences — some want content in their own Drive, others defer to the agency
+A single service account creates a single point of failure and mixes all brand content under one account
+Per-workspace OAuth is more auditable — each brand's Drive connection is independent
+Agencies can revoke a brand's Drive connection without affecting other workspaces
 
-**Rationale:**
-- Per-user OAuth requires each workspace owner to connect their Google account separately
-- Agency teams share Drive access — one service account with shared folder is cleaner
-- Reduces onboarding friction significantly
-- Service account credentials are stable (no token refresh UX needed)
+Two modes:
+Modedrive_connection_typeWho connectsWhere files landAgency DriveagencyAgency connects their Google accountAgency's Drive, in a brand-named folderBrand DrivebrandAgency connects brand's Google account on brand's behalfBrand's own Drive
+Implementation:
 
-**Implication:** The Drive folder is owned by the service account. The workspace owner must grant the service account email access to their Google Drive folder during workspace setup.
+workspaces.drive_connection_type stores 'agency' or 'brand'
+workspaces.drive_oauth_token stores the encrypted OAuth token (refresh token — long-lived)
+workspaces.drive_folder_id stores the root folder ID for this workspace
+lib/drive/upload.ts accepts a Drive client initialized from the workspace's token
+Token refresh is handled transparently by the Drive client on each worker run
 
+Implication: The download worker must load the workspace's drive_connection_type and drive_oauth_token before uploading. Drive client initialization is no longer a single shared instance — it is instantiated per workspace per worker job. GOOGLE_SERVICE_ACCOUNT_JSON_B64 env var is no longer needed.
 ---
 
 ## D-012 · Zustand for workspace context (not React Context)
@@ -198,27 +207,77 @@
 
 ---
 
-## D-015 · Workspace creation is agency-triggered, not user self-serve
+D-015 · Workspace creation is agency-triggered via approval flow ⚠️ REVISED
+Decision: Workspaces are auto-created when the agency approves a brand's connection request submitted via the public /request-access form. The manual /onboarding form is for local development only and must return 404 or redirect in production.
+Replaces: Original D-015 which described workspace creation via an agency-generated invite link (/onboard/[token]).
+Rationale:
 
-**Decision:** Workspaces are auto-created when a brand admin accepts an agency-generated onboarding link (`/onboard/[token]`). The manual `/onboarding` form (Flow 5) is for local development only and must return 404 or redirect in production.
+The original invite-link design assumed the agency proactively reaches out. In practice, brands initiate contact with the agency, not the other way around.
+A public request form + agency approval is simpler for both parties — no link generation, no token management on the agency side
+The approval step gives the agency an explicit gate to review brand fit before onboarding
+Removes the brand_invitations token system entirely — less complexity, fewer failure modes
 
-**Rationale:**
-- Instroom is a B2B tool for marketing agencies — random signups should not be able to create workspaces
-- Brand clients are always onboarded by the agency, never self-serve
-- Keeps the ownership model clean: agency creates the brand entry, brand admin only accepts
-- Prevents orphaned workspaces with no agency affiliation
+Implication:
 
-**Implication:** `lib/actions/brands.ts` handles all workspace creation via `acceptBrandInvitation()` using the service client. The `/onboarding` page must be gated with `if (process.env.NODE_ENV !== 'development') redirect('/login')`. All production workspace creation goes through Flow 0 in `WORKFLOWS.md`.
+brands and brand_invitations tables from the original schema are no longer used in production — replaced by brand_requests
+/onboard/[token] route is removed — no longer needed
+/agency/requests is the new route where the agency manages pending requests
+lib/actions/brands.ts is replaced by lib/actions/brand-requests.ts
+All production workspace creation goes through approveBrandRequest() in lib/actions/brand-requests.ts
+The /onboarding page must be gated: if (process.env.NODE_ENV !== 'development') redirect('/login')
 
----
 
-## D-016 · Brand onboarding tokens are single-use and expire in 30 days
+D-016 · Brand onboarding tokens are single-use and expire in 30 days
+⚠️ SUPERSEDED by D-015 revision
+This decision is no longer applicable. The token-based onboarding system has been replaced by the brand request form + agency approval flow. There are no onboarding tokens to expire or consume.
 
-**Decision:** Each brand invitation token (`brand_invitations.token`) can only be accepted once (`accepted_at IS NULL` check) and expires 30 days after generation.
+D-017 · Brands have no login — ever ✨ NEW
+Decision: Brands never have login access to Instroom. Not in v1. Not in v2. Not in any future version.
+Rationale:
 
-**Rationale:**
-- Single-use prevents the same link from being used by multiple people to create duplicate workspaces
-- 30-day expiry balances security with practical agency timelines (brands may take time to onboard)
-- Token regeneration (for expired links) is a v2 feature — agencies can use Supabase Studio to manually insert a new token in v1 if needed
+Instroom is an agency operations tool — it exists to make the agency's work faster, not to serve as a client portal
+Adding brand login introduces a separate auth surface, role complexity, and UI scope that detracts from the core product
+Agencies already have established ways to share results with clients (email, Notion docs, Loom, etc.)
+The original viewer role for brand clients has been removed entirely
 
-**Implication:** `acceptBrandInvitation()` must re-validate the token inside a transaction (check `accepted_at IS NULL` and `expires_at > now()` again after acquiring the lock) to prevent race conditions. The `/onboard/[token]` page must show clear, distinct error states for: expired token, already-used token, and invalid token.
+Implication:
+
+The viewer role in workspace_role enum still exists for internal agency staff (e.g. account directors who read but don't edit) — it does NOT represent brand access
+No public-facing dashboard, no shareable report links, no brand portal — these are permanently out of scope
+Any future feature request for "brand access" should be redirected to export functionality (PDF/CSV) rather than a login system
+
+
+D-018 · Brand connection initiated by brand, approved by agency ✨ NEW
+Decision: The flow for onboarding a new brand client is: brand submits /request-access form → agency reviews in /agency/requests → agency approves → workspace auto-created.
+Rationale:
+
+Brands typically reach out to agencies, not the other way around — the request form matches real-world sales flow
+Agency approval gate prevents unauthorized or accidental workspace creation
+No token management required — simpler system with fewer failure modes than the previous invite-link design
+Request data (brand name, contact, description) populates the workspace automatically — no manual re-entry
+
+Implication:
+
+lib/actions/brand-requests.ts handles: submitBrandRequest() (public, no auth), approveBrandRequest() (agency only, service client), rejectBrandRequest() (agency only)
+brand_requests table replaces brands + brand_invitations
+No email sent automatically in v1 — agency notifies brand manually after approval/rejection
+/request-access is a public SSR page (no auth required, but no sidebar either — minimal layout)
+/agency/requests is an agency-only authenticated page
+
+
+D-019 · Google Drive connected per workspace via OAuth ✨ NEW
+Decision: Each workspace stores its own Google OAuth refresh token. Drive connection is set up in workspace settings after the workspace is created. The agency chooses agency mode (files go to agency Drive) or brand mode (files go to brand's Drive) per workspace.
+Rationale:
+
+Different brand clients have different Drive preferences — a single service account cannot accommodate this
+OAuth refresh tokens are long-lived — once connected, the Drive client works silently without user intervention
+Flexible model future-proofs the product for enterprise clients who require data residency in their own Drive
+
+Implication:
+
+workspaces table gains: drive_connection_type (agency | brand), drive_oauth_token (encrypted), drive_folder_id
+lib/drive/client.ts exports getDriveClient(token) — initializes a Drive client from a stored OAuth token
+Download worker loads workspace Drive credentials before each upload
+Workspace settings page has a "Connect Google Drive" section with OAuth button
+If Drive is not connected, download jobs fail gracefully with download_status = 'failed' and an informative error message
+GOOGLE_SERVICE_ACCOUNT_JSON_B64 env var is removed — replaced by per-workspace OAuth tokens stored in the database (encrypted at rest via Supabase Vault or pgcrypto)

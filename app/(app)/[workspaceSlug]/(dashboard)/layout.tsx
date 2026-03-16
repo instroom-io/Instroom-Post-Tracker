@@ -21,7 +21,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
   // 2. Look up workspace by slug
   const { data: workspace } = await supabase
     .from('workspaces')
-    .select('id, name, slug, logo_url, drive_folder_id, created_at')
+    .select('id, name, slug, logo_url, drive_folder_id, drive_connection_type, drive_oauth_token, created_at')
     .eq('slug', workspaceSlug)
     .single()
 
@@ -40,8 +40,18 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
   // 4. Fetch all user memberships for workspace switcher
   const { data: allMemberships } = await supabase
     .from('workspace_members')
-    .select('role, workspaces(id, name, slug, logo_url, drive_folder_id, created_at)')
+    .select('role, workspaces(id, name, slug, logo_url, drive_folder_id, drive_connection_type, drive_oauth_token, created_at)')
     .eq('user_id', user.id)
+
+  // 5. Pending brand request count (owners only)
+  let pendingRequestCount: number | null = null
+  if (membership.role === 'owner') {
+    const { count } = await supabase
+      .from('brand_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending')
+    pendingRequestCount = count
+  }
 
   return (
     <AppShell
@@ -50,6 +60,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
       currentRole={membership.role as WorkspaceRole}
       allMemberships={(allMemberships ?? []) as unknown as Array<{ role: WorkspaceRole; workspaces: Workspace }>}
       workspaceSlug={workspace.slug}
+      pendingRequestCount={pendingRequestCount ?? undefined}
     >
       {children}
     </AppShell>

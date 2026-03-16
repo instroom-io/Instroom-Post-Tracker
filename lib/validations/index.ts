@@ -46,6 +46,16 @@ export const createBrandSchema = z.object({
 })
 export type CreateBrandInput = z.infer<typeof createBrandSchema>
 
+// ─── Brand Requests ──────────────────────────────────────────────────────────
+
+export const brandRequestSchema = z.object({
+  brand_name: z.string().min(2, 'Brand name must be at least 2 characters').max(100).trim(),
+  website_url: z.string().url('Please enter a valid URL'),
+  contact_name: z.string().min(2, 'Contact name must be at least 2 characters').max(100).trim(),
+  contact_email: z.string().email('Please enter a valid email address'),
+  description: z.string().max(500).optional().or(z.literal('')),
+})
+
 // ─── Campaigns ────────────────────────────────────────────────────────────────
 
 export const createCampaignSchema = z.object({
@@ -134,3 +144,4 @@ export type AddInfluencerInput = z.infer<typeof addInfluencerSchema>
 export type UpdateInfluencerInput = z.infer<typeof updateInfluencerSchema>
 export type UpdateCollabStatusInput = z.infer<typeof updateCollabStatusSchema>
 export type UpdateEmvConfigInput = z.infer<typeof updateEmvConfigSchema>
+export type BrandRequestInput = z.infer<typeof brandRequestSchema>

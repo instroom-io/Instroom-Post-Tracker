@@ -18,6 +18,10 @@ export type JobStatus = 'pending' | 'processing' | 'done' | 'failed'
 
 export type BrandStatus = 'pending' | 'active'
 
+export type BrandRequestStatus = 'pending' | 'approved' | 'rejected'
+
+export type DriveConnectionType = 'agency' | 'brand'
+
 export interface Brand {
   id: string
   agency_id: string
@@ -33,6 +37,20 @@ export interface BrandInvitation {
   token: string
   expires_at: string
   accepted_at: string | null
+  created_at: string
+}
+
+export interface BrandRequest {
+  id: string
+  brand_name: string
+  website_url: string
+  contact_name: string
+  contact_email: string
+  description: string | null
+  status: BrandRequestStatus
+  workspace_id: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
   created_at: string
 }
 
@@ -52,6 +70,8 @@ export interface Workspace {
   slug: string
   logo_url: string | null
   drive_folder_id: string | null
+  drive_connection_type: DriveConnectionType | null
+  drive_oauth_token: string | null
   created_at: string
 }
 

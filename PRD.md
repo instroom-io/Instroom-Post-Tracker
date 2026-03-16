@@ -1,8 +1,9 @@
 # PRD — Instroom Post Tracker
 
-**Version:** 1.0  
-**Status:** Active development  
+**Version:** 1.1
+**Status:** Active development
 **Last updated:** March 2026
+**Changes from v1.0:** Removed brand login entirely. Replaced agency-generated invite link with brand-initiated request form + agency approval flow. Updated Google Drive to flexible model. Added `/request-access` public route.
 
 ---
 
@@ -31,33 +32,26 @@ Instroom connects to **Ensemble** (a social monitoring API) and automatically:
 5. **Calculates** EMV per post using configurable CPM rates per platform
 6. **Tracks** Instagram collab tag status per post
 
-Campaign managers get a real-time dashboard, and analytics at wrap-up — without any manual data collection.
+Campaign managers get a real-time dashboard and analytics at wrap-up — without any manual data collection.
 
 ---
 
 ## 3. Users
 
 ### Primary — Marketing Agency (Super Admin)
-- Manages the Instroom instance as a whole
-- Creates brand entries and generates onboarding links per brand client
-- Monitors all brand workspaces from an agency-level view
+- Owns and operates the entire Instroom instance
+- Reviews incoming brand connection requests and approves or rejects them
+- Manages all brand workspaces from the agency dashboard
+- Sets up campaigns, influencers, and tracking for each brand client
 - Pain point: hours wasted manually collecting posts across all client campaigns
 
-### Secondary — Campaign manager / community manager (Brand Admin or Editor)
-- Works inside a single brand workspace
-- Manages 3–15 active campaigns for that brand
+### Secondary — Campaign manager / community manager (Agency staff)
+- Works inside one or more brand workspaces on behalf of the agency
+- Manages 3–15 active campaigns for a brand
 - Needs to prove campaign ROI with post-level analytics
-- Onboarded via agency-generated link — workspace is auto-created on acceptance
+- Assigned to a workspace by the agency owner
 
-### Tertiary — Agency account lead / director
-- Reviews analytics dashboards before client presentations
-- Read-only access most of the time
-- Needs EMV totals and engagement summaries fast
-
-### Quaternary — Brand client (viewer role)
-- May be given view-only access to their own workspace
-- Does not create campaigns or manage influencers
-- Reviews results, not inputs
+> **Note:** Brands have no login to Instroom — not in v1, not in v2. The agency manages everything on behalf of their brand clients. Brands interact with Instroom only via the public `/request-access` form to initiate a connection.
 
 ---
 
@@ -67,9 +61,14 @@ Campaign managers get a real-time dashboard, and analytics at wrap-up — withou
 
 - The **marketing agency** is the super admin — they manage all brand workspaces
 - Each **brand client** = one isolated workspace with its own campaigns, influencers, EMV config, and Google Drive folder
-- **Workspace creation is agency-triggered:** The agency generates a unique onboarding link per brand. The workspace is auto-created when the brand admin clicks the link and accepts (`/onboard/[token]`). Brands never create workspaces manually
-- Role system within each workspace: `owner` / `admin` / `editor` / `viewer`
-- Brand admins can invite their own team members via workspace settings (Flow 6)
+- **Workspace creation flow:**
+  1. Brand submits a connection request via the public `/request-access` form (no login required)
+  2. Agency reviews the request in their dashboard (pending requests list)
+  3. Agency approves → workspace is auto-created from the request data
+  4. Agency rejects → brand is notified (email), request is closed
+- **Brands never log in to Instroom.** There is no brand-facing portal, viewer role, or read-only access — now or in future versions
+- Role system within each workspace applies to **agency staff only**: `owner` / `admin` / `editor` / `viewer`
+- Agency staff can be invited to workspaces via workspace settings (Flow 6)
 - Workspace switching from the sidebar without a full page reload
 
 ### 4.2 Campaigns
@@ -113,8 +112,8 @@ Pipeline on every inbound webhook event:
 - Toggle lives on `campaign_influencers.usage_rights` (default: `false`)
 - Toggling **OFF**: future posts for this influencer in this campaign will be blocked
 - Toggling **ON**: only *new* incoming posts will be downloaded — previously blocked posts remain blocked
-  - This is intentional (see D-004 in DECISIONS.md) — usage rights must be confirmed before campaign launch
-  - Manual retry is available on the posts table (future feature)
+  - This is intentional (see D-004 in DECISIONS.md)
+  - Manual retry is available on the posts table (v2 feature)
 
 ### 4.7 Analytics
 
@@ -132,9 +131,12 @@ Pipeline on every inbound webhook event:
 
 ### 4.9 Google Drive Integration
 
-- Service account (not per-user OAuth) — one account per Instroom instance
+- **Flexible model** — Drive connection is configured per workspace at setup time:
+  - **Agency Drive:** Agency connects their own Google account via OAuth. All brand folders live under the agency's Drive
+  - **Brand Drive:** Agency connects the brand's Google account via OAuth on behalf of the brand. Folders live in the brand's Drive
+- Drive connection is set during workspace setup (post-approval) and can be changed in workspace settings
+- `drive_connection_type` stored per workspace: `agency` or `brand`
 - Folder structure is auto-created on first upload per path
-- Root folder per workspace, campaign and influencer subfolders auto-created
 - `drive_folder_path` stored on each post for direct linking
 
 ---
@@ -146,9 +148,9 @@ Pipeline on every inbound webhook event:
 | `/` | Marketing landing page (SSG) | No |
 | `/login` | Email + password sign-in | No |
 | `/signup` | Account creation | No |
-| `/onboard/[token]` | Brand onboarding acceptance (PRODUCTION — auto-creates workspace) | Optional (auth gate inside page) |
-| `/onboarding` | Manual workspace creation (DEV ONLY — disable in production) | Yes (no workspace yet) |
-| `/invite/[token]` | Team member invitation acceptance | Optional |
+| `/request-access` | Public brand connection request form | No |
+| `/onboarding` | Manual workspace creation (DEV ONLY — disable in production) | Yes |
+| `/invite/[token]` | Agency staff invitation acceptance | Optional |
 | `/[slug]/overview` | Dashboard overview | Yes |
 | `/[slug]/campaigns` | Campaign list | Yes |
 | `/[slug]/campaigns/[id]` | Campaign detail | Yes |
@@ -156,25 +158,35 @@ Pipeline on every inbound webhook event:
 | `/[slug]/posts` | All posts across campaigns | Yes |
 | `/[slug]/analytics` | Analytics charts | Yes |
 | `/[slug]/settings` | Workspace settings + members | Yes |
+| `/agency/requests` | Pending brand connection requests (agency only) | Yes |
+
+> **Removed:** `/onboard/[token]` — no longer needed. Brand onboarding is replaced by the `/request-access` public form + agency approval flow.
 
 ---
 
-## 6. Out of Scope for v1
+## 6. Out of Scope — All Versions
 
+- **Brand login of any kind** — brands never access Instroom directly, not in v1, not in v2
+- Brand viewer role or read-only portal
 - Direct Instagram/TikTok/YouTube API (Ensemble handles all social access)
 - Influencer discovery / prospecting
 - Contract management
 - Payment / invoice tracking
 - PDF or Excel export of analytics
-- Public-facing client portal (clients get viewer access via workspace invite)
-- Mobile-responsive layout (minimum supported width: 1024px)
 - Bulk influencer import via CSV
 - Retroactive download of previously blocked posts (manual retry is v2)
 - Email notifications for new posts detected
+- Token regeneration for expired brand invitations
+
+## 7. Out of Scope for v1 Only
+
+- Mobile-responsive layout (minimum supported width: 1024px)
+- Email sending for brand request approval/rejection notifications (v1: agency manually notifies brand)
+- Automated email for staff invitations (v1: invitation link copied manually)
 
 ---
 
-## 7. Success Metrics
+## 8. Success Metrics
 
 | Metric | Target |
 |--------|--------|
@@ -183,16 +195,3 @@ Pipeline on every inbound webhook event:
 | Download success rate | 100% for posts with usage rights |
 | Analytics dashboard load | < 2 seconds |
 | Zero missed downloads | For all influencers with `usage_rights = true` |
-
----
-
-## 8. Non-Functional Requirements
-
-| Requirement | Detail |
-|-------------|--------|
-| **Security** | RLS on all tables; service role key never exposed to client; HMAC webhook verification |
-| **Reliability** | pg_cron for scheduled jobs; retry queue with 3× backoff for failed downloads |
-| **Performance** | Parallel Supabase queries in Server Components; indexes on all FK + filter columns |
-| **Scalability** | Multi-tenant from day one; no shared state between workspaces at application layer |
-| **Observability** | Supabase logs + Vercel logs for v1; structured error returns from all Server Actions |
-| **Data integrity** | Frozen metrics; `emv_cpm_used` stored per post; campaign date constraints enforced at DB level |
