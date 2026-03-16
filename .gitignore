@@ -35,6 +35,9 @@ yarn-error.log*
 # local tools
 .playwright-mcp/
 
+# supabase local cli state
+supabase/.temp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
