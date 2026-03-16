@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -54,9 +55,11 @@ export function WorkspaceSwitcher({
       >
         {/* Workspace avatar — square with rounded corners (Shopify-style) */}
         {currentWorkspace.logo_url ? (
-          <img
+          <Image
             src={currentWorkspace.logo_url}
             alt={currentWorkspace.name}
+            width={align === 'left' ? 36 : 28}
+            height={align === 'left' ? 36 : 28}
             className={cn(
               'flex-shrink-0 rounded-lg object-cover',
               align === 'left' ? 'h-9 w-9 rounded-xl' : 'h-7 w-7'

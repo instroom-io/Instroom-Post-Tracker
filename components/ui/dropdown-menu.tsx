@@ -55,6 +55,7 @@ export function DropdownMenu({ children, open: controlledOpen, onOpenChange }: D
       document.addEventListener('mousedown', handleClickOutside)
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   return (
