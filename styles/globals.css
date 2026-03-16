@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Backgrounds */
+    --background: 150 20% 97%;          /* #F7F9F8 — app canvas */
+    --background-surface: 0 0% 100%;    /* #FFFFFF — cards, panels */
+    --background-muted: 150 10% 95%;    /* #F0F2F1 — table hover, input fill */
+    --background-overlay: 150 68% 24%;  /* #0F6B3E — sidebar deep green */
+
+    /* Foregrounds */
+    --foreground: 0 0% 12%;             /* #1E1E1E — primary body text */
+    --foreground-light: 30 2% 26%;      /* #444441 — secondary labels */
+    --foreground-lighter: 160 4% 61%;   /* #9CA3A0 — captions, hints */
+    --foreground-muted: 155 12% 81%;    /* #C8D4CF — placeholders, disabled */
+
+    /* Borders */
+    --border: 150 8% 89%;               /* #E2E5E3 — card borders, dividers */
+    --border-strong: 155 8% 71%;        /* #B4BDB8 — input focus, active */
+
+    /* Brand */
+    --brand: 145 72% 40%;               /* #1FAE5B — primary CTAs, toggles */
+    --brand-muted: 145 60% 93%;         /* #E2F5EB — active nav background */
+    --brand-dark: 150 68% 24%;          /* #0F6B3E — sidebar, authority headings */
+
+    /* Semantic */
+    --warning: 40 90% 60%;              /* #F4B740 — usage rights off, alerts */
+    --warning-muted: 40 100% 97%;       /* #FEF8EC — warning backgrounds */
+    --info: 205 63% 48%;                /* #2C8EC4 — links */
+    --destructive: 1 75% 59%;           /* #E24B4A — errors, delete */
+    --destructive-muted: 1 90% 97%;     /* #FEECEC — error backgrounds */
+
+    /* Platform — brand colors for Instagram, TikTok, YouTube badges & charts */
+    --platform-instagram: 271 91% 65%;        /* #A855F7 */
+    --platform-instagram-muted: 271 91% 95%;  /* light tint for badge bg */
+    --platform-tiktok: 217 91% 60%;           /* #3B82F6 */
+    --platform-tiktok-muted: 217 91% 95%;
+    --platform-youtube: 0 84% 60%;            /* #EF4444 */
+    --platform-youtube-muted: 0 84% 95%;
+
+    /* Info muted — for info badge background (--info token already exists) */
+    --info-muted: 205 63% 95%;
+  }
+
+  .dark {
+    /* Backgrounds */
+    --background: 150 15% 8%;
+    --background-surface: 150 12% 11%;
+    --background-muted: 150 10% 15%;
+    --background-overlay: 150 68% 18%;
+
+    /* Foregrounds */
+    --foreground: 150 5% 95%;
+    --foreground-light: 150 4% 75%;
+    --foreground-lighter: 150 4% 55%;
+    --foreground-muted: 150 4% 35%;
+
+    /* Borders */
+    --border: 150 8% 18%;
+    --border-strong: 150 8% 28%;
+
+    /* Brand — unchanged in dark mode */
+    --brand: 145 72% 40%;
+    --brand-muted: 145 60% 12%;
+    --brand-dark: 150 68% 24%;
+
+    /* Semantic */
+    --warning: 40 90% 60%;
+    --warning-muted: 40 60% 12%;
+    --info: 205 63% 55%;
+    --destructive: 1 75% 59%;
+    --destructive-muted: 1 60% 12%;
+
+    /* Platform — dark mode tints */
+    --platform-instagram-muted: 271 91% 10%;
+    --platform-tiktok-muted: 217 91% 10%;
+    --platform-youtube-muted: 0 84% 10%;
+    --info-muted: 205 63% 10%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
