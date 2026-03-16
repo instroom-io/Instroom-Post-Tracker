@@ -34,7 +34,7 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       .eq('workspace_id', workspaceId),
   ])
 
-  const totalEmv = (emvData ?? []).reduce((sum, m) => sum + (m.emv ?? 0), 0)
+  const totalEmv = (emvData ?? []).reduce((sum, m) => sum + Number(m.emv ?? 0), 0)
 
   const stats = [
     {

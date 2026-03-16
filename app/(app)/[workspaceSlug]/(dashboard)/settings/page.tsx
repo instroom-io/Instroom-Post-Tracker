@@ -30,7 +30,7 @@ export default async function SettingsPage({ params }: PageProps) {
     await Promise.all([
       supabase
         .from('workspace_members')
-        .select('id, user_id, role, user:users(full_name, email)')
+        .select('id, user_id, role, user:users!workspace_members_user_id_fkey(full_name, email)')
         .eq('workspace_id', workspace.id)
         .order('joined_at'),
       supabase

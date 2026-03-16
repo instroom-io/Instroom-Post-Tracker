@@ -25,14 +25,14 @@ interface ScrapeResult {
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Returns true if caption matches any hashtag or mention in the config.
- *  Returns true unconditionally if both arrays are empty (no filter configured). */
+ *  Returns false if no filter is configured — tracking config is required. */
 function matchesTrackingConfig(
   caption: string | null,
   hashtags: string[],
   mentions: string[]
 ): boolean {
-  // No filter configured — include all posts from this influencer
-  if (hashtags.length === 0 && mentions.length === 0) return true
+  // No filter configured — skip posts (tracking config is required)
+  if (hashtags.length === 0 && mentions.length === 0) return false
   if (!caption) return false
   const lower = caption.toLowerCase()
   return (
@@ -175,7 +175,12 @@ async function scrapeTikTok(handle: string, depth = 1): Promise<ScrapeResult> {
     const postedAt = new Date(createTime * 1000).toISOString()
 
     const video = p.video as Record<string, unknown> | undefined
-    const cover = (video?.dynamic_cover ?? video?.cover) as string | null ?? null
+    const rawCover = video?.dynamic_cover ?? video?.cover
+    const cover = typeof rawCover === 'string'
+      ? rawCover
+      : (rawCover as Record<string, unknown> | undefined)?.url_list
+        ? ((rawCover as Record<string, unknown>).url_list as string[])[0] ?? null
+        : null
 
     const authorHandle = (p.author as Record<string, unknown> | undefined)?.unique_id as string | undefined
     const shareUrl = p.share_url as string | undefined
@@ -346,7 +351,7 @@ export async function GET(request: NextRequest) {
         if (platform === 'instagram') {
           result = await scrapeInstagram(handle, influencer.instagram_user_id)
         } else if (platform === 'tiktok') {
-          result = await scrapeTikTok(handle, row.monitoring_status === 'pending' ? 20 : 1)
+          result = await scrapeTikTok(handle, row.monitoring_status === 'pending' ? 30 : 1)
         } else if (platform === 'youtube') {
           result = await scrapeYouTube(handle, influencer.youtube_channel_id)
         }

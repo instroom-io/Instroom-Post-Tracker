@@ -75,7 +75,12 @@ export default async function PostsPage({ params }: PageProps) {
     collab_status: p.collab_status,
     influencer: Array.isArray(p.influencer) ? p.influencer[0] ?? null : p.influencer,
     campaign: Array.isArray(p.campaign) ? p.campaign[0] ?? null : p.campaign,
-    metrics: Array.isArray(p.metrics) ? p.metrics[0] ?? null : p.metrics,
+    metrics: (() => {
+      const raw = Array.isArray(p.metrics) ? p.metrics[0] ?? null : p.metrics
+      if (!raw) return null
+      const m = raw as Record<string, unknown>
+      return { views: Number(m.views), engagement_rate: Number(m.engagement_rate), emv: Number(m.emv) }
+    })(),
   }))
 
   return (

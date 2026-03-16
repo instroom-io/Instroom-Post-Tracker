@@ -66,7 +66,7 @@ export function formatEMV(value: number): string {
 }
 
 export function formatPercent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`
+  return `${value.toFixed(1)}%`
 }
 
 // ─── String Utilities ─────────────────────────────────────────────────────────

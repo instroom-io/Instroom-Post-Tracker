@@ -28,9 +28,10 @@ async function fetchMetrics(
         `${ENSEMBLE_API_URL}/tt/post/info?url=${encodeURIComponent(postUrl)}&token=${ENSEMBLE_API_KEY}`
       )
       if (!res.ok) return null
-      const json = await res.json() as { data?: Record<string, unknown> }
-      const stats = json.data?.statistics as Record<string, number> | undefined
-      const author = json.data?.author as Record<string, unknown> | undefined
+      const json = await res.json() as { data?: Record<string, unknown> | Record<string, unknown>[] }
+      const item = Array.isArray(json.data) ? json.data[0] : json.data
+      const stats = item?.statistics as Record<string, number> | undefined
+      const author = item?.author as Record<string, unknown> | undefined
       if (!stats) return null
       const views = stats.play_count ?? 0
       const likes = stats.digg_count ?? 0

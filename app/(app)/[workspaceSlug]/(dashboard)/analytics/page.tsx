@@ -53,8 +53,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
           )
         `
         )
-        .gte('fetched_at', from)
-        .lte('fetched_at', to + 'T23:59:59Z'),
+        .eq('workspace_id', workspace.id),
       supabase
         .from('campaigns')
         .select('id, name')
@@ -81,9 +80,9 @@ export default async function AnalyticsPage({ params }: PageProps) {
       influencer: { full_name: string; ig_handle: string | null } | { full_name: string; ig_handle: string | null }[] | null
     } | null
     return {
-      views: m.views,
-      engagement_rate: m.engagement_rate,
-      emv: m.emv,
+      views: Number(m.views),
+      engagement_rate: Number(m.engagement_rate),
+      emv: Number(m.emv),
       post: rawPost ? {
         id: rawPost.id,
         platform: rawPost.platform as import('@/lib/types').Platform,
