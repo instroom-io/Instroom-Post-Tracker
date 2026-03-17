@@ -136,7 +136,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
                 download_status: p.download_status as import('@/lib/types').DownloadStatus,
                 collab_status: p.collab_status as import('@/lib/types').CollabStatus,
                 influencer: p.influencer as unknown as { full_name: string; ig_handle: string | null } | null,
-                metrics: p.metrics ? { views: Number((p.metrics as Record<string, unknown>).views), engagement_rate: Number((p.metrics as Record<string, unknown>).engagement_rate), emv: Number((p.metrics as Record<string, unknown>).emv) } : null,
+                metrics: p.metrics ? { views: Number((p.metrics as unknown as Record<string, unknown>).views), engagement_rate: Number((p.metrics as unknown as Record<string, unknown>).engagement_rate), emv: Number((p.metrics as unknown as Record<string, unknown>).emv) } : null,
               }))}
             />
           </div>

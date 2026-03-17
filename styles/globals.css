@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    overflow-x: hidden;
+  }
+
   :root {
     /* Backgrounds */
     --background: 150 20% 97%;          /* #F7F9F8 — app canvas */
