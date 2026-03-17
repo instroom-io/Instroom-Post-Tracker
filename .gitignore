@@ -41,3 +41,8 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# E2E test screenshots
+screenshots/
+phase*.png
+phase0*.png

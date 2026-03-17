@@ -23,9 +23,14 @@ async function fetchFreshMediaUrl(
         `${ENSEMBLE_API_URL}/tt/post/info?url=${encodeURIComponent(postUrl)}&token=${ENSEMBLE_API_KEY}`
       )
       if (!res.ok) return null
-      const json = await res.json() as { data?: Record<string, unknown> }
-      const video = json.data?.video as Record<string, unknown> | undefined
-      return (video?.download_addr ?? video?.play_addr_h264) as string | null ?? null
+      const json = await res.json() as { data?: unknown }
+      // /tt/post/info returns data as array — take first element
+      const item = (Array.isArray(json.data) ? json.data[0] : json.data) as Record<string, unknown> | undefined
+      const video = item?.video as Record<string, unknown> | undefined
+      // download_addr and play_addr_h264 are objects with url_list arrays, not direct strings
+      const addrObj = (video?.download_addr ?? video?.play_addr_h264) as Record<string, unknown> | undefined
+      const urlList = addrObj?.url_list as string[] | undefined
+      return urlList?.[0] ?? null
     }
 
     if (platform === 'instagram') {

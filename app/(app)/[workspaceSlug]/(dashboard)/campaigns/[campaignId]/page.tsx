@@ -8,6 +8,7 @@ import { CampaignInfluencersList } from '@/components/campaigns/campaign-influen
 import { CampaignPostsTable } from '@/components/campaigns/campaign-posts-table'
 import { formatDateRange } from '@/lib/utils'
 import { updateCampaign } from '@/lib/actions/campaigns'
+import { AddInfluencerToCampaignDialog } from '@/components/campaigns/add-influencer-to-campaign-dialog'
 import type { WorkspaceRole, CampaignStatus, Platform } from '@/lib/types'
 
 interface PageProps {
@@ -51,6 +52,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     { data: trackingConfigs },
     { data: influencers },
     { data: posts },
+    { data: workspaceInfluencers },
   ] = await Promise.all([
     supabase
       .from('campaigns')
@@ -75,6 +77,10 @@ export default async function CampaignDetailPage({ params }: PageProps) {
       )
       .eq('campaign_id', campaignId)
       .order('posted_at', { ascending: false }),
+    supabase
+      .from('influencers')
+      .select('id, full_name, ig_handle, tiktok_handle')
+      .eq('workspace_id', workspace.id),
   ])
 
   if (!campaign) redirect(`/${workspaceSlug}/campaigns`)
@@ -146,10 +152,25 @@ export default async function CampaignDetailPage({ params }: PageProps) {
         <div className="space-y-5">
           {/* Influencers */}
           <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-            <div className="border-b border-border px-5 py-3.5">
+            <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
               <h2 className="font-display text-[15px] font-bold text-foreground">
                 Influencers
               </h2>
+              {canEdit && (() => {
+                const campaignInfluencerIds = new Set(
+                  (influencers ?? []).map((i) => (i.influencer as unknown as { id: string })?.id)
+                )
+                const available = (workspaceInfluencers ?? []).filter(
+                  (inf) => !campaignInfluencerIds.has(inf.id)
+                )
+                return (
+                  <AddInfluencerToCampaignDialog
+                    workspaceId={workspace.id}
+                    campaignId={campaignId}
+                    availableInfluencers={available}
+                  />
+                )
+              })()}
             </div>
             <CampaignInfluencersList
               items={(influencers ?? []).map((item) => ({

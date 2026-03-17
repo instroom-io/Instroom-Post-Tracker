@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -59,6 +59,14 @@ export function AppShell({
 }: AppShellProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+
+  // Auto-collapse sidebar on small screens
+  useEffect(() => {
+    const checkWidth = () => setCollapsed(window.innerWidth < 1024)
+    checkWidth()
+    window.addEventListener('resize', checkWidth)
+    return () => window.removeEventListener('resize', checkWidth)
+  }, [])
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

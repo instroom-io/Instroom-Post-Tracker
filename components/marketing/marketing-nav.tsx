@@ -96,6 +96,13 @@ export function MarketingNav() {
                   {link.label}
                 </a>
               ))}
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="text-foreground-light text-lg font-medium"
+              >
+                Sign in
+              </Link>
               <button
                 onClick={() => { setMobileOpen(false); setOpen(true) }}
                 className="bg-brand text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-brand/90 transition-all mt-4"

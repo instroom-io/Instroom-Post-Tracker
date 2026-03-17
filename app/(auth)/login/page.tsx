@@ -7,7 +7,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex justify-center">
-            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={180} height={40} className="brightness-0 dark:invert" />
+            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={180} height={40} className="brightness-0 dark:invert" priority />
           </div>
           <h1 className="font-display text-[22px] font-extrabold text-foreground">
             Welcome back
