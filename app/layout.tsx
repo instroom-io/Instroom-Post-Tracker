@@ -17,7 +17,7 @@ const manrope = Manrope({
 })
 
 export const metadata: Metadata = {
-  title: 'Instroom',
+  title: 'Instroom Post Tracker',
   description: 'Simplify your influencer marketing workflow',
   icons: {
     icon: [
