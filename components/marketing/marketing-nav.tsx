@@ -33,13 +33,13 @@ export function MarketingNav() {
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-[#091810]/80 backdrop-blur-md border-b border-brand/10' : 'bg-transparent'
+        scrolled ? 'bg-background/80 backdrop-blur-md border-b border-border' : 'bg-transparent'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         {/* Wordmark */}
         <Link href="/">
-          <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-8 w-auto" />
+          <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-12 w-auto" />
         </Link>
 
         {/* Desktop nav links */}
@@ -49,7 +49,7 @@ export function MarketingNav() {
               key={link.href}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className="text-white/60 hover:text-brand text-sm font-medium transition-colors"
+              className="text-foreground-lighter hover:text-brand text-sm font-medium transition-colors"
             >
               {link.label}
             </a>
@@ -58,10 +58,10 @@ export function MarketingNav() {
 
         {/* Desktop actions */}
         <div className="hidden lg:flex items-center gap-4">
-          <Link href="/login" className="text-white/60 hover:text-white text-sm transition-colors">Sign in</Link>
+          <Link href="/login" className="text-foreground-lighter hover:text-foreground text-sm transition-colors">Sign in</Link>
           <button
             onClick={() => setOpen(true)}
-            className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand/90 hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
+            className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
           >
             Contact Us
           </button>
@@ -69,7 +69,7 @@ export function MarketingNav() {
 
         {/* Mobile hamburger */}
         <button className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-          <Menu size={20} className="text-white/70" />
+          <Menu size={20} className="text-foreground-lighter" />
         </button>
       </div>
 
@@ -80,10 +80,10 @@ export function MarketingNav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-[#091810]/95 backdrop-blur-xl pt-20"
+            className="fixed inset-0 z-40 bg-background/95 backdrop-blur-xl pt-20"
           >
             <button className="absolute top-5 right-6" onClick={() => setMobileOpen(false)} aria-label="Close menu">
-              <X size={20} className="text-white/70" />
+              <X size={20} className="text-foreground-lighter" />
             </button>
             <div className="flex flex-col items-center gap-6">
               {navLinks.map((link) => (
@@ -91,7 +91,7 @@ export function MarketingNav() {
                   key={link.href}
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className="text-white/80 text-lg font-medium"
+                  className="text-foreground-light text-lg font-medium"
                 >
                   {link.label}
                 </a>

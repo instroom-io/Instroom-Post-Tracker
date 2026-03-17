@@ -38,15 +38,15 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-brand/20 rounded-[16px] shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
+    <div className="marketing-card rounded-[16px] overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-5 text-left"
         aria-expanded={isOpen}
       >
-        <span className="font-display text-sm font-semibold text-white pr-4">{question}</span>
+        <span className="font-display text-sm font-semibold text-foreground pr-4">{question}</span>
         <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={16} className="text-white/40 shrink-0" />
+          <ChevronDown size={16} className="text-foreground-muted shrink-0" />
         </motion.span>
       </button>
 
@@ -60,7 +60,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 pt-0">
-              <p className="text-white/50 text-sm leading-relaxed">{answer}</p>
+              <p className="text-foreground-lighter text-sm leading-relaxed">{answer}</p>
             </div>
           </motion.div>
         )}
@@ -75,7 +75,7 @@ export function FaqSection() {
       <div className="mx-auto max-w-3xl px-6">
         <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-white">Common questions</h2>
+            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">Common questions</h2>
           </motion.div>
 
           <div className="space-y-4">

@@ -2,17 +2,21 @@
 
 import { motion, useScroll, useTransform, useMotionValue, animate } from 'framer-motion'
 import { useRef, useEffect } from 'react'
+import { useTheme } from 'next-themes'
 
 const TAIL_DURATION = 0.3        // seconds before end to enter slow-motion drift
 const SEEK_THRESHOLD = 0.05      // seek back when this close to the true end
 const TAIL_PLAYBACK_RATE = 0.2   // 20% speed — slightly faster slow-mo
 
 export function HeroVideo() {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+
   const ref = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isInTailMode = useRef(false)
   const wasVisible = useRef(true) // true = section was visible on mount; prevents instant replay trigger
-  const opacity = useMotionValue(0.7)
+  const opacity = useMotionValue(isDark ? 0.7 : 0.9)
 
   const { scrollYProgress } = useScroll({ target: ref })
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '20%'])
@@ -75,7 +79,7 @@ export function HeroVideo() {
               video.playbackRate = 1.0
               video.currentTime = 0
               video.play().catch(() => {})
-              animate(opacity, 0.7, { duration: 0.6 })
+              animate(opacity, isDark ? 0.7 : 0.9, { duration: 0.6 })
             }
             wasVisible.current = true
           } else {
@@ -101,7 +105,7 @@ export function HeroVideo() {
         className="absolute inset-0"
         style={{
           opacity,
-          filter: 'saturate(1.1) brightness(0.75)',
+          filter: isDark ? 'saturate(1.1) brightness(0.75)' : 'saturate(1.05)',
           WebkitMaskImage:
             'radial-gradient(ellipse 70% 90% at 68% 50%, black 25%, transparent 72%)',
           maskImage:
@@ -120,11 +124,27 @@ export function HeroVideo() {
         </video>
       </motion.div>
 
-      {/* Left-side dark vignette — keeps text area clean */}
+      {/* Left-side vignette — keeps text area clean */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to right, #091810 25%, transparent 40%)',
+          background: 'linear-gradient(to right, var(--marketing-vignette-start) 25%, transparent 40%)',
+        }}
+      />
+
+      {/* Right-side vignette — hides right video edge */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to left, var(--marketing-vignette-start) 0%, transparent 30%)',
+        }}
+      />
+
+      {/* Top vignette — hides top video edge */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to bottom, var(--marketing-vignette-start) 0%, transparent 25%)',
         }}
       />
     </motion.div>

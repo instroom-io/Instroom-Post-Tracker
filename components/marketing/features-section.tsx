@@ -71,10 +71,10 @@ export function FeaturesSection() {
           viewport={{ once: true, amount: 0.2 }}
         >
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-white">
+            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">
               Everything your agency needs to run influencer at scale
             </h2>
-            <p className="text-white/50 text-lg mt-4 max-w-2xl mx-auto">
+            <p className="text-foreground-lighter text-lg mt-4 max-w-2xl mx-auto">
               Six core capabilities that replace your spreadsheets, manual downloads, and guesswork.
             </p>
           </motion.div>
@@ -84,15 +84,15 @@ export function FeaturesSection() {
               <motion.div
                 key={feature.title}
                 variants={itemVariants}
-                className="bg-white/5 backdrop-blur-xl border border-brand/20 rounded-[20px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-brand/50 hover:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_40px_rgba(31,174,91,0.12),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300"
+                className="marketing-card marketing-card-hover p-6"
               >
-                <div className="bg-brand/10 rounded-xl p-3 w-12 h-12 flex items-center justify-center mb-4">
+                <div className="bg-brand-muted rounded-xl p-3 w-12 h-12 flex items-center justify-center mb-4">
                   <feature.icon size={22} className="text-brand" />
                 </div>
-                <h3 className="font-display text-base font-bold text-white mb-2">
+                <h3 className="font-display text-base font-bold text-foreground mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-white/50 text-sm leading-relaxed">
+                <p className="text-foreground-lighter text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>

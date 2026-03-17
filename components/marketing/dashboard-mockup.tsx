@@ -25,7 +25,7 @@ const sidebarItems = [
 
 export function DashboardMockup() {
   return (
-    <div style={{ perspective: 1200 }}>
+    <div className="dark" style={{ perspective: 1200 }}>
       <motion.div
         style={{ rotateX: 12, rotateY: -8 }}
         animate={{ y: [0, -8, 0] }}

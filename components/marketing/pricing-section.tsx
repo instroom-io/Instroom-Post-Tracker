@@ -78,10 +78,10 @@ export function PricingSection() {
           viewport={{ once: true, amount: 0.2 }}
         >
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-white">
+            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">
               Simple pricing for agencies of every size
             </h2>
-            <p className="text-white/50 text-lg mt-4">
+            <p className="text-foreground-lighter text-lg mt-4">
               Indicative pricing — contact us for a custom quote.
             </p>
           </motion.div>
@@ -92,10 +92,10 @@ export function PricingSection() {
                 key={tier.name}
                 variants={itemVariants}
                 className={cn(
-                  'bg-white/5 backdrop-blur-xl border rounded-[20px] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)] relative',
+                  'marketing-card relative p-8',
                   tier.popular
-                    ? 'border-brand/50 lg:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_60px_rgba(31,174,91,0.15),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                    : 'border-brand/20'
+                    ? 'border-brand/50 lg:scale-105 dark:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_60px_rgba(31,174,91,0.15),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : ''
                 )}
               >
                 {tier.popular && (
@@ -104,11 +104,11 @@ export function PricingSection() {
                   </span>
                 )}
 
-                <h3 className="font-display text-lg font-bold text-white">{tier.name}</h3>
+                <h3 className="font-display text-lg font-bold text-foreground">{tier.name}</h3>
                 <div className="mt-4 mb-6">
-                  <span className="font-display text-4xl font-bold text-white">{tier.price}</span>
+                  <span className="font-display text-4xl font-bold text-foreground">{tier.price}</span>
                   {tier.period && (
-                    <span className="text-white/40 text-sm ml-1">{tier.period}</span>
+                    <span className="text-foreground-lighter text-sm ml-1">{tier.period}</span>
                   )}
                 </div>
 
@@ -116,7 +116,7 @@ export function PricingSection() {
                   {tier.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <Check size={14} className="text-brand mt-0.5 shrink-0" />
-                      <span className="text-white/60 text-sm">{f}</span>
+                      <span className="text-foreground-light text-sm">{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -124,7 +124,7 @@ export function PricingSection() {
                 {tier.contactCta ? (
                   <button
                     onClick={() => setOpen(true)}
-                    className="w-full bg-white/10 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-white/20 transition-all"
+                    className="w-full bg-background-muted text-foreground py-2.5 rounded-lg text-sm font-semibold hover:bg-border transition-all dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                   >
                     Contact Us
                   </button>
@@ -134,8 +134,8 @@ export function PricingSection() {
                     className={cn(
                       'w-full py-2.5 rounded-lg text-sm font-semibold transition-all',
                       tier.popular
-                        ? 'bg-brand text-white hover:bg-brand/90 hover:shadow-[0_0_20px_rgba(31,174,91,0.4)]'
-                        : 'bg-white/10 text-white hover:bg-white/20'
+                        ? 'bg-brand text-white hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)]'
+                        : 'bg-background-muted text-foreground hover:bg-border dark:bg-white/10 dark:text-white dark:hover:bg-white/20'
                     )}
                   >
                     Get Started
@@ -145,7 +145,7 @@ export function PricingSection() {
             ))}
           </div>
 
-          <p className="text-center text-white/40 text-sm mt-8">
+          <p className="text-center text-foreground-lighter text-sm mt-8">
             Managing 50+ brand clients?{' '}
             <button onClick={() => setOpen(true)} className="text-brand hover:underline">
               Contact our team

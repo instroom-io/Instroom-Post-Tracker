@@ -10,7 +10,7 @@ import { useMarketingContact } from '@/components/marketing/marketing-contact-pr
 
 type FormState = 'idle' | 'submitting' | 'success'
 
-const inputClassName = 'bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-brand focus:ring-brand/20'
+const inputClassName = 'bg-background-muted border-border text-foreground placeholder:text-foreground-muted focus:border-brand focus:ring-brand/20 dark:bg-white/5 dark:border-white/10'
 
 export function ContactModal() {
   const { open, setOpen } = useMarketingContact()
@@ -39,46 +39,46 @@ export function ContactModal() {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent size="sm" className="bg-[#091810] border-brand/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+      <DialogContent size="sm" className="bg-background border-border dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
         {formState === 'success' ? (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand/20">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-muted">
               <Check className="h-6 w-6 text-brand" />
             </div>
-            <p className="text-white/70 text-sm">We&apos;ll be in touch shortly.</p>
-            <Button variant="ghost" className="text-white/60 hover:text-white hover:bg-white/5" onClick={() => handleClose(false)}>
+            <p className="text-foreground-light text-sm">We&apos;ll be in touch shortly.</p>
+            <Button variant="ghost" className="text-foreground-lighter hover:text-foreground hover:bg-background-muted dark:hover:bg-white/5" onClick={() => handleClose(false)}>
               Close
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <DialogHeader className="border-white/10">
-              <DialogTitle className="text-white">Get in touch</DialogTitle>
-              <DialogDescription className="text-white/50">Tell us about your agency and we&apos;ll reach out.</DialogDescription>
+            <DialogHeader className="border-border">
+              <DialogTitle className="text-foreground">Get in touch</DialogTitle>
+              <DialogDescription className="text-foreground-lighter">Tell us about your agency and we&apos;ll reach out.</DialogDescription>
             </DialogHeader>
             <DialogBody className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-white/70">Name</label>
+                <label className="text-[12px] font-medium text-foreground-light">Name</label>
                 <Input value={name} onChange={(e) => setName(e.target.value)} required className={inputClassName} />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-white/70">Company</label>
+                <label className="text-[12px] font-medium text-foreground-light">Company</label>
                 <Input value={company} onChange={(e) => setCompany(e.target.value)} required className={inputClassName} />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-white/70">Email</label>
+                <label className="text-[12px] font-medium text-foreground-light">Email</label>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClassName} />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-white/70">Message</label>
+                <label className="text-[12px] font-medium text-foreground-light">Message</label>
                 <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Tell us about your agency..." className={inputClassName} />
               </div>
             </DialogBody>
-            <DialogFooter className="border-white/10">
-              <Button type="button" variant="ghost" className="text-white/60 hover:text-white hover:bg-white/5" onClick={() => handleClose(false)}>
+            <DialogFooter className="border-border">
+              <Button type="button" variant="ghost" className="text-foreground-lighter hover:text-foreground hover:bg-background-muted dark:hover:bg-white/5" onClick={() => handleClose(false)}>
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" loading={formState === 'submitting'} className="shadow-[0_0_20px_rgba(31,174,91,0.3)]">
+              <Button type="submit" variant="primary" loading={formState === 'submitting'} className="dark:shadow-[0_0_20px_rgba(31,174,91,0.3)]">
                 Submit
               </Button>
             </DialogFooter>

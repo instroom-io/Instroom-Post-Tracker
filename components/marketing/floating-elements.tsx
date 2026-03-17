@@ -30,7 +30,7 @@ export function PlatformOrbs() {
   return (
     <div className="hidden lg:block pointer-events-none">
       <motion.div
-        className="absolute top-[10%] right-[-8px] bg-white/5 backdrop-blur-md border border-white/10 rounded-full w-12 h-12 flex items-center justify-center"
+        className="absolute top-[10%] right-[-8px] bg-background-surface border border-border shadow-sm dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md rounded-full w-12 h-12 flex items-center justify-center"
         animate={{ y: [0, -15, 0], x: [0, 8, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       >
@@ -38,7 +38,7 @@ export function PlatformOrbs() {
       </motion.div>
 
       <motion.div
-        className="absolute bottom-[20%] right-[10%] bg-white/5 backdrop-blur-md border border-white/10 rounded-full w-12 h-12 flex items-center justify-center"
+        className="absolute bottom-[20%] right-[10%] bg-background-surface border border-border shadow-sm dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md rounded-full w-12 h-12 flex items-center justify-center"
         animate={{ y: [0, 12, 0], x: [0, -10, 0] }}
         transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
       >
@@ -46,7 +46,7 @@ export function PlatformOrbs() {
       </motion.div>
 
       <motion.div
-        className="absolute top-[50%] right-[-8px] bg-white/5 backdrop-blur-md border border-white/10 rounded-full w-12 h-12 flex items-center justify-center"
+        className="absolute top-[50%] right-[-8px] bg-background-surface border border-border shadow-sm dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md rounded-full w-12 h-12 flex items-center justify-center"
         animate={{ y: [0, -10, 0], x: [0, -6, 0] }}
         transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
       >
@@ -68,7 +68,7 @@ export function FloatingMetricBadges() {
       {badges.map((badge, i) => (
         <motion.div
           key={i}
-          className="absolute bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 text-[10px] text-white/60 font-medium"
+          className="absolute bg-background-surface border border-border shadow-sm dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md rounded-full px-3 py-1 text-[10px] text-foreground-lighter font-medium"
           style={{ top: badge.top, left: badge.left }}
           animate={{
             y: [0, -8, 0, 6, 0],

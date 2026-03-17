@@ -46,10 +46,10 @@ export function HowItWorksSection() {
           viewport={{ once: true, amount: 0.2 }}
         >
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-white">
+            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">
               From post live to performance report — without lifting a finger
             </h2>
-            <p className="text-white/50 text-lg mt-4 max-w-2xl mx-auto">
+            <p className="text-foreground-lighter text-lg mt-4 max-w-2xl mx-auto">
               Four steps. Fully automated. Your team focuses on strategy while Instroom handles the rest.
             </p>
           </motion.div>
@@ -65,14 +65,14 @@ export function HowItWorksSection() {
                   {i + 1}
                 </span>
 
-                <div className="relative bg-white/5 backdrop-blur-xl border border-brand/20 rounded-[20px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)]">
-                  <div className="bg-brand/10 rounded-full w-8 h-8 flex items-center justify-center mb-4">
+                <div className="relative marketing-card p-6">
+                  <div className="bg-brand-muted rounded-full w-8 h-8 flex items-center justify-center mb-4">
                     <span className="text-brand font-bold text-sm">{i + 1}</span>
                   </div>
-                  <h3 className="font-display text-base font-bold text-white mb-2">
+                  <h3 className="font-display text-base font-bold text-foreground mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-white/50 text-sm leading-relaxed">
+                  <p className="text-foreground-lighter text-sm leading-relaxed">
                     {step.description}
                   </p>
                 </div>

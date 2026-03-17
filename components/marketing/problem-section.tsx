@@ -35,20 +35,20 @@ export function ProblemSection() {
       <div className="mx-auto max-w-7xl px-6">
         <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-white">The old way is broken</h2>
-            <p className="text-white/50 text-lg mt-4 max-w-2xl mx-auto">
+            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">The old way is broken</h2>
+            <p className="text-foreground-lighter text-lg mt-4 max-w-2xl mx-auto">
               Agencies waste hours every week on manual post tracking, watermarked downloads, and scattered spreadsheets.
             </p>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0 bg-white/5 backdrop-blur-xl border border-brand/20 rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)] overflow-hidden">
+          <motion.div variants={itemVariants} className="marketing-card grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0 overflow-hidden">
             <div className="p-8 lg:p-10 border-b md:border-b-0 md:border-r border-destructive/10">
               <h3 className="font-display text-lg font-bold text-destructive mb-6">Without Instroom</h3>
               <ul className="space-y-4">
                 {oldWayItems.map((text) => (
                   <li key={text} className="flex items-start gap-3">
                     <X size={16} className="text-destructive mt-0.5 shrink-0" />
-                    <span className="text-white/60 text-sm">{text}</span>
+                    <span className="text-foreground-light text-sm">{text}</span>
                   </li>
                 ))}
               </ul>
@@ -60,7 +60,7 @@ export function ProblemSection() {
                 {newWayItems.map((text) => (
                   <li key={text} className="flex items-start gap-3">
                     <Check size={16} className="text-brand mt-0.5 shrink-0" />
-                    <span className="text-white/60 text-sm">{text}</span>
+                    <span className="text-foreground-light text-sm">{text}</span>
                   </li>
                 ))}
               </ul>

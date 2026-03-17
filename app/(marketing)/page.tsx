@@ -14,7 +14,7 @@ export default function MarketingPage() {
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(31,174,91,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(31,174,91,0.04) 1px, transparent 1px)',
+            'linear-gradient(var(--marketing-grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--marketing-grid-color) 1px, transparent 1px)',
           backgroundSize: '60px 60px',
         }}
       />

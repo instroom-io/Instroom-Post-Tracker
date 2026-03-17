@@ -43,7 +43,7 @@ export function TestimonialsSection() {
           viewport={{ once: true, amount: 0.2 }}
         >
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-white">
+            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">
               Trusted by agencies who&apos;ve outgrown spreadsheets
             </h2>
           </motion.div>
@@ -53,18 +53,18 @@ export function TestimonialsSection() {
               <motion.div
                 key={t.name}
                 variants={itemVariants}
-                className="bg-white/5 backdrop-blur-xl border border-brand/20 rounded-[20px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)]"
+                className="marketing-card p-6"
               >
-                <p className="text-white/70 text-sm leading-relaxed italic mb-6">
+                <p className="text-foreground-light text-sm leading-relaxed italic mb-6">
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="bg-brand/20 text-brand rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm">
+                  <div className="bg-brand-muted text-brand rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm">
                     {t.initials}
                   </div>
                   <div>
-                    <p className="text-white font-medium text-sm">{t.name}</p>
-                    <p className="text-white/40 text-xs">
+                    <p className="text-foreground font-medium text-sm">{t.name}</p>
+                    <p className="text-foreground-lighter text-xs">
                       {t.title}, {t.company}
                     </p>
                   </div>
