@@ -46,3 +46,14 @@ next-env.d.ts
 screenshots/
 phase*.png
 phase0*.png
+
+# Internal docs / prompts
+GO_LIVE_CLAUDE_CODE_PROMPT.md
+INSTRUCTIONS.md
+docs/E2E_TEST_PROMPT.md
+docs/landing-page-prompt.md
+
+# Reference screenshots (root level)
+ensemble-docs.png
+landing-*.png
+landing-*.jpeg
