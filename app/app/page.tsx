@@ -25,9 +25,5 @@ export default async function AppPage() {
     }
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    redirect('/onboarding')
-  } else {
-    redirect('/login')
-  }
+  redirect('/no-access')
 }

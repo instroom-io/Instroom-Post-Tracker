@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { useMarketingContact } from '@/components/marketing/marketing-contact-provider'
@@ -129,17 +130,17 @@ export function PricingSection() {
                     Contact Us
                   </button>
                 ) : (
-                  <button
-                    onClick={() => setOpen(true)}
+                  <Link
+                    href="/request-access"
                     className={cn(
-                      'w-full py-2.5 rounded-lg text-sm font-semibold transition-all',
+                      'block w-full py-2.5 rounded-lg text-sm font-semibold text-center transition-all',
                       tier.popular
                         ? 'bg-brand text-white hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)]'
                         : 'bg-background-muted text-foreground hover:bg-border dark:bg-white/10 dark:text-white dark:hover:bg-white/20'
                     )}
                   >
                     Get Started
-                  </button>
+                  </Link>
                 )}
               </motion.div>
             ))}

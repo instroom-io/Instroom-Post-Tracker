@@ -61,10 +61,16 @@ export function MarketingNav() {
           <Link href="/login" className="text-foreground-lighter hover:text-foreground text-sm transition-colors">Sign in</Link>
           <button
             onClick={() => setOpen(true)}
-            className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
+            className="text-foreground-lighter hover:text-foreground text-sm transition-colors"
           >
             Contact Us
           </button>
+          <Link
+            href="/request-access"
+            className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
+          >
+            Request Access
+          </Link>
         </div>
 
         {/* Mobile hamburger */}
@@ -105,10 +111,17 @@ export function MarketingNav() {
               </Link>
               <button
                 onClick={() => { setMobileOpen(false); setOpen(true) }}
-                className="bg-brand text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-brand/90 transition-all mt-4"
+                className="text-foreground-lighter text-lg font-medium"
               >
                 Contact Us
               </button>
+              <Link
+                href="/request-access"
+                onClick={() => setMobileOpen(false)}
+                className="bg-brand text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-brand/90 transition-all mt-4"
+              >
+                Request Access
+              </Link>
             </div>
           </motion.div>
         )}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { Check } from 'lucide-react'
+import { submitContactInquiry } from '@/lib/actions/contact'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +16,8 @@ const inputClassName = 'bg-background-muted border-border text-foreground placeh
 export function ContactModal() {
   const { open, setOpen } = useMarketingContact()
   const [formState, setFormState] = useState<FormState>('idle')
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [company, setCompany] = useState('')
   const [email, setEmail] = useState('')
@@ -24,6 +27,7 @@ export function ContactModal() {
     setOpen(value)
     if (!value) {
       setFormState('idle')
+      setError(null)
       setName('')
       setCompany('')
       setEmail('')
@@ -33,8 +37,15 @@ export function ContactModal() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setFormState('submitting')
-    setTimeout(() => setFormState('success'), 1500)
+    setError(null)
+    startTransition(async () => {
+      const result = await submitContactInquiry({ name, company, email, message })
+      if (result?.error) {
+        setError(result.error)
+        return
+      }
+      setFormState('success')
+    })
   }
 
   return (
@@ -75,10 +86,13 @@ export function ContactModal() {
               </div>
             </DialogBody>
             <DialogFooter className="border-border">
+              {error && (
+                <p className="text-[11px] text-destructive w-full">{error}</p>
+              )}
               <Button type="button" variant="ghost" className="text-foreground-lighter hover:text-foreground hover:bg-background-muted dark:hover:bg-white/5" onClick={() => handleClose(false)}>
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" loading={formState === 'submitting'} className="dark:shadow-[0_0_20px_rgba(31,174,91,0.3)]">
+              <Button type="submit" variant="primary" loading={isPending} className="dark:shadow-[0_0_20px_rgba(31,174,91,0.3)]">
                 Submit
               </Button>
             </DialogFooter>

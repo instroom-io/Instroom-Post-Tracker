@@ -145,3 +145,11 @@ export type UpdateInfluencerInput = z.infer<typeof updateInfluencerSchema>
 export type UpdateCollabStatusInput = z.infer<typeof updateCollabStatusSchema>
 export type UpdateEmvConfigInput = z.infer<typeof updateEmvConfigSchema>
 export type BrandRequestInput = z.infer<typeof brandRequestSchema>
+
+export const contactInquirySchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  company: z.string().min(1, 'Company is required'),
+  email: z.string().email('Invalid email address'),
+  message: z.string().optional(),
+})
+export type ContactInquiryInput = z.infer<typeof contactInquirySchema>

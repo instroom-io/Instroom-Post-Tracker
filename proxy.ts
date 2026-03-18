@@ -43,6 +43,8 @@ export async function proxy(request: NextRequest) {
     '/invite',
     '/request-access',
     '/onboarding',
+    '/no-access',
+    '/onboard',
   ]
 
   const isPublicPath =

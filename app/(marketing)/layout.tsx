@@ -1,19 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { MarketingContactProvider, useMarketingContact } from '@/components/marketing/marketing-contact-provider'
+import { MarketingContactProvider } from '@/components/marketing/marketing-contact-provider'
 import { MarketingNav } from '@/components/marketing/marketing-nav'
 import { ContactModal } from '@/components/marketing/contact-modal'
 
 function FooterCta() {
-  const { setOpen } = useMarketingContact()
   return (
-    <button
-      onClick={() => setOpen(true)}
+    <Link
+      href="/request-access"
       className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
     >
-      Contact Us
-    </button>
+      Request Access
+    </Link>
   )
 }
 

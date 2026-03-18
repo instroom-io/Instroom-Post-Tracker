@@ -9,6 +9,7 @@ import {
   inviteMemberSchema,
 } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
+import { sendEmail, escapeHtml } from '@/lib/email'
 import type { WorkspaceRole } from '@/lib/types'
 
 export async function createWorkspace(
@@ -146,13 +147,39 @@ export async function inviteMember(
     }
   }
 
-  const { error } = await supabase.from('invitations').insert({
-    workspace_id: workspaceId,
-    email: parsed.data.email,
-    role: parsed.data.role,
-  })
+  const { data: invitation, error } = await supabase
+    .from('invitations')
+    .insert({
+      workspace_id: workspaceId,
+      email: parsed.data.email,
+      role: parsed.data.role,
+    })
+    .select('token')
+    .single()
 
-  if (error) return { error: 'Failed to send invitation.' }
+  if (error || !invitation) return { error: 'Failed to send invitation.' }
+
+  // Send invite email (fire-and-forget)
+  // invitations.token is DB-generated; SELECT policy is using(true) so read-back is permitted.
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('name')
+    .eq('id', workspaceId)
+    .single()
+
+  try {
+    await sendEmail({
+      to: parsed.data.email,
+      subject: `You've been invited to ${escapeHtml(workspace?.name ?? 'a workspace')} on Instroom Post Tracker`,
+      html: `
+        <p>You've been invited to join <strong>${escapeHtml(workspace?.name ?? 'a workspace')}</strong> on Instroom Post Tracker as a <strong>${escapeHtml(parsed.data.role)}</strong>.</p>
+        <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}">Accept invitation →</a></p>
+        <p>This link expires in 7 days.</p>
+      `,
+    })
+  } catch (err) {
+    console.error('[email] Failed to send team member invite email:', err)
+  }
 
   revalidatePath('/', 'layout')
 }

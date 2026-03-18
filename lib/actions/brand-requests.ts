@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { brandRequestSchema } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
+import { sendEmail, escapeHtml } from '@/lib/email'
 import type { BrandRequest, BrandRequestStatus } from '@/lib/types'
 
 /**
@@ -29,6 +30,29 @@ export async function submitBrandRequest(
   })
 
   if (error) return { error: 'Failed to submit request. Please try again.' }
+
+  // Notify agency of new brand request (fire-and-forget)
+  if (process.env.AGENCY_NOTIFICATION_EMAIL) {
+    try {
+      await sendEmail({
+        to: process.env.AGENCY_NOTIFICATION_EMAIL,
+        subject: `New brand request: ${escapeHtml(parsed.data.brand_name)}`,
+        html: `
+          <p>A new brand has requested access to Instroom Post Tracker.</p>
+          <table cellpadding="6" cellspacing="0">
+            <tr><td><strong>Brand:</strong></td><td>${escapeHtml(parsed.data.brand_name)}</td></tr>
+            <tr><td><strong>Website:</strong></td><td>${escapeHtml(parsed.data.website_url)}</td></tr>
+            <tr><td><strong>Contact:</strong></td><td>${escapeHtml(parsed.data.contact_name)}</td></tr>
+            <tr><td><strong>Email:</strong></td><td>${escapeHtml(parsed.data.contact_email)}</td></tr>
+            ${parsed.data.description ? `<tr><td><strong>Notes:</strong></td><td>${escapeHtml(parsed.data.description)}</td></tr>` : ''}
+          </table>
+          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/agency/requests">Review request →</a></p>
+        `,
+      })
+    } catch (err) {
+      console.error('[email] Failed to send brand request notification:', err)
+    }
+  }
 
   return { success: true }
 }
@@ -98,6 +122,39 @@ export async function approveBrandRequest(
   await serviceClient.rpc('seed_workspace_defaults', {
     p_workspace_id: workspace.id,
   })
+
+  // 5b. Generate onboarding confirmation token and email brand contact
+  const { randomBytes } = await import('crypto')
+  const onboardToken = randomBytes(32).toString('hex')
+  const onboardTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { error: tokenError } = await serviceClient
+    .from('brand_requests')
+    .update({
+      onboard_token: onboardToken,
+      onboard_token_expires_at: onboardTokenExpiresAt,
+    })
+    .eq('id', requestId)
+
+  if (tokenError) {
+    console.error('[onboard] Failed to store onboard token:', tokenError)
+  } else {
+    try {
+      await sendEmail({
+        to: request.contact_email,
+        subject: `Your brand has been approved — ${escapeHtml(request.brand_name)}`,
+        html: `
+          <p>Hi ${escapeHtml(request.contact_name)},</p>
+          <p>Your brand <strong>${escapeHtml(request.brand_name)}</strong> has been approved and your influencer marketing tracking is now active.</p>
+          <p>Please confirm your onboarding by clicking the link below:</p>
+          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/onboard/${onboardToken}">Confirm your onboarding →</a></p>
+          <p>This link expires in 30 days.</p>
+        `,
+      })
+    } catch (err) {
+      console.error('[email] Failed to send brand approval email:', err)
+    }
+  }
 
   // 6. Mark request as approved
   await serviceClient

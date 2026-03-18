@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { randomBytes } from 'crypto'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { createBrandSchema } from '@/lib/validations'
@@ -111,4 +112,37 @@ export async function acceptBrandInvitation(
   ])
 
   return { workspaceSlug: workspace.slug }
+}
+
+// ── Confirm brand onboarding (new request-approval flow, no auth required) ───
+
+/**
+ * Called from /onboard/[token] when brand clicks "Confirm".
+ * Marks onboard_accepted_at on brand_requests — acknowledgment only, no account creation.
+ * Uses service client because the brand is unauthenticated.
+ */
+export async function acceptBrandOnboarding(
+  token: string
+): Promise<{ error: string } | void> {
+  const serviceClient = createServiceClient()
+
+  const { data: req } = await serviceClient
+    .from('brand_requests')
+    .select('id, status, onboard_token_expires_at, onboard_accepted_at')
+    .eq('onboard_token', token)
+    .single()
+
+  if (!req) return { error: 'Invalid or expired onboarding link.' }
+  if (req.status !== 'approved') return { error: 'This onboarding link is not active.' }
+  if (req.onboard_accepted_at) return { error: 'You have already confirmed your onboarding.' }
+  if (req.onboard_token_expires_at && new Date(req.onboard_token_expires_at) < new Date()) {
+    return { error: 'This link has expired. Please contact your agency.' }
+  }
+
+  await serviceClient
+    .from('brand_requests')
+    .update({ onboard_accepted_at: new Date().toISOString() })
+    .eq('id', req.id)
+
+  revalidatePath('/agency/requests', 'page')
 }

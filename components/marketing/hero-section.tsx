@@ -1,9 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { HeroVideo } from '@/components/marketing/hero-video'
-import { useMarketingContact } from '@/components/marketing/marketing-contact-provider'
 
 function smoothScroll(e: React.MouseEvent<HTMLAnchorElement>) {
   e.preventDefault()
@@ -12,7 +12,6 @@ function smoothScroll(e: React.MouseEvent<HTMLAnchorElement>) {
 }
 
 export function HeroSection() {
-  const { setOpen } = useMarketingContact()
 
   return (
     <section className="relative min-h-screen overflow-hidden" id="hero">
@@ -53,12 +52,12 @@ export function HeroSection() {
 
           {/* CTAs */}
           <div className="flex flex-wrap gap-4 mt-8">
-            <button
-              onClick={() => setOpen(true)}
+            <Link
+              href="/request-access"
               className="bg-brand text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-brand/90 dark:hover:shadow-[0_0_30px_rgba(31,174,91,0.4)] transition-all"
             >
-              Contact Us
-            </button>
+              Request Access
+            </Link>
             <a
               href="#how-it-works"
               onClick={smoothScroll}
