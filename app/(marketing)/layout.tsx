@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { MarketingContactProvider } from '@/components/marketing/marketing-contact-provider'
 import { MarketingNav } from '@/components/marketing/marketing-nav'
@@ -34,13 +35,8 @@ export default function MarketingLayout({
             <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
               {/* Wordmark + tagline */}
               <div>
-                <Link href="/" className="flex items-center gap-1.5">
-                  <span className="rounded bg-brand-dark px-1.5 py-0.5 text-xs font-bold text-brand">
-                    in
-                  </span>
-                  <span className="font-display font-bold text-foreground-light">
-                    instroom
-                  </span>
+                <Link href="/" className="inline-flex transition-opacity hover:opacity-75">
+                  <Image src="/INSTROOM_LOGO.svg" alt="Instroom" width={32} height={32} className="brightness-0 dark:invert" />
                 </Link>
                 <p className="mt-3 max-w-xs text-sm text-foreground-lighter">
                   Automated post tracking, content downloads, and performance
