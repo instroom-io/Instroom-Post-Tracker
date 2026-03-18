@@ -70,6 +70,7 @@ export function AppShell({
   }, [])
 
   return (
+    <>
     <div className="flex h-screen overflow-hidden bg-background">
 
       {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
@@ -244,5 +245,6 @@ export function AppShell({
       </div>
     </div>
     <Toaster position="bottom-right" richColors />
+    </>
   )
 }
