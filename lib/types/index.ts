@@ -47,6 +47,7 @@ export interface BrandRequest {
   contact_name: string
   contact_email: string
   description: string | null
+  logo_url: string | null
   status: BrandRequestStatus
   workspace_id: string | null
   reviewed_by: string | null

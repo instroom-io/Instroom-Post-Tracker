@@ -23,6 +23,7 @@ export async function submitBrandRequest(
   const { error } = await serviceClient.from('brand_requests').insert({
     brand_name: parsed.data.brand_name,
     website_url: parsed.data.website_url,
+    logo_url: parsed.data.logo_url || null,
     contact_name: parsed.data.contact_name,
     contact_email: parsed.data.contact_email,
     description: parsed.data.description || null,
@@ -97,7 +98,7 @@ export async function approveBrandRequest(
   // 3. Create workspace
   const { data: workspace, error: wsError } = await serviceClient
     .from('workspaces')
-    .insert({ name: request.brand_name, slug })
+    .insert({ name: request.brand_name, slug, logo_url: request.logo_url ?? null })
     .select('id, slug')
     .single()
 
@@ -222,7 +223,7 @@ export async function getBrandRequests(
 
   let query = supabase
     .from('brand_requests')
-    .select('id, brand_name, website_url, contact_name, contact_email, description, status, workspace_id, reviewed_by, reviewed_at, created_at')
+    .select('id, brand_name, website_url, logo_url, contact_name, contact_email, description, status, workspace_id, reviewed_by, reviewed_at, created_at')
     .order('created_at', { ascending: true })
 
   if (status) {

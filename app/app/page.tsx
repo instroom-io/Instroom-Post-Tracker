@@ -10,20 +10,28 @@ export default async function AppPage() {
 
   if (!user) redirect('/login')
 
-  // Find user's most recent workspace membership
+  // Find user's workspace memberships with role
   const { data: memberships } = await supabase
     .from('workspace_members')
-    .select('workspace_id, workspaces(slug)')
+    .select('role, workspace_id, workspaces(slug)')
     .eq('user_id', user.id)
     .order('joined_at', { ascending: false })
-    .limit(1)
 
   if (memberships && memberships.length > 0) {
+    // Agency admin (owner) → always goes to agency portal
+    const ownerMembership = memberships.find((m) => m.role === 'owner')
+    if (ownerMembership) {
+      redirect('/agency/requests')
+    }
+
+    // Team member (non-owner) → go to their most recent workspace
     const workspace = memberships[0].workspaces as unknown as { slug: string } | null
     if (workspace?.slug) {
       redirect(`/${workspace.slug}/overview`)
     }
   }
 
-  redirect('/no-access')
+  // No memberships = fresh agency admin signup → agency portal
+  // (brands never log in; team members always have a membership from their invite)
+  redirect('/agency/requests')
 }

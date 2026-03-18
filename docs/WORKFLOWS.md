@@ -81,18 +81,20 @@ Each campaign-influencer pair has a `tracking_config` JSONB column:
 ### 4.1 Brand Request Flow (Production Path)
 
 1. Brand fills `/request-access` (unauthenticated public form)
+   - Fields: brand name, website URL, logo URL (optional), contact name, contact email, description
+   - Brand logo URL is optional — if provided, it is stored on `brand_requests.logo_url` and auto-applied to the workspace on approval
 2. `submitBrandRequest()` inserts into `brand_requests` with `status = 'pending'`
-3. **[PLANNED — not yet implemented]** Email sent to `AGENCY_NOTIFICATION_EMAIL` notifying agency of new request
+3. Email sent to `AGENCY_NOTIFICATION_EMAIL` notifying agency of new request (SendGrid)
 4. Agency reviews at `/agency/requests` dashboard
 5. Agency clicks Approve → `approveBrandRequest()`:
-   - Creates workspace (`workspaces` table)
+   - Creates workspace (`workspaces` table) — `logo_url` copied from brand request if present
    - Adds approving user as `owner` in `workspace_members`
    - Seeds default EMV config via `seed_workspace_defaults` RPC
    - Generates `onboard_token` (32-byte hex), stores on `brand_requests`
-   - **[PLANNED]** Sends confirmation email to `contact_email` with link → `/onboard/[token]`
+   - Sends confirmation email to `contact_email` with link → `/onboard/[token]` (SendGrid)
    - Updates `brand_requests.status = 'approved'`
 6. Brand clicks confirmation link → `/onboard/[token]` page
-   - **[PLANNED]** Marks `onboard_accepted_at` — acknowledgment only, no account creation
+   - Marks `onboard_accepted_at` — acknowledgment only, no account creation
 
 ### 4.2 Agency-Initiated Brand Invite (Legacy Flow)
 

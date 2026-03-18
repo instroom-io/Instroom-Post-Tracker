@@ -17,6 +17,7 @@ export function RequestAccessForm() {
     const data = {
       brand_name: formData.get('brand_name') as string,
       website_url: formData.get('website_url') as string,
+      logo_url: formData.get('logo_url') as string,
       contact_name: formData.get('contact_name') as string,
       contact_email: formData.get('contact_email') as string,
       description: formData.get('description') as string,
@@ -76,6 +77,19 @@ export function RequestAccessForm() {
           type="url"
           required
           placeholder="https://acme.com"
+          className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="logo_url" className="text-[12px] font-medium text-foreground-light">
+          Brand logo URL <span className="text-foreground-muted">(optional)</span>
+        </label>
+        <input
+          id="logo_url"
+          name="logo_url"
+          type="url"
+          placeholder="https://cdn.acme.com/logo.png"
           className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
         />
       </div>

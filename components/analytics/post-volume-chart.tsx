@@ -65,43 +65,20 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
             fontSize: '12px',
           }}
         />
-        {multiPlatform ? (
-          <>
-            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
-            <Line
-              type="monotone"
-              dataKey="instagram"
-              stroke={CHART_COLORS.instagram}
-              strokeWidth={2}
-              dot={false}
-              name="Instagram"
-            />
-            <Line
-              type="monotone"
-              dataKey="tiktok"
-              stroke={CHART_COLORS.tiktok}
-              strokeWidth={2}
-              dot={false}
-              name="TikTok"
-            />
-            <Line
-              type="monotone"
-              dataKey="youtube"
-              stroke={CHART_COLORS.youtube}
-              strokeWidth={2}
-              dot={false}
-              name="YouTube"
-            />
-          </>
-        ) : (
-          <Line
-            type="monotone"
-            dataKey="total"
-            stroke={CHART_COLORS.brand}
-            strokeWidth={2}
-            dot={false}
-            name="Posts"
-          />
+        {multiPlatform && (
+          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
+        )}
+        {multiPlatform && (
+          <Line type="monotone" dataKey="instagram" stroke={CHART_COLORS.instagram} strokeWidth={2} dot={false} name="Instagram" />
+        )}
+        {multiPlatform && (
+          <Line type="monotone" dataKey="tiktok" stroke={CHART_COLORS.tiktok} strokeWidth={2} dot={false} name="TikTok" />
+        )}
+        {multiPlatform && (
+          <Line type="monotone" dataKey="youtube" stroke={CHART_COLORS.youtube} strokeWidth={2} dot={false} name="YouTube" />
+        )}
+        {!multiPlatform && (
+          <Line type="monotone" dataKey="total" stroke={CHART_COLORS.brand} strokeWidth={2} dot={false} name="Posts" />
         )}
       </LineChart>
     </ResponsiveContainer>
