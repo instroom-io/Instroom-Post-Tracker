@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { signInSchema, signUpSchema } from '@/lib/validations'
 
 export async function signIn(
@@ -43,6 +43,23 @@ export async function signUp(
     return { error: parsed.error.errors[0].message }
   }
 
+  // Invite-only gate: only admin email or users with a valid pending invite can sign up
+  const adminEmail = process.env.ADMIN_EMAIL
+  if (!adminEmail || parsed.data.email.toLowerCase() !== adminEmail.toLowerCase()) {
+    const serviceClient = createServiceClient()
+    const { data: invite } = await serviceClient
+      .from('invitations')
+      .select('id')
+      .eq('email', parsed.data.email)
+      .is('accepted_at', null)
+      .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+      .maybeSingle()
+
+    if (!invite) {
+      return { error: 'Sign-up is by invitation only. Please use the invite link sent to your email.' }
+    }
+  }
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
     email: parsed.data.email,
@@ -56,7 +73,7 @@ export async function signUp(
   })
 
   if (error) {
-if (error.message.includes('already registered')) {
+    if (error.message.includes('already registered') || error.message.includes('already been registered')) {
       return { error: 'An account with this email already exists.' }
     }
     return { error: 'Failed to create account. Please try again.' }

@@ -55,7 +55,7 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
         <tbody>
           {rows.map((row) => (
             <tr
-              key={row.handle}
+              key={row.fullName}
               className="border-b border-border/50 last:border-0 hover:bg-background-muted/30 transition-colors"
             >
               <td className="px-4 py-3 text-[11px] font-bold text-foreground-muted">

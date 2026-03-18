@@ -31,7 +31,12 @@ export default async function AppPage() {
     }
   }
 
-  // No memberships = fresh agency admin signup → agency portal
-  // (brands never log in; team members always have a membership from their invite)
-  redirect('/agency/requests')
+  // No memberships: check if this is the agency admin email
+  // Agency admin before their first workspace → agency portal
+  // Anyone else with no memberships → no-access
+  const adminEmail = process.env.ADMIN_EMAIL
+  if (adminEmail && user.email?.toLowerCase() === adminEmail.toLowerCase()) {
+    redirect('/agency/requests')
+  }
+  redirect('/no-access')
 }
