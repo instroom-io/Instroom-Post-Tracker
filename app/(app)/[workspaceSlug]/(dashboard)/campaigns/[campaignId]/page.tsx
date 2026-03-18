@@ -73,7 +73,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     supabase
       .from('posts')
       .select(
-        'id, thumbnail_url, platform, posted_at, download_status, collab_status, influencer:influencers(full_name, ig_handle), metrics:post_metrics(views, engagement_rate, emv)'
+        'id, influencer_id, thumbnail_url, platform, posted_at, download_status, collab_status, influencer:influencers(full_name, ig_handle), metrics:post_metrics(views, engagement_rate, emv)'
       )
       .eq('campaign_id', campaignId)
       .order('posted_at', { ascending: false }),
@@ -84,6 +84,13 @@ export default async function CampaignDetailPage({ params }: PageProps) {
   ])
 
   if (!campaign) redirect(`/${workspaceSlug}/campaigns`)
+
+  // Build post count map per influencer for zero-post warning
+  const postCountsByInfluencerId = (posts ?? []).reduce<Record<string, number>>((acc, p) => {
+    const infId = (p as unknown as { influencer_id: string }).influencer_id
+    if (infId) acc[infId] = (acc[infId] ?? 0) + 1
+    return acc
+  }, {})
 
   async function activateCampaign() {
     'use server'
@@ -188,6 +195,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
               workspaceId={workspace.id}
               campaignId={campaignId}
               canEdit={canEdit}
+              postCountsByInfluencerId={postCountsByInfluencerId}
             />
           </div>
 

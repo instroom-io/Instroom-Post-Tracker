@@ -20,6 +20,8 @@ interface NormalizedPost {
 interface ScrapeResult {
   posts: NormalizedPost[]
   resolvedId: string | null // IG: instagram_user_id | TT: tiktok_sec_uid | YT: youtube_channel_id
+  nextCursor?: bigint | null // TikTok only — EnsembleData pagination cursor
+  reachedCampaignStart?: boolean // TikTok only — true when oldest fetched post predates campaign start
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -151,50 +153,97 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null): Pr
   return { posts, resolvedId: userId }
 }
 
-async function scrapeTikTok(handle: string, depth = 1): Promise<ScrapeResult> {
-  // EnsembleData /tt/user/posts only accepts username — secUid is extracted from response data only
-  const url = `${ENSEMBLE_API_URL}/tt/user/posts?username=${encodeURIComponent(handle)}&depth=${depth}&token=${ENSEMBLE_API_KEY}`
+/** Parse raw EnsembleData TikTok item into a NormalizedPost. Returns null if required fields missing. */
+function parseTikTokItem(item: Record<string, unknown>, handle: string): NormalizedPost | null {
+  const awemeId = item.aweme_id as string | undefined
+  if (!awemeId) return null
+
+  const createTime = item.create_time as number | undefined
+  if (!createTime) return null
+  const postedAt = new Date(createTime * 1000).toISOString()
+
+  const video = item.video as Record<string, unknown> | undefined
+  const rawCover = video?.dynamic_cover ?? video?.cover
+  const cover = typeof rawCover === 'string'
+    ? rawCover
+    : (rawCover as Record<string, unknown> | undefined)?.url_list
+      ? ((rawCover as Record<string, unknown>).url_list as string[])[0] ?? null
+      : null
+
+  const authorHandle = (item.author as Record<string, unknown> | undefined)?.unique_id as string | undefined
+  const shareUrl = item.share_url as string | undefined
+  const postUrl = shareUrl ?? `https://www.tiktok.com/@${authorHandle ?? handle}/video/${awemeId}`
+
+  return {
+    ensemble_post_id: awemeId,
+    post_url: postUrl,
+    caption: (item.desc as string | undefined)
+      ?? ((item.contents as Array<{ desc?: string }> | undefined)?.[0]?.desc)
+      ?? null,
+    thumbnail_url: cover,
+    posted_at: postedAt,
+  }
+}
+
+/**
+ * Scrape one page (depth=1) of TikTok posts for a handle.
+ * If startCursor is provided, fetches from that cursor position (going further back in time).
+ * campaignStartDate is used to detect when we've gone far enough back.
+ */
+async function scrapeTikTok(
+  handle: string,
+  startCursor?: bigint | null,
+  campaignStartDate?: string | null,
+): Promise<ScrapeResult> {
+  // Always fetch depth=1 (one page ≈ 10 posts, ~6s per call).
+  // Cursor-based pagination lets us incrementally backfill across many cron runs.
+  let url = `${ENSEMBLE_API_URL}/tt/user/posts?username=${encodeURIComponent(handle)}&depth=1&token=${ENSEMBLE_API_KEY}`
+  if (startCursor != null) {
+    url += `&start_cursor=${startCursor.toString()}`
+  }
 
   const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) {
     console.error(`[posts-worker] TT user/posts failed for @${handle}: ${res.status}`)
     return { posts: [], resolvedId: null }
   }
-  const json = await res.json() as { data?: unknown[] }
+  const json = await res.json() as { data?: unknown[]; nextCursor?: number | string | null }
   if (!Array.isArray(json.data)) return { posts: [], resolvedId: null }
 
   const posts: NormalizedPost[] = []
+  let oldestCreateTime: number | null = null
 
   for (const item of json.data) {
     const p = item as Record<string, unknown>
-    const awemeId = p.aweme_id as string | undefined
-    if (!awemeId) continue
+    const normalized = parseTikTokItem(p, handle)
+    if (!normalized) continue
 
-    const createTime = p.create_time as number | undefined
-    if (!createTime) continue
-    const postedAt = new Date(createTime * 1000).toISOString()
+    const createTime = p.create_time as number
+    if (oldestCreateTime === null || createTime < oldestCreateTime) {
+      oldestCreateTime = createTime
+    }
 
-    const video = p.video as Record<string, unknown> | undefined
-    const rawCover = video?.dynamic_cover ?? video?.cover
-    const cover = typeof rawCover === 'string'
-      ? rawCover
-      : (rawCover as Record<string, unknown> | undefined)?.url_list
-        ? ((rawCover as Record<string, unknown>).url_list as string[])[0] ?? null
-        : null
-
-    const authorHandle = (p.author as Record<string, unknown> | undefined)?.unique_id as string | undefined
-    const shareUrl = p.share_url as string | undefined
-    const postUrl = shareUrl ?? `https://www.tiktok.com/@${authorHandle ?? handle}/video/${awemeId}`
-
-    posts.push({
-      ensemble_post_id: awemeId,
-      post_url: postUrl,
-      caption: (p.desc as string | undefined) ?? null,
-      thumbnail_url: cover,
-      posted_at: postedAt,
-    })
+    posts.push(normalized)
   }
-  return { posts, resolvedId: null }
+
+  // Parse nextCursor from response
+  const rawCursor = json.nextCursor
+  const nextCursor: bigint | null = rawCursor != null && rawCursor !== '' && rawCursor !== 0
+    ? BigInt(String(rawCursor))
+    : null
+
+  // Determine if we've reached (or passed) the campaign start date
+  let reachedCampaignStart = false
+  if (campaignStartDate && oldestCreateTime !== null) {
+    const campaignStartMs = new Date(campaignStartDate).getTime()
+    reachedCampaignStart = oldestCreateTime * 1000 <= campaignStartMs
+  }
+  // Also treat no-cursor or empty page as end of feed
+  if (!nextCursor || posts.length === 0) {
+    reachedCampaignStart = true
+  }
+
+  return { posts, resolvedId: null, nextCursor, reachedCampaignStart }
 }
 
 async function scrapeYouTube(channelHandle: string, cachedChannelId?: string | null): Promise<ScrapeResult> {
@@ -274,6 +323,8 @@ export async function GET(request: NextRequest) {
       id,
       usage_rights,
       monitoring_status,
+      tiktok_next_cursor,
+      tiktok_backfill_complete,
       campaigns!inner (
         id,
         workspace_id,
@@ -329,6 +380,11 @@ export async function GET(request: NextRequest) {
       youtube_handle: string | null
       youtube_channel_id: string | null
     }
+    // tiktok_next_cursor comes from DB as string (Postgres bigint → JSON string) or null
+    const tiktokNextCursor: bigint | null = row.tiktok_next_cursor != null
+      ? BigInt(String(row.tiktok_next_cursor))
+      : null
+    const tiktokBackfillComplete: boolean = (row.tiktok_backfill_complete as boolean | null) ?? false
 
     const platformsToScrape: Array<'instagram' | 'tiktok' | 'youtube'> = (
       campaign.platforms as Array<'instagram' | 'tiktok' | 'youtube'>
@@ -351,7 +407,12 @@ export async function GET(request: NextRequest) {
         if (platform === 'instagram') {
           result = await scrapeInstagram(handle, influencer.instagram_user_id)
         } else if (platform === 'tiktok') {
-          result = await scrapeTikTok(handle, row.monitoring_status === 'pending' ? 30 : 1)
+          // Cursor-based TikTok pagination:
+          // - Backfill not complete: fetch one page from tiktokNextCursor going backward in time.
+          //   Each cron run advances one page (~10 posts, ~6s) until campaign start_date is reached.
+          // - Backfill complete: fetch one page from newest posts (no cursor) for ongoing monitoring.
+          const cursorForThisRun = tiktokBackfillComplete ? null : tiktokNextCursor
+          result = await scrapeTikTok(handle, cursorForThisRun, campaign.start_date)
         } else if (platform === 'youtube') {
           result = await scrapeYouTube(handle, influencer.youtube_channel_id)
         }
@@ -366,6 +427,21 @@ export async function GET(request: NextRequest) {
           if (resolvedId !== cached) {
             await supabase.from('influencers').update({ [idField]: resolvedId }).eq('id', influencer.id)
           }
+        }
+
+        // Persist TikTok cursor state after each page fetch
+        if (platform === 'tiktok' && !tiktokBackfillComplete) {
+          const backfillNowComplete = result.reachedCampaignStart === true
+          await supabase
+            .from('campaign_influencers')
+            .update({
+              tiktok_next_cursor: backfillNowComplete ? null : (result.nextCursor != null ? result.nextCursor.toString() : null),
+              tiktok_backfill_complete: backfillNowComplete,
+            })
+            .eq('id', row.id)
+          console.log(
+            `[posts-worker] TT @${handle} cursor=${result.nextCursor ?? 'end'} backfillComplete=${backfillNowComplete}`
+          )
         }
 
         // Find tracking config for this platform

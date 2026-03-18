@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Building2,
 } from 'lucide-react'
+import { Toaster } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
 import { WorkspaceSwitcher } from './workspace-switcher'
@@ -242,5 +243,6 @@ export function AppShell({
 
       </div>
     </div>
+    <Toaster position="bottom-right" richColors />
   )
 }

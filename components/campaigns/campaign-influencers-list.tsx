@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic, useTransition } from 'react'
+import { useOptimistic, useTransition, useEffect } from 'react'
 import { toast } from 'sonner'
 import { MoreHorizontal, Trash2, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +35,7 @@ interface CampaignInfluencersListProps {
   campaignId: string
   canEdit: boolean
   onAddInfluencer?: () => void
+  postCountsByInfluencerId?: Record<string, number>
 }
 
 const platformsForInfluencer = (inf: InfluencerRow['influencer']): Platform[] => {
@@ -55,6 +56,7 @@ export function CampaignInfluencersList({
   items,
   canEdit,
   onAddInfluencer,
+  postCountsByInfluencerId,
 }: CampaignInfluencersListProps) {
   const [isPending, startTransition] = useTransition()
   const [optimisticItems, updateOptimistic] = useOptimistic(
@@ -84,6 +86,19 @@ export function CampaignInfluencersList({
       }
     })
   }
+
+  useEffect(() => {
+    items.forEach((item) => {
+      if (
+        item.monitoring_status === 'active' &&
+        (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0
+      ) {
+        const handle = item.influencer.tiktok_handle ?? item.influencer.ig_handle ?? item.influencer.full_name
+        toast.warning(`No posts found for @${handle} — verify the username is correct`)
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (optimisticItems.length === 0) {
     return (
@@ -153,17 +168,27 @@ export function CampaignInfluencersList({
                     </div>
                   </td>
                   <td className="px-5 py-3">
-                    <Badge
-                      variant={
-                        item.monitoring_status === 'active'
-                          ? 'success'
-                          : item.monitoring_status === 'paused'
-                          ? 'warning'
-                          : 'muted'
-                      }
-                    >
-                      {item.monitoring_status}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        variant={
+                          item.monitoring_status === 'active'
+                            ? 'success'
+                            : item.monitoring_status === 'paused'
+                            ? 'warning'
+                            : 'muted'
+                        }
+                      >
+                        {item.monitoring_status}
+                      </Badge>
+                      {item.monitoring_status === 'active' &&
+                        (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0 && (
+                          <AlertCircle
+                            size={13}
+                            className="flex-shrink-0 text-warning"
+                            title="No posts found — verify the username is correct"
+                          />
+                        )}
+                    </div>
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
