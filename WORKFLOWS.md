@@ -188,75 +188,59 @@ Then open `http://localhost:3000/agency/requests` and approve it from the UI.
 
 ---
 
-## 1. Post Detection (Ensemble Webhook)
+## 1. Post Detection (Polling — posts-worker)
 
-**Endpoint:** `POST /api/webhooks/ensemble`
-**Handler:** `app/api/webhooks/ensemble/route.ts`
-**Auth:** HMAC-SHA256 signature on every request (`ENSEMBLE_WEBHOOK_SECRET`)
+**Endpoint:** `GET /api/cron/posts-worker`
+**Handler:** `app/api/cron/posts-worker/route.ts`
+**Trigger:** Vercel Cron, every 30 minutes (`*/30 * * * *`)
+**Auth:** `Authorization: Bearer $CRON_SECRET`
 **Supabase client:** `createServiceClient()` — writes posts across workspace boundaries
 
-> **Why webhook, not polling?**
-> Ensemble sends a push notification the moment an influencer publishes a matching post. The webhook handler must respond in < 3 seconds — Drive uploads are offloaded to the retry queue.
+> **Why polling, not webhook?**
+> EnsembleData does not push webhooks. Instead we poll their scraping APIs on a cron schedule — fetching recent posts per influencer and diffing against what we already have.
 
 ### Step-by-step
 
-**Step 1 — Verify HMAC-SHA256 signature**
-```typescript
-const isValid = verifyEnsembleSignature(rawBody, signature, ENSEMBLE_WEBHOOK_SECRET)
-if (!isValid) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-```
+**Step 1 — Load all active campaign-influencer targets**
 
-**Step 2 — Find matching active campaigns**
+Query all `campaign_influencers` rows where `monitoring_status IN ('pending', 'active')` and the parent campaign has `status = 'active'`. Includes campaign tracking configs and cached platform IDs.
+
+**Step 2 — Scrape each influencer per platform**
+
+For each target, call EnsembleData for each platform the campaign tracks:
+- **Instagram:** resolve `instagram_user_id` from handle (cached), then fetch `/instagram/user/posts` + `/ig/user/reels` in parallel
+- **TikTok:** call `/tt/user/posts?username=<handle>&depth=<d>` — `depth=30` on first run (`pending`), `depth=1` on subsequent runs (`active`)
+- **YouTube:** resolve `youtube_channel_id` from handle (cached if starts with `UC`), then fetch `/youtube/channel/videos`
+
+**Step 3 — Filter posts**
+
+For each scraped post, keep only posts that:
+1. Fall within the campaign's `start_date`/`end_date` window
+2. Match at least one hashtag or mention from the campaign's tracking config (caption match, case-insensitive)
+
+**Step 4 — Upsert posts (idempotent)**
+
 ```sql
-SELECT c.id, c.workspace_id,
-  campaign_tracking_configs(platform, hashtags, mentions),
-  campaign_influencers(id, usage_rights,
-    influencer:influencers(id, ig_handle, tiktok_handle, tiktok_sec_uid, youtube_handle)
-  )
-FROM campaigns c
-WHERE status = 'active'
-  AND start_date <= $posted_at::date
-  AND end_date >= $posted_at::date
-  AND $platform = ANY(platforms)
-```
-Match if payload hashtags/mentions overlap with campaign tracking config. If no match → return 200 (silent discard).
-
-**Step 3 — For each matching campaign:**
-
-**Step 3a — Upsert post (idempotent)**
-```sql
-INSERT INTO posts (
-  workspace_id, campaign_id, influencer_id, platform, post_url,
-  ensemble_post_id, caption, thumbnail_url, posted_at,
-  metrics_fetch_after, download_status
-)
+INSERT INTO posts (workspace_id, campaign_id, influencer_id, platform,
+  post_url, platform_post_id, caption, thumbnail_url, posted_at,
+  download_status, blocked_reason)
 VALUES (...)
-ON CONFLICT (ensemble_post_id, campaign_id) DO NOTHING
-RETURNING id
-```
-If `DO NOTHING` fired (duplicate) → skip.
-
-**Step 3b — Usage rights check**
-```sql
-SELECT usage_rights FROM campaign_influencers
-WHERE campaign_id = $campaign_id AND influencer_id = $influencer_id
+ON CONFLICT (platform_post_id, campaign_id) DO NOTHING
+RETURNING id, download_status
 ```
 
-- `usage_rights = false`:
-  ```sql
-  UPDATE posts SET download_status = 'blocked', blocked_reason = 'no_usage_rights'
-  ```
+- `usage_rights = false` → `download_status = 'blocked'`, `blocked_reason = 'no_usage_rights'`
+- `usage_rights = true` → `download_status = 'pending'`
 
-- `usage_rights = true`:
-  ```sql
-  INSERT INTO retry_queue (post_id, job_type, status) VALUES ($post_id, 'download', 'pending')
-  ```
+**Step 5 — Enqueue downloads**
 
-**Step 3c — collab_status**
-Handled by the `posts_collab_status_default` DB trigger — no application code needed.
+For each newly inserted post with `download_status = 'pending'`, insert a `retry_queue` row with `job_type = 'download'`.
 
-**Step 4 — Return 200 always**
-Always return 200 — prevents Ensemble from retrying on valid discards.
+**Step 6 — Activate monitoring**
+
+After a `pending` target completes its first scrape run, set `monitoring_status = 'active'` so future runs use shallow depth (faster).
+
+**collab_status** is set by the `posts_collab_status_default` DB trigger — no application code needed.
 
 ---
 

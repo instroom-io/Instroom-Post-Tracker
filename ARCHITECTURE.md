@@ -207,7 +207,7 @@ Write permissions by role:
 ### Service role — admin client
 
 Only these places use `createServiceClient()` (bypasses all RLS):
-1. `app/api/webhooks/ensemble/route.ts` — writes posts for any workspace
+1. `app/api/cron/posts-worker/route.ts` — writes posts across workspace boundaries
 2. `lib/actions/workspace.ts` — workspace creation + team member invitation acceptance
 3. `lib/actions/brands.ts` — brand entry creation, token generation, brand invitation acceptance (auto-creates workspace + adds brand admin as owner)
 
@@ -215,47 +215,47 @@ Only these places use `createServiceClient()` (bypasses all RLS):
 
 ## 6. Post Detection Pipeline
 
+Triggered by Vercel Cron every 30 min → `GET /api/cron/posts-worker`.
+
 ```
-Ensemble → POST /api/webhooks/ensemble
+Cron → GET /api/cron/posts-worker
    │
-   Step 1: Verify HMAC-SHA256 signature (ENSEMBLE_WEBHOOK_SECRET)
-   │         ↳ 401 if invalid
+   Step 1: Load targets
+   │         SELECT campaign_influencers WHERE monitoring_status IN ('pending','active')
+   │           AND campaigns.status = 'active'
+   │           JOIN campaign_tracking_configs, influencers (with cached platform IDs)
    │
-   Step 2: Find matching campaigns
-   │         SELECT campaigns + tracking_configs WHERE:
-   │           status = 'active'
-   │           AND start_date ≤ posted_at ≤ end_date
-   │           AND platform matches
-   │           AND (hashtags && payload.hashtags OR mentions && payload.mentions)
-   │         ↳ 200 (silent discard) if no match
-   │
-   Step 3: For each matching campaign:
+   Step 2: For each target × platform:
    │   │
-   │   Step 3a: Find influencer by ensemble_id in workspace
-   │   │         ↳ skip campaign if not found
+   │   Scrape EnsembleData:
+   │   │   Instagram: /instagram/user/posts + /ig/user/reels (resolve user_id if not cached)
+   │   │   TikTok:    /tt/user/posts?username=<handle>&depth=30 (pending) or depth=1 (active)
+   │   │   YouTube:   /youtube/channel/videos (resolve channel_id if not cached)
    │   │
-   │   Step 3b: Upsert post
-   │   │         INSERT ... ON CONFLICT (ensemble_post_id, campaign_id) DO NOTHING
+   │   Step 3: Filter posts
+   │   │         posted_at within campaign start_date / end_date
+   │   │         AND caption matches hashtag or mention in tracking config
+   │   │         ↳ skip post if no match
+   │   │
+   │   Step 4: Upsert post (idempotent)
+   │   │         INSERT ... ON CONFLICT (platform_post_id, campaign_id) DO NOTHING
    │   │         ↳ skip if duplicate
    │   │
-   │   Step 3c: Usage rights check
-   │             SELECT usage_rights FROM campaign_influencers WHERE ...
-   │
-   │             usage_rights = false:
-   │               UPDATE post SET download_status='blocked', blocked_reason='no_usage_rights'
-   │               STOP — do not enqueue
-   │
-   │             usage_rights = true:
-   │               INSERT retry_queue (post_id, job_type='download', status='pending')
-   │
-   │   Step 3d: collab_status set by DB trigger (no app code)
+   │   Step 5: Set download_status from usage_rights
+   │   │         usage_rights = false → download_status='blocked', blocked_reason='no_usage_rights'
+   │   │         usage_rights = true  → download_status='pending'
+   │   │           → INSERT retry_queue (post_id, job_type='download', status='pending')
+   │   │
+   │   Step 6: collab_status set by DB trigger (no app code)
    │             n/a for TikTok/YouTube, pending for Instagram
    │
-   Step 4: Return 200 (always — prevents Ensemble retries on valid discards)
+   Step 7: Activate monitoring
+             If monitoring_status was 'pending' → UPDATE to 'active'
+             (switches future runs to shallow-depth scraping)
 ```
 
 **Why `retry_queue` instead of direct download?**
-The webhook must respond in < 3 seconds or Ensemble retries. A Drive upload can take 5–30 seconds. The queue decouples detection from delivery.
+The cron worker must stay within its time budget. A Drive upload can take 5–30 seconds per post. The queue decouples detection from delivery, and handles retries independently.
 
 ---
 

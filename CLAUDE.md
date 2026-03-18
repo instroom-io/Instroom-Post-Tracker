@@ -382,10 +382,9 @@ export default function Page() {
 |----------|-------------|--------|
 | `NEXT_PUBLIC_SUPABASE_URL` | All | Supabase project → Settings → API |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | All | Supabase project → Settings → API (anon key) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Webhook, workspace creation | Supabase project → Settings → API (service role — **never expose to browser**) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Posts worker, workspace creation | Supabase project → Settings → API (service role — **never expose to browser**) |
 | `NEXT_PUBLIC_APP_URL` | Invite links | e.g. `https://app.instroom.co` |
-| `ENSEMBLE_WEBHOOK_SECRET` | HMAC webhook verify | From Ensemble dashboard |
-| `ENSEMBLE_API_KEY` | Download + metrics API | From Ensemble dashboard |
+| `ENSEMBLE_API_KEY` | Posts scraping, download + metrics API | From Ensemble dashboard |
 | `GOOGLE_SERVICE_ACCOUNT_JSON_B64` | Drive upload | Base64 of service account JSON file |
 | `CRON_SECRET` | Vercel Cron auth | Random secret — `openssl rand -hex 32` |
 

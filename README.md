@@ -66,7 +66,6 @@ See `.env.local.example` for all required variables with setup instructions.
 | `NEXT_PUBLIC_APP_URL` | Yes | `http://localhost:3000` locally; production URL in production |
 | `ENSEMBLE_API_KEY` | Yes | EnsembleData token |
 | `ENSEMBLE_API_URL` | No | Defaults to `https://ensembledata.com/apis` |
-| `ENSEMBLE_WEBHOOK_SECRET` | No | Reserved for future use |
 | `GOOGLE_SERVICE_ACCOUNT_JSON_B64` | Yes | `cat key.json \| base64 \| tr -d '\n'` |
 | `CRON_SECRET` | Yes | `openssl rand -hex 32` |
 

@@ -87,18 +87,19 @@ Campaign managers get a real-time dashboard and analytics at wrap-up — without
 - Added to specific campaigns via `campaign_influencers` join table
 - **Usage rights are toggled per campaign-influencer, not globally** — same influencer can have rights for campaign A but not B
 
-### 4.4 Post Detection (Ensemble webhook)
+### 4.4 Post Detection (Polling — posts-worker)
 
-Pipeline on every inbound webhook event:
+Cron runs every 30 minutes (`GET /api/cron/posts-worker`):
 
-1. Verify HMAC-SHA256 signature with `ENSEMBLE_WEBHOOK_SECRET`
-2. Match to active campaigns by hashtag/mention + date window
-3. Deduplicate: `UNIQUE(ensemble_post_id, campaign_id)` — `ON CONFLICT DO NOTHING`
-4. Save post with `download_status: pending`
-5. Check `usage_rights` on `campaign_influencers`:
-   - `false` → set `download_status: blocked`, `blocked_reason: no_usage_rights`, stop
-   - `true` → enqueue download job in `retry_queue`
+1. Load all active campaign-influencer targets (`monitoring_status IN ('pending', 'active')`)
+2. For each target, scrape recent posts from EnsembleData per platform (IG posts + reels, TikTok, YouTube)
+3. Filter: within campaign date window AND caption matches tracking config (hashtag/mention)
+4. Deduplicate: `UNIQUE(platform_post_id, campaign_id)` — `ON CONFLICT DO NOTHING`
+5. Save post; set `download_status` based on `usage_rights`:
+   - `false` → `blocked`, `blocked_reason: no_usage_rights`
+   - `true` → `pending`, enqueue download job in `retry_queue`
 6. `collab_status` is set by DB trigger: `n/a` for TikTok/YouTube, `pending` for Instagram
+7. After first run, set `monitoring_status = 'active'` (switches to shallow-depth scraping)
 
 ### 4.5 Content Download
 
