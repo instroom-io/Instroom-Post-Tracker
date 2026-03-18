@@ -125,7 +125,6 @@ export interface Influencer {
   full_name: string
   ig_handle: string | null
   tiktok_handle: string | null
-  tiktok_sec_uid: string | null
   youtube_handle: string | null
   youtube_channel_id: string | null
   profile_pic_url: string | null
