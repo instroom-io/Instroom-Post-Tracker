@@ -182,11 +182,9 @@ export function CampaignInfluencersList({
                       </Badge>
                       {item.monitoring_status === 'active' &&
                         (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0 && (
-                          <AlertCircle
-                            size={13}
-                            className="flex-shrink-0 text-warning"
-                            title="No posts found — verify the username is correct"
-                          />
+                          <span title="No posts found — verify the username is correct">
+                            <AlertCircle size={13} className="flex-shrink-0 text-warning" />
+                          </span>
                         )}
                     </div>
                   </td>
