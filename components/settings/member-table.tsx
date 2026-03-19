@@ -36,6 +36,7 @@ const roleVariant: Record<WorkspaceRole, 'success' | 'info' | 'muted' | 'active'
   admin: 'info',
   editor: 'muted',
   viewer: 'muted',
+  brand: 'muted',
 }
 
 export function MemberTable({

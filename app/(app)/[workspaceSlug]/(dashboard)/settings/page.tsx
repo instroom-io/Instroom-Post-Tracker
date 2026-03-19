@@ -16,7 +16,7 @@ export default async function SettingsPage({ params }: PageProps) {
 
   const { data: workspace } = await supabase
     .from('workspaces')
-    .select('id, name, slug, logo_url, drive_folder_id, drive_connection_type, drive_oauth_token, created_at')
+    .select('id, name, slug, logo_url, agency_id, drive_folder_id, drive_connection_type, drive_oauth_token, created_at')
     .eq('slug', workspaceSlug)
     .single()
 

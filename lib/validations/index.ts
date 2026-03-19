@@ -55,6 +55,7 @@ export const brandRequestSchema = z.object({
   contact_name: z.string().min(2, 'Contact name must be at least 2 characters').max(100).trim(),
   contact_email: z.string().email('Please enter a valid email address'),
   description: z.string().max(500).optional().or(z.literal('')),
+  agency_id: z.string().uuid().optional(),
 })
 
 // ─── Campaigns ────────────────────────────────────────────────────────────────
@@ -154,3 +155,30 @@ export const contactInquirySchema = z.object({
   message: z.string().optional(),
 })
 export type ContactInquiryInput = z.infer<typeof contactInquirySchema>
+
+// ─── Agency ───────────────────────────────────────────────────────────────────
+
+export const agencyRequestSchema = z.object({
+  agency_name: z.string().min(2, 'Agency name must be at least 2 characters').max(100),
+  website_url: z.string().url('Please enter a valid URL'),
+  contact_name: z.string().min(2, 'Contact name must be at least 2 characters').max(100),
+  contact_email: z.string().email('Please enter a valid email address'),
+  description: z.string().max(500).optional(),
+})
+
+export type AgencyRequestInput = z.infer<typeof agencyRequestSchema>
+
+const RESERVED_AGENCY_SLUGS = ['requests', 'admin', 'api', 'settings', 'login', 'signup']
+
+export const agencySchema = z.object({
+  name: z.string().min(2).max(100),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers and hyphens')
+    .min(2)
+    .max(60)
+    .refine((s) => !RESERVED_AGENCY_SLUGS.includes(s), 'This slug is reserved'),
+  logo_url: z.string().url().optional().or(z.literal('')),
+})
+
+export type AgencyInput = z.infer<typeof agencySchema>

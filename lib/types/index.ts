@@ -2,7 +2,10 @@
 
 export type Platform = 'instagram' | 'tiktok' | 'youtube'
 
-export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer'
+export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer' | 'brand'
+
+export type AgencyStatus = 'pending' | 'active' | 'suspended'
+export type AgencyRequestStatus = 'pending' | 'approved' | 'rejected'
 
 export type CampaignStatus = 'draft' | 'active' | 'ended'
 
@@ -42,6 +45,7 @@ export interface BrandInvitation {
 
 export interface BrandRequest {
   id: string
+  agency_id: string | null
   brand_name: string
   website_url: string
   contact_name: string
@@ -50,6 +54,29 @@ export interface BrandRequest {
   logo_url: string | null
   status: BrandRequestStatus
   workspace_id: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  created_at: string
+}
+
+export interface Agency {
+  id: string
+  name: string
+  slug: string
+  owner_id: string
+  status: AgencyStatus
+  logo_url: string | null
+  created_at: string
+}
+
+export interface AgencyRequest {
+  id: string
+  agency_name: string
+  website_url: string
+  contact_name: string
+  contact_email: string
+  description: string | null
+  status: AgencyRequestStatus
   reviewed_by: string | null
   reviewed_at: string | null
   created_at: string
@@ -70,6 +97,7 @@ export interface Workspace {
   name: string
   slug: string
   logo_url: string | null
+  agency_id: string | null
   drive_folder_id: string | null
   drive_connection_type: DriveConnectionType | null
   drive_oauth_token: string | null
