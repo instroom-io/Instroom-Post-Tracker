@@ -44,105 +44,33 @@
 
 ---
 
-## Phase 13 — Brand Request Flow & Workspace Auto-Creation ⬅️ CURRENT
+## Phase 13 — Brand Request Flow & Workspace Auto-Creation ✅ Complete
 
-> Replaces original Phase 13 (agency-generated invite link / `/onboard/[token]` flow).
-> Implements the brand-initiated request form + agency approval flow (WORKFLOWS.md Flow 0, DECISIONS.md D-018).
+> Implemented: brand-initiated request form + agency approval flow.
+> Migration: `0002_brand_requests.sql` applied.
+> Server Actions: `lib/actions/brand-requests.ts` (`submitBrandRequest`, `approveBrandRequest`, `rejectBrandRequest`, `getBrandRequests`).
+> Routes: `/request-access` (Brand tab), `/agency/[slug]/requests`.
 
-### 13a — Database migration
+---
 
-- [ ] **`supabase/migrations/0002_brand_requests.sql`**
-  - `CREATE TYPE brand_request_status AS ENUM ('pending', 'approved', 'rejected')`
-  - `CREATE TYPE drive_connection_type AS ENUM ('agency', 'brand')`
-  - `CREATE TABLE brand_requests` — id, brand_name, website_url, contact_name, contact_email, description, status, workspace_id, reviewed_by, reviewed_at, created_at
-  - `ALTER TABLE workspaces ADD COLUMN drive_connection_type`, `drive_oauth_token`, `drive_folder_id`
-  - RLS: authenticated users can SELECT brand_requests
-  - Indexes: `idx_brand_requests_status`, `idx_brand_requests_contact_email`
-  - Run: `npm run db:push` then `npm run db:generate`
+## Phase 15 — Multi-Agency Platform ✅ Complete
 
-### 13b — Server Actions
+> Implements 3-tier hierarchy: Instroom → Agencies → Brands.
+> Migration: `supabase/migrations/0011_multi_agency_platform.sql` applied.
 
-- [ ] **`lib/actions/brand-requests.ts`** (replaces original `lib/actions/brands.ts`)
-  - `submitBrandRequest(data)` — **public, no auth required**, uses service client
-    - Zod validate: brand_name, website_url, contact_name, contact_email, description
-    - `INSERT INTO brand_requests (status: 'pending')`
-    - Returns `{ success: true }` or `{ error: string }`
-  - `approveBrandRequest(requestId)` — agency only, uses service client
-    - Auth check: user must be logged in
-    - Re-validate request is still `pending` (race condition guard)
-    - `INSERT INTO workspaces` (name + slug from request, `toSlug()` with collision handling)
-    - `INSERT INTO workspace_members` (agency user as `owner`)
-    - `CALL seed_workspace_defaults(workspace.id)`
-    - `UPDATE brand_requests SET status='approved', workspace_id, reviewed_by, reviewed_at`
-    - Returns `{ workspaceSlug }` — caller redirects to `/{workspaceSlug}/overview`
-  - `rejectBrandRequest(requestId)` — agency only, uses service client
-    - Auth check: user must be logged in
-    - `UPDATE brand_requests SET status='rejected', reviewed_by, reviewed_at`
-    - Returns `{ success: true }` or `{ error: string }`
-  - `getBrandRequests(status?)` — agency only, user-scoped client
-    - Returns brand_requests filtered by status (default: 'pending')
+### What was built
 
-### 13c — Public request form
-
-- [ ] **`app/(marketing)/request-access/page.tsx`** — Public SSR page, no auth, no sidebar
-  - Lives inside `(marketing)` route group (minimal layout — nav + footer only)
-  - Form fields: Brand name, Website URL, Contact name, Contact email, Description (textarea, optional)
-  - Calls `submitBrandRequest()` Server Action on submit
-  - Loading state on submit button
-  - Success state: replace form with confirmation message — *"Your request has been received. We'll be in touch soon."*
-  - Error state: inline field validation errors + generic fallback
-  - No redirect after success — brand stays on the same page with confirmation
-
-- [ ] **`lib/validations/index.ts`** — Add `brandRequestSchema`
-  ```typescript
-  export const brandRequestSchema = z.object({
-    brand_name:    z.string().min(2).max(100),
-    website_url:   z.string().url(),
-    contact_name:  z.string().min(2).max(100),
-    contact_email: z.string().email(),
-    description:   z.string().max(500).optional(),
-  })
-  ```
-
-### 13d — Agency requests dashboard
-
-- [ ] **`app/(app)/agency/requests/page.tsx`** — Agency-only authenticated page
-  - Server Component — fetches brand_requests with `status = 'pending'` (and optionally 'approved'/'rejected' via tab filter)
-  - Renders: PageHeader ("Brand Requests") + `BrandRequestsTable`
-  - If no pending requests: empty state — *"No pending brand requests."*
-
-- [ ] **`components/agency/brand-requests-table.tsx`** — Client Component
-  - Columns: Brand name, Website (link), Contact name, Contact email, Description (truncated), Submitted (date), Actions
-  - Row actions: "Approve" button + "Reject" button
-  - Approve: calls `approveBrandRequest(id)` → on success, redirect to new workspace overview
-  - Reject: calls `rejectBrandRequest(id)` → row disappears from pending list (optimistic)
-  - Loading states on both buttons per row (disable row while processing)
-  - Tab filter: Pending / Approved / Rejected (shows full history)
-
-- [ ] **`components/agency/brand-requests-table-skeleton.tsx`** — Skeleton for Suspense
-
-### 13e — Navigation + routing
-
-- [ ] **Sidebar** — Add "Brand Requests" link visible only to workspace `owner` role
-  - Could be a top-level link in the sidebar (outside workspace nav) or in a separate agency nav section
-  - Badge showing pending request count: `(count)` next to the link
-  - Route: `/agency/requests`
-
-- [ ] **`app/app/page.tsx`** — Update redirect dispatcher
-  - Current: no workspace → redirect to `/onboarding`
-  - Update: no workspace → redirect to `/login` in production (not `/onboarding`)
-  - Keep: `if (process.env.NODE_ENV !== 'development') redirect('/login')`
-
-- [ ] **`app/onboarding/page.tsx`** — Gate for production
-  ```typescript
-  if (process.env.NODE_ENV !== 'development') {
-    redirect('/login')
-  }
-  ```
-
-- [ ] **Remove `/onboard/[token]` route** — `app/onboard/[token]/page.tsx`
-  - This route was for the old agency-generated invite link flow
-  - Delete the file entirely, or return 404 if it already exists in the codebase
+- [x] **DB:** `agencies`, `agency_requests` tables; `is_platform_admin` on `users`; `agency_id` on `workspaces` + `brand_requests`; `onboard_token` columns on `brand_requests`; `workspace_role` enum + `'brand'` value; `agency_status` + `agency_request_status` enums
+- [x] **Server Actions:** `lib/actions/agencies.ts` — `submitAgencyRequest`, `approveAgencyRequest`, `rejectAgencyRequest`, `getAgencies`, `getAgencyBySlug`, `getAgencyRequests`, `getActiveAgenciesPublic`
+- [x] **Server Actions:** `lib/actions/brand-requests.ts` — updated `approveBrandRequest` to set `agency_id`, generate `onboard_token`, send onboarding email
+- [x] **Server Actions:** `lib/actions/brands.ts` — `acceptBrandOnboarding` (requires auth, inserts `workspace_members(role='brand')` idempotently, returns `workspaceSlug`)
+- [x] **Routes:** `/admin`, `/admin/agencies`, `/admin/agencies/[agencyId]`
+- [x] **Routes:** `/agency/[agencySlug]/dashboard`, `/agency/[agencySlug]/brands`, `/agency/[agencySlug]/requests`, `/agency/[agencySlug]/settings`
+- [x] **Routes:** `/[workspaceSlug]/portal` — brand read-only portal (`(portal)` route group)
+- [x] **Routes:** `/request-access` — updated with Brand tab + Agency tab (agency selector dropdown)
+- [x] **Components:** `components/portal/drive-status-banner.tsx`, `components/portal/brand-portal-posts.tsx`
+- [x] **Post-login redirect** — `app/app/page.tsx` updated with 5-tier redirect logic
+- [x] **`/onboard/[token]`** — updated to use `acceptBrandOnboarding()` (creates `workspace_members` row, not workspace itself)
 
 ---
 

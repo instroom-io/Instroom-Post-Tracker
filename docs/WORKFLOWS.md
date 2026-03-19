@@ -76,36 +76,43 @@ Each campaign-influencer pair has a `tracking_config` JSONB column:
 
 ---
 
-## 4. Brand Onboarding
+## 4. Platform Onboarding Flows
+
+### 4.0 Agency Registration Flow ✨ NEW
+
+1. Agency fills `/request-access` (Agency tab) — agency name, website, contact name, contact email, description
+2. `submitAgencyRequest()` inserts into `agency_requests` with `status = 'pending'`
+3. Platform admin (`is_platform_admin = true`) reviews at `/admin` or `/admin/agencies`
+4. Platform admin clicks Approve → `approveAgencyRequest()`:
+   - Looks up `auth.users` by `contact_email` — uses their ID as `owner_id` if found; else falls back to approving admin's ID (see D-023)
+   - Inserts `agencies` row: `{ name, slug, owner_id, status: 'active' }`
+   - Marks `agency_requests.status = 'approved'`
+5. Agency owner logs in → `app/app/page.tsx` detects active agency ownership → redirects to `/agency/[slug]/dashboard`
 
 ### 4.1 Brand Request Flow (Production Path)
 
-1. Brand fills `/request-access` (unauthenticated public form)
-   - Fields: brand name, website URL, logo URL (optional), contact name, contact email, description
-   - Brand logo URL is optional — if provided, it is stored on `brand_requests.logo_url` and auto-applied to the workspace on approval
-2. `submitBrandRequest()` inserts into `brand_requests` with `status = 'pending'`
+1. Brand fills `/request-access` (Brand tab) — brand name, website URL, contact name, contact email, description, **agency** (dropdown: active agencies)
+2. `submitBrandRequest()` inserts into `brand_requests` with `status = 'pending'` and `agency_id` set
 3. Email sent to `AGENCY_NOTIFICATION_EMAIL` notifying agency of new request (SendGrid)
-4. Agency reviews at `/agency/requests` dashboard
+4. Agency reviews at `/agency/[agencySlug]/requests` dashboard
 5. Agency clicks Approve → `approveBrandRequest()`:
-   - Creates workspace (`workspaces` table) — `logo_url` copied from brand request if present
+   - Creates workspace (`workspaces` table) — sets `agency_id` FK
    - Adds approving user as `owner` in `workspace_members`
    - Seeds default EMV config via `seed_workspace_defaults` RPC
-   - Generates `onboard_token` (32-byte hex), stores on `brand_requests`
+   - Generates `onboard_token` (32-byte hex), stores on `brand_requests` with 30-day expiry
    - Sends confirmation email to `contact_email` with link → `/onboard/[token]` (SendGrid)
    - Updates `brand_requests.status = 'approved'`
-6. Brand clicks confirmation link → `/onboard/[token]` page
-   - Marks `onboard_accepted_at` — acknowledgment only, no account creation
+6. Brand clicks confirmation link → `/onboard/[token]` page:
+   - If not logged in: shows sign-in prompt, redirects back after auth
+   - Brand clicks "Confirm my onboarding" → `acceptBrandOnboarding(token)`:
+     - Validates token (exists, not expired, not already accepted)
+     - `INSERT INTO workspace_members (role='brand') ON CONFLICT DO NOTHING`
+     - Marks `onboard_accepted_at`
+     - Returns `workspaceSlug`
+   - Brand redirected to `/[workspaceSlug]/portal`
+7. Future logins: `app/app/page.tsx` detects `role='brand'` → auto-redirects to `/[slug]/portal`
 
-### 4.2 Agency-Initiated Brand Invite (Legacy Flow)
-
-1. Agency creates a brand entry via `createBrand()` in `lib/actions/brands.ts`
-2. Token generated and stored in `brand_invitations` table
-3. Link: `/onboard/[token]` — **page not yet built for this path**
-4. `acceptBrandInvitation()` (stubbed in `lib/actions/brands.ts`) accepts the token
-
-> Note: `/onboard/[token]` will support **dual-lookup** — checks `brand_requests.onboard_token` first, then `brand_invitations.token` — so both flows share the same URL.
-
-### 4.3 Team Member Invitation
+### 4.2 Team Member Invitation
 
 1. Agency member goes to Settings → Members → Invite
 2. `inviteMember()` inserts into `invitations` with DB-generated token

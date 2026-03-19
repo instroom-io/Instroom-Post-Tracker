@@ -16,9 +16,9 @@ Instroom Post Tracker is a **multi-tenant B2B SaaS** for influencer marketing ag
 5. **Calculates EMV** (Estimated Media Value) using configurable CPM rates per platform
 6. **Tracks Instagram collab tag** status per post
 
-**Hierarchy:** One **marketing agency** (super admin) → many brand **workspaces** → many **campaigns** per workspace → many **influencers + posts** per campaign.
+**3-Tier Hierarchy:** Instroom platform (super admin) → **Agencies** → brand **workspaces** → many **campaigns** → many **influencers + posts**.
 
-**Workspace creation:** Workspaces are **never manually created by brands**. The agency generates a unique onboarding link per brand. The workspace is auto-created when the brand admin accepts the link (`/onboard/[token]`). The manual `/onboarding` page exists **for local development only** and must be disabled in production.
+**Workspace creation:** Brands submit a request at `/request-access` selecting their agency. The agency approves → workspace is auto-created → brand receives onboarding email → brand confirms → gets read-only portal access at `/[slug]/portal`. The manual `/onboarding` page exists **for local development only** and must be disabled in production.
 
 ---
 
@@ -88,7 +88,9 @@ import { createServiceClient } from '@/lib/supabase/server'   // admin, bypasses
 - `app/api/webhooks/ensemble/route.ts` — writes posts across workspace boundaries
 - `lib/actions/workspace.ts` — workspace creation (no membership row exists yet)
 - `lib/actions/workspace.ts` — invitation acceptance (invitee isn't a member yet)
-- `lib/actions/brands.ts` — brand entry creation + brand invitation acceptance (workspace auto-creation crosses user boundaries)
+- `lib/actions/brands.ts` — brand onboarding acceptance (inserts `workspace_members(role='brand')` for a user who isn't a member yet)
+- `lib/actions/brand-requests.ts` — public form submission + approval (workspace creation crosses user boundaries)
+- `lib/actions/agencies.ts` — agency creation + request approval (no membership row exists yet for agency owner)
 
 **Never use the service client in a component that renders UI. This is a data-isolation violation.**
 
@@ -169,37 +171,60 @@ instroom/
 │   ├── layout.tsx                         ← Root: fonts (Inter + Manrope), Providers
 │   ├── (marketing)/                       ← SSG — no auth, no sidebar
 │   │   ├── layout.tsx                     ← Nav + footer only
-│   │   └── page.tsx                       ← Landing page
+│   │   ├── page.tsx                       ← Landing page
+│   │   └── request-access/
+│   │       ├── page.tsx                   ← Public form: Brand tab + Agency tab
+│   │       └── request-access-tabs.tsx    ← Client component — tab switcher + forms
 │   ├── (auth)/                            ← Auth pages — minimal layout
 │   │   ├── login/page.tsx
 │   │   ├── signup/page.tsx
 │   │   └── callback/route.ts              ← OAuth/magic-link code exchange
+│   ├── admin/                             ← Platform admin (is_platform_admin=true only)
+│   │   ├── layout.tsx                     ← Admin shell
+│   │   ├── page.tsx                       ← Admin dashboard
+│   │   └── agencies/
+│   │       ├── page.tsx                   ← Agency list + agency request review
+│   │       └── [agencyId]/page.tsx        ← Agency detail
+│   ├── agency/
+│   │   └── [agencySlug]/                  ← Agency shell (agency owner only)
+│   │       ├── layout.tsx                 ← Agency sidebar
+│   │       ├── dashboard/page.tsx
+│   │       ├── brands/page.tsx
+│   │       ├── requests/page.tsx          ← Brand request queue (approve/reject)
+│   │       └── settings/page.tsx
 │   ├── (app)/
 │   │   └── [workspaceSlug]/
-│   │       └── (dashboard)/
-│   │           ├── layout.tsx             ← THE auth boundary: validates membership, renders AppShell
-│   │           ├── error.tsx              ← Error boundary for all dashboard routes
-│   │           ├── overview/page.tsx
-│   │           ├── campaigns/
-│   │           │   ├── page.tsx
-│   │           │   └── [campaignId]/page.tsx
-│   │           ├── influencers/page.tsx
-│   │           ├── posts/page.tsx
-│   │           ├── analytics/page.tsx
-│   │           └── settings/page.tsx
+│   │       ├── (dashboard)/
+│   │       │   ├── layout.tsx             ← THE auth boundary: validates membership, renders AppShell
+│   │       │   ├── error.tsx              ← Error boundary for all dashboard routes
+│   │       │   ├── overview/page.tsx
+│   │       │   ├── campaigns/
+│   │       │   │   ├── page.tsx
+│   │       │   │   └── [campaignId]/page.tsx
+│   │       │   ├── influencers/page.tsx
+│   │       │   ├── posts/page.tsx
+│   │       │   ├── analytics/page.tsx
+│   │       │   └── settings/page.tsx
+│   │       └── (portal)/                  ← Brand portal (role='brand' only)
+│   │           ├── layout.tsx             ← Portal auth boundary
+│   │           └── portal/page.tsx        ← Read-only brand view
 │   ├── api/
 │   │   ├── webhooks/ensemble/route.ts     ← POST, service client, HMAC-SHA256 verify
 │   │   └── cron/
 │   │       ├── download-worker/route.ts   ← Vercel Cron — every 5 min
 │   │       └── metrics-worker/route.ts   ← Vercel Cron — every 10 min
-│   ├── app/page.tsx                       ← Redirect: → last workspace or /onboarding
-│   ├── onboard/[token]/page.tsx           ← PRODUCTION: Brand onboarding acceptance (auto-creates workspace)
+│   ├── app/page.tsx                       ← Redirect: admin→/admin, agency→/agency/[slug]/dashboard,
+│   │                                         brand→/[slug]/portal, member→/[slug]/overview, else→/no-access
+│   ├── onboard/[token]/page.tsx           ← PRODUCTION: Brand onboarding acceptance (creates workspace_members row)
 │   ├── invite/[token]/page.tsx            ← Public invite acceptance (team members)
 │   └── onboarding/page.tsx               ← DEV ONLY: Manual workspace creation (disable in production)
 │
 ├── components/
 │   ├── ui/                               ← Atoms (Button, Badge, Input, Select, Dialog, Tooltip, TagInput…)
 │   ├── layout/                           ← AppShell, Sidebar, PageHeader, WorkspaceSwitcher, UserMenu
+│   ├── admin/                            ← Admin-specific components (agency list, request review)
+│   ├── agency/                           ← Agency shell components (agency sidebar, brand request table)
+│   ├── portal/                           ← Brand portal components: DriveStatusBanner, BrandPortalPosts
 │   ├── dashboard/                        ← StatCards, CampaignsTable, RecentPostsGrid, UsageRightsPanel
 │   ├── campaigns/                        ← CreateCampaignDialog, TrackingConfigPanel, CampaignInfluencersList, CampaignPostsTable
 │   ├── influencers/                      ← InfluencerTable, AddInfluencerDialog
@@ -214,7 +239,9 @@ instroom/
 │   │   └── client.ts                     ← createBrowserClient()
 │   ├── actions/                          ← Server Actions — one file per domain
 │   │   ├── auth.ts
-│   │   ├── brands.ts                     ← Brand entry creation, token generation, acceptBrandInvitation
+│   │   ├── agencies.ts                   ← submitAgencyRequest, approveAgencyRequest, rejectAgencyRequest, getAgencies, getActiveAgenciesPublic
+│   │   ├── brands.ts                     ← acceptBrandOnboarding (inserts workspace_members role=brand)
+│   │   ├── brand-requests.ts             ← submitBrandRequest, approveBrandRequest, rejectBrandRequest, getBrandRequests
 │   │   ├── workspace.ts
 │   │   ├── campaigns.ts
 │   │   ├── influencers.ts
@@ -238,10 +265,12 @@ instroom/
 │
 ├── supabase/
 │   └── migrations/
-│       └── 0001_initial_schema.sql       ← Full schema, RLS, triggers, indexes, pg_cron jobs
+│       ├── 0001_initial_schema.sql       ← Full schema, RLS, triggers, indexes, pg_cron jobs
+│       ├── 0002_brand_requests.sql       ← Brand request flow + Drive columns
+│       └── 0011_multi_agency_platform.sql ← agencies, agency_requests, is_platform_admin, agency_id FKs, brand role
 │
 ├── docs/                                 ← This folder — all project documentation
-├── middleware.ts                         ← Edge: session refresh + auth redirect
+├── proxy.ts                              ← Edge middleware (Next.js 16 convention — not middleware.ts)
 ├── tailwind.config.ts                    ← Semantic token → Tailwind class map
 ├── next.config.ts
 ├── tsconfig.json

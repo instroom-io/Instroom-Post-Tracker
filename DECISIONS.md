@@ -231,20 +231,21 @@ D-016 · Brand onboarding tokens are single-use and expire in 30 days
 ⚠️ SUPERSEDED by D-015 revision
 This decision is no longer applicable. The token-based onboarding system has been replaced by the brand request form + agency approval flow. There are no onboarding tokens to expire or consume.
 
-D-017 · Brands have no login — ever ✨ NEW
-Decision: Brands never have login access to Instroom. Not in v1. Not in v2. Not in any future version.
+D-017 · Brands have portal-only access ⚠️ REVISED
+Decision: Brands can log in but only access the read-only `/[workspaceSlug]/portal` route. They cannot access the full agency dashboard (`/(dashboard)/` route group).
+Replaces: Original D-017 which stated brands never have login access.
 Rationale:
 
-Instroom is an agency operations tool — it exists to make the agency's work faster, not to serve as a client portal
-Adding brand login introduces a separate auth surface, role complexity, and UI scope that detracts from the core product
-Agencies already have established ways to share results with clients (email, Notion docs, Loom, etc.)
-The original viewer role for brand clients has been removed entirely
+As the platform evolved to 3-tier (Instroom → Agencies → Brands), brands need a lightweight way to view their content without full dashboard access
+The portal is intentionally minimal — recent posts and Drive connection status
+Separating portal from dashboard via route groups enforces this boundary at the layout level without complex conditional rendering
 
 Implication:
 
-The viewer role in workspace_role enum still exists for internal agency staff (e.g. account directors who read but don't edit) — it does NOT represent brand access
-No public-facing dashboard, no shareable report links, no brand portal — these are permanently out of scope
-Any future feature request for "brand access" should be redirected to export functionality (PDF/CSV) rather than a login system
+`workspace_role` enum gains `'brand'` value
+`(portal)/layout.tsx` is the auth boundary for brand users; redirects non-brand users away
+`(dashboard)/layout.tsx` redirects `role='brand'` users to `/[slug]/portal`
+The viewer role in workspace_role enum still exists for internal agency staff only
 
 
 D-018 · Brand connection initiated by brand, approved by agency ✨ NEW
@@ -281,3 +282,55 @@ Download worker loads workspace Drive credentials before each upload
 Workspace settings page has a "Connect Google Drive" section with OAuth button
 If Drive is not connected, download jobs fail gracefully with download_status = 'failed' and an informative error message
 GOOGLE_SERVICE_ACCOUNT_JSON_B64 env var is removed — replaced by per-workspace OAuth tokens stored in the database (encrypted at rest via Supabase Vault or pgcrypto)
+
+---
+
+## D-020 · Workspace auto-created on agency approval, not on brand confirmation ✨ NEW
+
+**Decision:** The workspace is auto-created the moment the agency clicks Approve on the brand request. The brand's onboarding confirmation step (`/onboard/[token]`) only creates the `workspace_members(role='brand')` row — it does not create the workspace.
+
+**Rationale:**
+- Agency needs the workspace to exist immediately so they can start configuring campaigns and influencers
+- Brand confirmation is an acknowledgment / first-login step, not a provisioning step
+- Decouples workspace readiness from brand responsiveness — agency can start work before the brand confirms
+
+**Implication:** `approveBrandRequest()` calls `workspaces.insert()` AND generates `onboard_token`. `acceptBrandOnboarding()` only calls `workspace_members.insert()`.
+
+---
+
+## D-021 · `role='brand'` is portal-only ✨ NEW
+
+**Decision:** Users with `workspace_members.role = 'brand'` can only access the `/(portal)/portal` route group. They are explicitly blocked from all `/(dashboard)/` routes.
+
+**Rationale:**
+- Brands should see a simplified, read-only view — not the full campaign management UI
+- Separating portal from dashboard via route groups enforces this at the layout level
+- Avoids complex conditional rendering inside dashboard components
+
+**Implication:** The `(portal)/layout.tsx` checks for `role='brand'`. The `(dashboard)/layout.tsx` redirects `role='brand'` users to `/[slug]/portal`. The brand portal shows recent posts and Drive status only.
+
+---
+
+## D-022 · `onboard_token` stored on `brand_requests`, not a separate table ✨ NEW
+
+**Decision:** The brand onboarding token fields (`onboard_token`, `onboard_token_expires_at`, `onboard_accepted_at`) are columns on `brand_requests`, not in a separate `brand_onboard_tokens` table.
+
+**Rationale:**
+- Token is scoped 1:1 to a brand request — there is no need for a separate table
+- Simpler schema: one row per brand request contains all state (pending → approved → token generated → accepted)
+- Easier to query: `SELECT * FROM brand_requests WHERE onboard_token = $token`
+
+**Implication:** There is no `brand_onboard_tokens` table. Token lookup is always on `brand_requests`.
+
+---
+
+## D-023 · `approveAgencyRequest` falls back to current admin as owner ✨ NEW
+
+**Decision:** When the platform admin approves an agency request, if the agency contact email does not match an existing `auth.users` account, the approving platform admin becomes the temporary `owner_id` of the agency.
+
+**Rationale:**
+- Agency contacts may not have signed up yet when the platform admin reviews their request
+- The platform admin can reassign the owner later once the agency owner signs up
+- Avoids blocking the approval flow on the agency contact's signup status
+
+**Implication:** `approveAgencyRequest()` looks up `auth.users` by `contact_email`; if no match, falls back to `auth.uid()` (the platform admin). Agency owner must be updated manually if the fallback was used.

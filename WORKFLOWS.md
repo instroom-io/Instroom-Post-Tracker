@@ -5,6 +5,34 @@
 
 ---
 
+## 0A. Agency Registration Flow ✨ NEW
+
+**Triggered by:** Agency submitting the Agency tab at `/request-access`
+**Auth:** None required for submission. Platform admin must be logged in to approve.
+**Supabase client:** `createServiceClient()` in `lib/actions/agencies.ts`
+
+### Step-by-step
+
+**Step 1 — Agency submits registration request**
+Agency navigates to `/request-access` and clicks the Agency tab. Fields: agency name, website, contact name, contact email, description. `submitAgencyRequest()` inserts into `agency_requests` (status: `pending`).
+
+**Step 2 — Platform admin reviews**
+Platform admin logs in → auto-redirected to `/admin`. Reviews `agency_requests` at `/admin/agencies` (status: `pending`).
+
+**Step 3 — Platform admin approves or rejects**
+
+*Reject path:* `rejectAgencyRequest()` → `status = 'rejected'`, `reviewed_by`, `reviewed_at` set.
+
+*Approve path:* `approveAgencyRequest()`:
+1. Look up `auth.users` by `contact_email` — use their `user_id` as `owner_id` if found; else fall back to approving admin (see D-023)
+2. Insert `agencies` row: `{ name, slug, owner_id, status: 'active' }`
+3. Mark `agency_requests.status = 'approved'`
+
+**Step 4 — Agency owner logs in**
+`app/app/page.tsx` detects the user is an agency `owner_id` → redirects to `/agency/[slug]/dashboard`.
+
+---
+
 ## 0. Brand Connection Request & Workspace Auto-Creation
 
 **Triggered by:** Brand submitting the public `/request-access` form
@@ -26,16 +54,17 @@
 
 **Step 1 — Brand submits connection request**
 
-Brand navigates to `https://app.instroom.co/request-access` and fills in the public form.
+Brand navigates to `https://app.instroom.co/request-access` and fills in the Brand tab.
 
 Form fields:
 - Brand name (required)
 - Website URL (required)
 - Contact name (required)
 - Contact email (required)
+- Agency (required — dropdown populated by `getActiveAgenciesPublic()`)
 - Brief description of campaign needs (optional)
 
-On submit, the system creates a `brand_requests` record:
+On submit, the system creates a `brand_requests` record (with `agency_id` set):
 
 ```sql
 INSERT INTO brand_requests (
@@ -52,7 +81,7 @@ The brand sees a confirmation screen: *"Your request has been received. We'll be
 
 **Step 2 — Agency reviews pending requests**
 
-Agency staff log in and navigate to `/agency/requests`. The page lists all `brand_requests` with `status = 'pending'`, showing brand name, website, contact, and description.
+Agency owner logs in and navigates to `/agency/[agencySlug]/requests`. The page lists all `brand_requests` with `status = 'pending'` and `agency_id = <this agency>`, showing brand name, website, contact, and description.
 
 ```sql
 SELECT * FROM brand_requests
@@ -73,7 +102,7 @@ Request disappears from the pending list. In v1, agency manually notifies the br
 
 **Step 4 — Workspace auto-created on approval**
 
-`approveBrandRequest(requestId)` Server Action (uses **service client**):
+`approveBrandRequest(requestId)` Server Action (uses **service client** in `lib/actions/brand-requests.ts`):
 
 ```sql
 BEGIN TRANSACTION;
@@ -84,9 +113,9 @@ SELECT * FROM brand_requests WHERE id = $request_id AND status = 'pending';
 -- 2. Generate slug from brand name
 -- toSlug(brand_name) — append random suffix if slug already taken
 
--- 3. Auto-create workspace from request data
-INSERT INTO workspaces (name, slug)
-VALUES ($brand_name, $slug)
+-- 3. Auto-create workspace from request data (with agency_id)
+INSERT INTO workspaces (name, slug, agency_id)
+VALUES ($brand_name, $slug, $agency_id)
 RETURNING id;
 
 -- 4. Add approving agency user as workspace owner
@@ -96,16 +125,31 @@ VALUES ($workspace_id, $agency_user_id, 'owner');
 -- 5. Seed default EMV CPM rates
 CALL seed_workspace_defaults($workspace_id);
 
--- 6. Mark request as approved
+-- 6. Generate onboard_token and store on request
 UPDATE brand_requests
 SET status = 'approved', workspace_id = $workspace_id,
+    onboard_token = $token, onboard_token_expires_at = now() + interval '30 days',
     reviewed_at = now(), reviewed_by = $agency_user_id
 WHERE id = $request_id;
+
+-- 7. Send email to brand contact with /onboard/[token] link (SendGrid)
 
 COMMIT;
 ```
 
 Agency is redirected to the new workspace: `/{workspace_slug}/overview`.
+Brand receives email with link to `/onboard/[token]`.
+
+**Step 4B — Brand accepts onboarding**
+
+Brand clicks email link → `/onboard/[token]`:
+- If not logged in: page shows sign-in/signup prompt → redirects back after auth
+- Brand clicks "Confirm my onboarding" → `acceptBrandOnboarding(token)`:
+  1. Validate token: exists on `brand_requests`, not expired, not already accepted
+  2. `INSERT INTO workspace_members (workspace_id, user_id, role='brand') ON CONFLICT DO NOTHING`
+  3. `UPDATE brand_requests SET onboard_accepted_at = now()`
+  4. Return `workspaceSlug`
+- Brand redirected to `/[workspaceSlug]/portal`
 
 > **v2 TODO:** Auto-send approval notification email to `brand_requests.contact_email` via Resend/Postmark. In v1, agency notifies the brand manually.
 

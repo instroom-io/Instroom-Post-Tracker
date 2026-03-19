@@ -38,20 +38,33 @@ Campaign managers get a real-time dashboard and analytics at wrap-up — without
 
 ## 3. Users
 
-### Primary — Marketing Agency (Super Admin)
-- Owns and operates the entire Instroom instance
-- Reviews incoming brand connection requests and approves or rejects them
-- Manages all brand workspaces from the agency dashboard
-- Sets up campaigns, influencers, and tracking for each brand client
+### Tier 1 — Platform Admin (Instroom)
+- `is_platform_admin = true` in `public.users`
+- Can see and manage all agencies at `/admin`
+- Reviews and approves/rejects agency registration requests (`agency_requests` table)
+- Only one or a handful of accounts; set manually in DB
+
+### Tier 2 — Agency
+- Submits an agency request at `/request-access` (Agency tab) → platform admin approves
+- Owns and operates their own sub-platform under `/agency/[agencySlug]/*`
+- Reviews incoming brand requests from their brands at `/agency/[slug]/requests`
+- Manages all their brand workspaces, campaigns, and influencers
 - Pain point: hours wasted manually collecting posts across all client campaigns
 
-### Secondary — Campaign manager / community manager (Agency staff)
+### Tier 3 — Agency Staff (Campaign Manager / Community Manager)
 - Works inside one or more brand workspaces on behalf of the agency
 - Manages 3–15 active campaigns for a brand
 - Needs to prove campaign ROI with post-level analytics
-- Assigned to a workspace by the agency owner
+- Assigned to a workspace by the agency owner (`owner` / `admin` / `editor` / `viewer`)
 
-> **Note:** Brands have no login to Instroom — not in v1, not in v2. The agency manages everything on behalf of their brand clients. Brands interact with Instroom only via the public `/request-access` form to initiate a connection.
+### Tier 3 — Brand (Read-only portal)
+- Brands submit a connection request at `/request-access` (Brand tab), selecting the agency
+- After agency approval they receive an onboarding link via email → `/onboard/[token]`
+- Brand signs in and clicks Confirm → gets `role='brand'` in `workspace_members`
+- Brand can view a read-only portal at `/[workspaceSlug]/portal`
+- Brands never access the full agency dashboard
+
+> **Note:** The multi-agency platform adds a Instroom → Agencies → Brands 3-tier hierarchy. See §9 for the full platform flows.
 
 ---
 
@@ -59,16 +72,18 @@ Campaign managers get a real-time dashboard and analytics at wrap-up — without
 
 ### 4.1 Multi-workspace (agency model)
 
-- The **marketing agency** is the super admin — they manage all brand workspaces
-- Each **brand client** = one isolated workspace with its own campaigns, influencers, EMV config, and Google Drive folder
+- **Instroom** is the platform operator (tier 1) — manages all agencies
+- Each **marketing agency** (tier 2) gets their own sub-platform under `/agency/[agencySlug]`
+- Each **brand client** (tier 3) = one isolated workspace with its own campaigns, influencers, EMV config, and Google Drive folder
 - **Workspace creation flow:**
-  1. Brand submits a connection request via the public `/request-access` form (no login required)
-  2. Agency reviews the request in their dashboard (pending requests list)
-  3. Agency approves → workspace is auto-created from the request data
-  4. Agency rejects → brand is notified (email), request is closed
-- **Brands never log in to Instroom.** There is no brand-facing portal, viewer role, or read-only access — now or in future versions
-- Role system within each workspace applies to **agency staff only**: `owner` / `admin` / `editor` / `viewer`
-- Agency staff can be invited to workspaces via workspace settings (Flow 6)
+  1. Brand submits a connection request via the public `/request-access` form (Brand tab) — selects an agency
+  2. Agency reviews the request at `/agency/[slug]/requests`
+  3. Agency approves → workspace is auto-created immediately; `onboard_token` generated and emailed to brand contact
+  4. Brand clicks email link → `/onboard/[token]` → signs in → Confirms → gets `role='brand'` in `workspace_members`
+  5. Brand is redirected to their read-only portal `/[slug]/portal`
+- **Brand portal:** Brands with `role='brand'` can view a read-only portal — recent posts, Drive status. They cannot access the full agency dashboard
+- Role system for agency staff within each workspace: `owner` / `admin` / `editor` / `viewer`
+- Agency staff can be invited to workspaces via workspace settings
 - Workspace switching from the sidebar without a full page reload
 
 ### 4.2 Campaigns
@@ -149,9 +164,17 @@ Cron runs every 30 minutes (`GET /api/cron/posts-worker`):
 | `/` | Marketing landing page (SSG) | No |
 | `/login` | Email + password sign-in | No |
 | `/signup` | Account creation | No |
-| `/request-access` | Public brand connection request form | No |
+| `/request-access` | Public form — Brand tab + Agency tab | No |
+| `/onboard/[token]` | Brand onboarding acceptance (signs in + confirms) | Yes (redirect to login if not) |
 | `/onboarding` | Manual workspace creation (DEV ONLY — disable in production) | Yes |
 | `/invite/[token]` | Agency staff invitation acceptance | Optional |
+| `/admin` | Platform admin dashboard (Instroom-only) | Yes + `is_platform_admin` |
+| `/admin/agencies` | All agencies + agency request review | Yes + `is_platform_admin` |
+| `/admin/agencies/[agencyId]` | Agency detail | Yes + `is_platform_admin` |
+| `/agency/[agencySlug]/dashboard` | Agency overview | Yes + agency owner |
+| `/agency/[agencySlug]/brands` | Agency's workspaces | Yes + agency owner |
+| `/agency/[agencySlug]/requests` | Brand request queue (approve/reject) | Yes + agency owner |
+| `/agency/[agencySlug]/settings` | Agency settings | Yes + agency owner |
 | `/[slug]/overview` | Dashboard overview | Yes |
 | `/[slug]/campaigns` | Campaign list | Yes |
 | `/[slug]/campaigns/[id]` | Campaign detail | Yes |
@@ -159,16 +182,70 @@ Cron runs every 30 minutes (`GET /api/cron/posts-worker`):
 | `/[slug]/posts` | All posts across campaigns | Yes |
 | `/[slug]/analytics` | Analytics charts | Yes |
 | `/[slug]/settings` | Workspace settings + members | Yes |
-| `/agency/requests` | Pending brand connection requests (agency only) | Yes |
+| `/[slug]/portal` | Read-only brand portal (`role='brand'` only) | Yes |
 
-> **Removed:** `/onboard/[token]` — no longer needed. Brand onboarding is replaced by the `/request-access` public form + agency approval flow.
+---
+
+## 9. Multi-Agency Platform Architecture
+
+### 3-Tier Hierarchy
+
+```
+Instroom (platform admin)
+  └── Agencies  (/agency/[agencySlug]/*)
+        └── Brand Workspaces  (/[workspaceSlug]/*)
+              └── Brand Portal  (/[workspaceSlug]/portal)
+```
+
+### Agency Request Flow
+
+1. Agency submits form at `/request-access` (Agency tab) — name, website, contact
+2. `submitAgencyRequest()` creates a row in `agency_requests` (status: `pending`)
+3. Platform admin reviews at `/admin` or `/admin/agencies`
+4. Platform admin approves → `approveAgencyRequest()`:
+   - Creates `agencies` row (status: `active`)
+   - If agency contact has signed up: `owner_id` = their user ID; else: falls back to approving admin as temporary owner
+5. Agency owner logs in → auto-redirected to `/agency/[slug]/dashboard`
+
+### Brand Request Flow (via Agency)
+
+1. Brand fills `/request-access` (Brand tab) — selects agency from dropdown
+2. `submitBrandRequest()` creates `brand_requests` row linked to `agency_id` (status: `pending`)
+3. Agency reviews at `/agency/[slug]/requests`
+4. Agency approves → `approveBrandRequest()`:
+   - Creates `workspaces` row (`agency_id` FK set)
+   - Adds approving agency user as `owner` in `workspace_members`
+   - Seeds default EMV config
+   - Generates `onboard_token` (32-byte hex), stores on `brand_requests`
+   - Sends email to brand contact with link → `/onboard/[token]`
+5. Brand rejects → `status = 'rejected'`, brand notified via email
+
+### Brand Onboarding Flow
+
+1. Brand receives email with link → `/onboard/[token]`
+2. If not logged in: page shows sign-in prompt; redirects back after auth
+3. Brand clicks "Confirm my onboarding" → `acceptBrandOnboarding()`:
+   - Validates token (exists, not expired, not already accepted)
+   - Inserts `workspace_members(role='brand')` — idempotent (ON CONFLICT DO NOTHING)
+   - Marks `onboard_accepted_at`
+   - Returns `workspaceSlug`
+4. Brand redirected to `/[slug]/portal`
+5. Future logins: `app/app/page.tsx` detects `role='brand'` → auto-redirects to portal
+
+### Post-Login Redirect Logic (`app/app/page.tsx`)
+
+1. `is_platform_admin = true` → `/admin`
+2. Active agency owner → `/agency/[slug]/dashboard`
+3. `role='brand'` membership → `/[slug]/portal`
+4. Regular member → most recent `/[slug]/overview`
+5. No access → `/no-access`
 
 ---
 
 ## 6. Out of Scope — All Versions
 
-- **Brand login of any kind** — brands never access Instroom directly, not in v1, not in v2
-- Brand viewer role or read-only portal
+- **Full dashboard access for brands** — brands only access the read-only `/portal` route
+- Direct brand viewer role for the agency dashboard
 - Direct Instagram/TikTok/YouTube API (Ensemble handles all social access)
 - Influencer discovery / prospecting
 - Contract management

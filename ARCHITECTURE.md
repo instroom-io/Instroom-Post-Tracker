@@ -38,25 +38,46 @@ app/
 │
 ├── (marketing)/             ← SSG, no auth, no sidebar overhead
 │   ├── layout.tsx           ← Marketing nav + footer only
-│   └── page.tsx             ← Landing page
+│   ├── page.tsx             ← Landing page
+│   └── request-access/
+│       ├── page.tsx         ← Public request form (Brand tab + Agency tab)
+│       └── request-access-tabs.tsx  ← Client component — tab switcher
 │
 ├── (auth)/                  ← Minimal layout (logo + form card)
 │   ├── login/page.tsx
 │   ├── signup/page.tsx
 │   └── callback/route.ts    ← OAuth / magic-link PKCE code exchange
 │
+├── admin/                   ← Platform admin (Instroom only — is_platform_admin=true)
+│   ├── layout.tsx           ← Admin shell with admin sidebar
+│   ├── page.tsx             ← Admin overview dashboard
+│   └── agencies/
+│       ├── page.tsx         ← All agencies + agency request review
+│       └── [agencyId]/page.tsx ← Agency detail
+│
+├── agency/
+│   └── [agencySlug]/        ← Agency shell (agency owner only)
+│       ├── layout.tsx       ← Agency sidebar: Dashboard, Brands, Requests, Settings
+│       ├── dashboard/page.tsx
+│       ├── brands/page.tsx
+│       ├── requests/page.tsx
+│       └── settings/page.tsx
+│
 ├── (app)/
 │   └── [workspaceSlug]/
-│       └── (dashboard)/     ← ALL authenticated workspace routes
-│           ├── layout.tsx   ← THE auth + membership boundary (see §3)
-│           ├── error.tsx    ← Error boundary for dashboard crashes
-│           ├── overview/page.tsx
-│           ├── campaigns/page.tsx
-│           ├── campaigns/[campaignId]/page.tsx
-│           ├── influencers/page.tsx
-│           ├── posts/page.tsx
-│           ├── analytics/page.tsx
-│           └── settings/page.tsx
+│       ├── (dashboard)/     ← Agency staff workspace routes
+│       │   ├── layout.tsx   ← THE auth + membership boundary (see §3)
+│       │   ├── error.tsx    ← Error boundary for dashboard crashes
+│       │   ├── overview/page.tsx
+│       │   ├── campaigns/page.tsx
+│       │   ├── campaigns/[campaignId]/page.tsx
+│       │   ├── influencers/page.tsx
+│       │   ├── posts/page.tsx
+│       │   ├── analytics/page.tsx
+│       │   └── settings/page.tsx
+│       └── (portal)/        ← Brand read-only portal (role='brand' only)
+│           ├── layout.tsx   ← Portal shell (no agency sidebar)
+│           └── portal/page.tsx
 │
 ├── api/
 │   ├── webhooks/ensemble/route.ts      ← External POST, HMAC only, service client
@@ -64,18 +85,22 @@ app/
 │       ├── download-worker/route.ts    ← GET, Vercel Cron Bearer token
 │       └── metrics-worker/route.ts    ← GET, Vercel Cron Bearer token
 │
-├── app/page.tsx             ← Redirect: → /{lastWorkspace}/overview or /onboarding
+├── app/page.tsx             ← Redirect: platform admin → /admin, agency owner → /agency/[slug]/dashboard,
+│                               brand role → /[slug]/portal, member → /[slug]/overview, else → /no-access
 ├── invite/[token]/page.tsx  ← Public — team member invite token validation + acceptance
-├── onboard/[token]/page.tsx ← PRODUCTION — brand onboarding acceptance (auto-creates workspace)
+├── onboard/[token]/page.tsx ← PRODUCTION — brand onboarding acceptance (creates workspace_members row)
 └── onboarding/page.tsx      ← DEV ONLY — manual workspace creation (disable in production)
 ```
 
 ### Why this structure?
 
-- `(marketing)` — SSG pages render with no auth overhead
+- `(marketing)` — SSG pages render with no auth overhead; includes `/request-access`
 - `(auth)` — auth pages have no sidebar, minimal layout
-- `(dashboard)/layout.tsx` — **single auth boundary** for all 6 workspace routes. Validates membership once; child pages never re-check auth
-- `onboard/[token]` — **production workspace entry point**. Brand admin clicks agency-generated link → auto-creates workspace. No sidebar, no auth required upfront (auth gate is inside the page)
+- `admin/` — platform admin routes; layout checks `is_platform_admin = true` on `public.users`
+- `agency/[agencySlug]/` — agency shell; layout validates the user is the agency `owner_id`
+- `(dashboard)/layout.tsx` — **single auth boundary** for all agency-staff workspace routes. Validates membership once; child pages never re-check auth
+- `(portal)/layout.tsx` — brand portal boundary; validates `role='brand'` in `workspace_members`
+- `onboard/[token]` — brand onboarding acceptance. Brand clicks emailed link → signs in → confirms → `workspace_members(role='brand')` inserted
 - `invite/[token]` — team member invitation acceptance. Workspace already exists; just adds the user to `workspace_members`
 - `onboarding` — **dev only**. Manual workspace creation for local development. Must not be accessible in production
 - No route needs to protect itself individually — layout handles it all
@@ -209,7 +234,9 @@ Write permissions by role:
 Only these places use `createServiceClient()` (bypasses all RLS):
 1. `app/api/cron/posts-worker/route.ts` — writes posts across workspace boundaries
 2. `lib/actions/workspace.ts` — workspace creation + team member invitation acceptance
-3. `lib/actions/brands.ts` — brand entry creation, token generation, brand invitation acceptance (auto-creates workspace + adds brand admin as owner)
+3. `lib/actions/brands.ts` — brand entry creation, token generation, brand onboarding acceptance
+4. `lib/actions/brand-requests.ts` — public form submission, approval (auto-creates workspace), rejection
+5. `lib/actions/agencies.ts` — agency creation + request approval (no agency membership row exists yet for agency owner)
 
 ---
 
@@ -333,12 +360,17 @@ Vercel Cron (every 10 min) — GET /api/cron/metrics-worker:
 ```
 auth.users
   │
-  ├── [agency user] → brands (agency_id)
-  │     └── brand_invitations (token, expires_at, accepted_at)
-  │           └── [on accept] → workspaces (auto-created)
+  ├── [is_platform_admin=true] → /admin  (Instroom platform admin)
+  │     └── approves agency_requests → creates agencies
   │
-  └── workspace_members (role: owner | admin | editor | viewer)
-        └── workspaces
+  ├── [agency owner_id] → agencies (slug, status)
+  │     └── /agency/[agencySlug]/*
+  │           └── approves brand_requests (agency_id FK) → creates workspaces (agency_id FK)
+  │                 └── generates onboard_token → email → /onboard/[token]
+  │                       └── [on accept] → workspace_members (role='brand')
+  │
+  └── workspace_members (role: owner | admin | editor | viewer | brand)
+        └── workspaces (agency_id FK → agencies)
               ├── campaigns
               │     ├── campaign_tracking_configs  [unique: campaign_id + platform]
               │     └── campaign_influencers        [unique: campaign_id + influencer_id]
@@ -348,7 +380,7 @@ auth.users
               └── emv_config
 ```
 
-All workspace tables have `workspace_id`. RLS ensures users only see data in workspaces they're members of. `brands` and `brand_invitations` are managed exclusively via service client — no user-scoped RLS queries needed.
+All workspace tables have `workspace_id`. RLS ensures users only see data in workspaces they're members of. Agency and platform-admin operations use the service client — no user-scoped RLS queries apply at those tiers.
 
 ---
 
