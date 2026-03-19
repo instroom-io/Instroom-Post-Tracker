@@ -69,55 +69,6 @@ export default async function OnboardPage({ params }: PageProps) {
     )
   }
 
-  // ── Fallback: legacy brand_invitations flow ────────────────────────────────
-  // brand_invitations has no SELECT RLS policies so service client is required.
-  const { data: brandInvitation } = await serviceClient
-    .from('brand_invitations')
-    .select('id, expires_at, accepted_at, brands(name)')
-    .eq('token', token)
-    .single()
-
-  if (brandInvitation) {
-    const isExpired = new Date(brandInvitation.expires_at) < new Date()
-    const alreadyAccepted = !!brandInvitation.accepted_at
-    const brand = Array.isArray(brandInvitation.brands)
-      ? brandInvitation.brands[0]
-      : brandInvitation.brands
-
-    if (isExpired) {
-      return <OnboardError message="This onboarding link has expired. Please contact your agency." />
-    }
-
-    if (alreadyAccepted) {
-      return (
-        <OnboardLayout>
-          <h1 className="font-display text-[18px] font-extrabold text-foreground">
-            Already onboarded
-          </h1>
-          <p className="mt-2 text-[13px] text-foreground-lighter leading-relaxed">
-            {brand?.name && (
-              <><strong className="text-foreground">{brand.name}</strong> has already been onboarded.</>
-            )}
-            {!brand?.name && 'This brand has already been onboarded.'}{' '}
-            Contact your agency if you need help.
-          </p>
-        </OnboardLayout>
-      )
-    }
-
-    return (
-      <OnboardLayout>
-        <h1 className="font-display text-[18px] font-extrabold text-foreground">
-          {brand?.name ? `Welcome, ${brand.name}!` : 'Brand Onboarding'}
-        </h1>
-        <p className="mt-2 text-[13px] text-foreground-lighter leading-relaxed">
-          Your agency has set up an influencer marketing tracking workspace for you.
-          Please contact your agency to proceed — account setup is required for this onboarding link.
-        </p>
-      </OnboardLayout>
-    )
-  }
-
   // ── Not found ──────────────────────────────────────────────────────────────
   return <OnboardError message="This onboarding link is invalid or has expired. Please contact your agency." />
 }

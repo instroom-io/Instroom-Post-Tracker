@@ -41,11 +41,6 @@ export const inviteMemberSchema = z.object({
   }),
 })
 
-export const createBrandSchema = z.object({
-  name: z.string().min(2, 'Brand name must be at least 2 characters.').max(80),
-})
-export type CreateBrandInput = z.infer<typeof createBrandSchema>
-
 // ─── Brand Requests ──────────────────────────────────────────────────────────
 
 export const brandRequestSchema = z.object({

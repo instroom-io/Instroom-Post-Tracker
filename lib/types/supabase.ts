@@ -91,41 +91,6 @@ export type Database = {
           },
         ]
       }
-      brand_invitations: {
-        Row: {
-          accepted_at: string | null
-          brand_id: string
-          created_at: string | null
-          expires_at: string
-          id: string
-          token: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          brand_id: string
-          created_at?: string | null
-          expires_at: string
-          id?: string
-          token: string
-        }
-        Update: {
-          accepted_at?: string | null
-          brand_id?: string
-          created_at?: string | null
-          expires_at?: string
-          id?: string
-          token?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "brand_invitations_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       brand_requests: {
         Row: {
           agency_id: string | null
@@ -201,41 +166,6 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      brands: {
-        Row: {
-          agency_id: string
-          created_at: string | null
-          id: string
-          name: string
-          slug: string
-          status: Database["public"]["Enums"]["brand_status"]
-        }
-        Insert: {
-          agency_id: string
-          created_at?: string | null
-          id?: string
-          name: string
-          slug: string
-          status?: Database["public"]["Enums"]["brand_status"]
-        }
-        Update: {
-          agency_id?: string
-          created_at?: string | null
-          id?: string
-          name?: string
-          slug?: string
-          status?: Database["public"]["Enums"]["brand_status"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "brands_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "agencies"
             referencedColumns: ["id"]
           },
         ]
