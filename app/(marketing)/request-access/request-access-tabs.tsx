@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { submitBrandRequest } from '@/lib/actions/brand-requests'
 import { submitAgencyRequest } from '@/lib/actions/agencies'
+import { Button } from '@/components/ui/button'
 import type { Agency } from '@/lib/types'
 
 type Tab = 'brand' | 'agency'
@@ -17,8 +18,6 @@ const inputClass =
 
 const labelClass = 'text-[12px] font-medium text-foreground-light'
 
-const submitBtnClass =
-  'h-10 w-full rounded-lg bg-brand px-4 text-[12px] font-semibold text-white transition-colors hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-60'
 
 function SuccessState({ title, body }: { title: string; body: string }) {
   return (
@@ -83,7 +82,7 @@ function BrandForm({ agencies }: { agencies: Pick<Agency, 'id' | 'name'>[] }) {
           <select
             id="agency_id"
             name="agency_id"
-            className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+            className={`${inputClass} appearance-none`}
           >
             <option value="">Select your agency (if applicable)</option>
             {agencies.map((a) => (
@@ -180,9 +179,9 @@ function BrandForm({ agencies }: { agencies: Pick<Agency, 'id' | 'name'>[] }) {
 
       {error && <p className="text-[11px] text-destructive">{error}</p>}
 
-      <button type="submit" disabled={isPending} className={submitBtnClass}>
-        {isPending ? 'Submitting...' : 'Submit Request'}
-      </button>
+      <Button type="submit" variant="primary" size="lg" loading={isPending} className="w-full">
+        {isPending ? 'Submitting…' : 'Submit Request'}
+      </Button>
     </form>
   )
 }
@@ -298,9 +297,9 @@ function AgencyForm() {
 
       {error && <p className="text-[11px] text-destructive">{error}</p>}
 
-      <button type="submit" disabled={isPending} className={submitBtnClass}>
-        {isPending ? 'Submitting...' : 'Apply as Agency'}
-      </button>
+      <Button type="submit" variant="primary" size="lg" loading={isPending} className="w-full">
+        {isPending ? 'Submitting…' : 'Apply as Agency'}
+      </Button>
     </form>
   )
 }
