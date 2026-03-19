@@ -194,10 +194,12 @@ async function scrapeTikTok(
   handle: string,
   startCursor?: bigint | null,
   campaignStartDate?: string | null,
+  depth: number = 1,
 ): Promise<ScrapeResult> {
-  // Always fetch depth=1 (one page ≈ 10 posts, ~6s per call).
+  // depth=5 during backfill (~50 posts per call) to cover the campaign window faster.
+  // depth=1 during live monitoring (~10 posts per call) to cheaply catch new posts.
   // Cursor-based pagination lets us incrementally backfill across many cron runs.
-  let url = `${ENSEMBLE_API_URL}/tt/user/posts?username=${encodeURIComponent(handle)}&depth=1&token=${ENSEMBLE_API_KEY}`
+  let url = `${ENSEMBLE_API_URL}/tt/user/posts?username=${encodeURIComponent(handle)}&depth=${depth}&token=${ENSEMBLE_API_KEY}`
   if (startCursor != null) {
     url += `&start_cursor=${startCursor.toString()}`
   }
@@ -211,18 +213,11 @@ async function scrapeTikTok(
   if (!Array.isArray(json.data)) return { posts: [], resolvedId: null }
 
   const posts: NormalizedPost[] = []
-  let oldestCreateTime: number | null = null
 
   for (const item of json.data) {
     const p = item as Record<string, unknown>
     const normalized = parseTikTokItem(p, handle)
     if (!normalized) continue
-
-    const createTime = p.create_time as number
-    if (oldestCreateTime === null || createTime < oldestCreateTime) {
-      oldestCreateTime = createTime
-    }
-
     posts.push(normalized)
   }
 
@@ -232,15 +227,19 @@ async function scrapeTikTok(
     ? BigInt(String(rawCursor))
     : null
 
-  // Determine if we've reached (or passed) the campaign start date
+  // Determine if we've reached (or passed) the campaign start date.
+  // Use the cursor timestamp, NOT oldestCreateTime — TikTok feeds can include pinned/viral
+  // posts from months ago mixed into recent pages, causing false early termination if we
+  // check the oldest post's date. The cursor is the sequential pagination position and
+  // reliably represents how far back in time we've scrolled.
   let reachedCampaignStart = false
-  if (campaignStartDate && oldestCreateTime !== null) {
-    const campaignStartMs = new Date(campaignStartDate).getTime()
-    reachedCampaignStart = oldestCreateTime * 1000 <= campaignStartMs
-  }
-  // Also treat no-cursor or empty page as end of feed
   if (!nextCursor || posts.length === 0) {
+    // No cursor or empty page = end of feed = backfill complete
     reachedCampaignStart = true
+  } else if (campaignStartDate) {
+    // cursor is in milliseconds; compare directly to campaign start timestamp
+    const campaignStartMs = new Date(campaignStartDate).getTime()
+    reachedCampaignStart = Number(nextCursor) <= campaignStartMs
   }
 
   return { posts, resolvedId: null, nextCursor, reachedCampaignStart }
@@ -408,11 +407,12 @@ export async function GET(request: NextRequest) {
           result = await scrapeInstagram(handle, influencer.instagram_user_id)
         } else if (platform === 'tiktok') {
           // Cursor-based TikTok pagination:
-          // - Backfill not complete: fetch one page from tiktokNextCursor going backward in time.
-          //   Each cron run advances one page (~10 posts, ~6s) until campaign start_date is reached.
-          // - Backfill complete: fetch one page from newest posts (no cursor) for ongoing monitoring.
+          // - Backfill not complete: fetch 5 pages (~50 posts) from tiktokNextCursor going backward.
+          //   Each cron run advances ~50 posts until campaign start_date is reached.
+          // - Backfill complete: fetch 1 page (~10 posts) from newest posts for ongoing monitoring.
           const cursorForThisRun = tiktokBackfillComplete ? null : tiktokNextCursor
-          result = await scrapeTikTok(handle, cursorForThisRun, campaign.start_date)
+          const depth = tiktokBackfillComplete ? 1 : 5
+          result = await scrapeTikTok(handle, cursorForThisRun, campaign.start_date, depth)
         } else if (platform === 'youtube') {
           result = await scrapeYouTube(handle, influencer.youtube_channel_id)
         }
