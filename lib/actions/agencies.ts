@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { sendEmail, escapeHtml } from '@/lib/email'
 import { agencyRequestSchema } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
 import type { Agency, AgencyRequest } from '@/lib/types'
@@ -96,6 +97,20 @@ export async function approveAgencyRequest(
   if (updateError) return { error: 'Failed to update request status.' }
 
   revalidatePath('/admin')
+
+  // Send approval email to agency contact
+  await sendEmail({
+    to: request.contact_email,
+    subject: 'Your agency application has been approved — Instroom',
+    html: `
+      <p>Hi ${escapeHtml(request.contact_name)},</p>
+      <p>Great news — your agency <strong>${escapeHtml(request.agency_name)}</strong> has been approved on Instroom Post Tracker.</p>
+      <p>To access your agency dashboard, sign up (or log in) using this email address at:</p>
+      <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/signup">${process.env.NEXT_PUBLIC_APP_URL}/signup</a></p>
+      <p>Once logged in, you'll be taken directly to your agency dashboard where you can manage brand workspaces and approve brand requests.</p>
+      <p>— The Instroom Team</p>
+    `,
+  })
 }
 
 /**

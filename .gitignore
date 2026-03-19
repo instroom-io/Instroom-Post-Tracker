@@ -34,6 +34,7 @@ yarn-error.log*
 
 # local tools
 .playwright-mcp/
+.superpowers/
 
 # supabase local cli state
 supabase/.temp/
@@ -52,6 +53,7 @@ GO_LIVE_CLAUDE_CODE_PROMPT.md
 INSTRUCTIONS.md
 docs/E2E_TEST_PROMPT.md
 docs/landing-page-prompt.md
+docs/superpowers/
 
 # Reference screenshots (root level)
 ensemble-docs.png
