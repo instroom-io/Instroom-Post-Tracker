@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      agencies: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          owner_id: string
+          slug: string
+          status: Database["public"]["Enums"]["agency_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          slug: string
+          status?: Database["public"]["Enums"]["agency_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          slug?: string
+          status?: Database["public"]["Enums"]["agency_status"]
+        }
+        Relationships: []
+      }
+      agency_requests: {
+        Row: {
+          agency_name: string
+          contact_email: string
+          contact_name: string
+          created_at: string
+          description: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["agency_request_status"]
+          website_url: string
+        }
+        Insert: {
+          agency_name: string
+          contact_email: string
+          contact_name: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["agency_request_status"]
+          website_url: string
+        }
+        Update: {
+          agency_name?: string
+          contact_email?: string
+          contact_name?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["agency_request_status"]
+          website_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_invitations: {
         Row: {
           accepted_at: string | null
@@ -51,12 +128,14 @@ export type Database = {
       }
       brand_requests: {
         Row: {
+          agency_id: string | null
           brand_name: string
           contact_email: string
           contact_name: string
           created_at: string
           description: string | null
           id: string
+          logo_url: string | null
           onboard_accepted_at: string | null
           onboard_token: string | null
           onboard_token_expires_at: string | null
@@ -67,12 +146,14 @@ export type Database = {
           workspace_id: string | null
         }
         Insert: {
+          agency_id?: string | null
           brand_name: string
           contact_email: string
           contact_name: string
           created_at?: string
           description?: string | null
           id?: string
+          logo_url?: string | null
           onboard_accepted_at?: string | null
           onboard_token?: string | null
           onboard_token_expires_at?: string | null
@@ -83,12 +164,14 @@ export type Database = {
           workspace_id?: string | null
         }
         Update: {
+          agency_id?: string | null
           brand_name?: string
           contact_email?: string
           contact_name?: string
           created_at?: string
           description?: string | null
           id?: string
+          logo_url?: string | null
           onboard_accepted_at?: string | null
           onboard_token?: string | null
           onboard_token_expires_at?: string | null
@@ -99,6 +182,13 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "brand_requests_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "brand_requests_reviewed_by_fkey"
             columns: ["reviewed_by"]
@@ -140,7 +230,15 @@ export type Database = {
           slug?: string
           status?: Database["public"]["Enums"]["brand_status"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "brands_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       campaign_influencers: {
         Row: {
@@ -150,6 +248,8 @@ export type Database = {
           id: string
           influencer_id: string
           monitoring_status: Database["public"]["Enums"]["monitoring_status"]
+          tiktok_backfill_complete: boolean
+          tiktok_next_cursor: number | null
           usage_rights: boolean
           usage_rights_updated_at: string | null
         }
@@ -160,6 +260,8 @@ export type Database = {
           id?: string
           influencer_id: string
           monitoring_status?: Database["public"]["Enums"]["monitoring_status"]
+          tiktok_backfill_complete?: boolean
+          tiktok_next_cursor?: number | null
           usage_rights?: boolean
           usage_rights_updated_at?: string | null
         }
@@ -170,6 +272,8 @@ export type Database = {
           id?: string
           influencer_id?: string
           monitoring_status?: Database["public"]["Enums"]["monitoring_status"]
+          tiktok_backfill_complete?: boolean
+          tiktok_next_cursor?: number | null
           usage_rights?: boolean
           usage_rights_updated_at?: string | null
         }
@@ -324,7 +428,6 @@ export type Database = {
           instagram_user_id: string | null
           profile_pic_url: string | null
           tiktok_handle: string | null
-          tiktok_sec_uid: string | null
           workspace_id: string
           youtube_channel_id: string | null
           youtube_handle: string | null
@@ -337,7 +440,6 @@ export type Database = {
           instagram_user_id?: string | null
           profile_pic_url?: string | null
           tiktok_handle?: string | null
-          tiktok_sec_uid?: string | null
           workspace_id: string
           youtube_channel_id?: string | null
           youtube_handle?: string | null
@@ -350,7 +452,6 @@ export type Database = {
           instagram_user_id?: string | null
           profile_pic_url?: string | null
           tiktok_handle?: string | null
-          tiktok_sec_uid?: string | null
           workspace_id?: string
           youtube_channel_id?: string | null
           youtube_handle?: string | null
@@ -618,6 +719,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_platform_admin: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -625,6 +727,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          is_platform_admin?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -632,6 +735,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          is_platform_admin?: boolean
         }
         Relationships: []
       }
@@ -718,6 +822,7 @@ export type Database = {
       }
       workspaces: {
         Row: {
+          agency_id: string | null
           created_at: string
           drive_connection_type:
             | Database["public"]["Enums"]["drive_connection_type"]
@@ -730,6 +835,7 @@ export type Database = {
           slug: string
         }
         Insert: {
+          agency_id?: string | null
           created_at?: string
           drive_connection_type?:
             | Database["public"]["Enums"]["drive_connection_type"]
@@ -742,6 +848,7 @@ export type Database = {
           slug: string
         }
         Update: {
+          agency_id?: string | null
           created_at?: string
           drive_connection_type?:
             | Database["public"]["Enums"]["drive_connection_type"]
@@ -753,7 +860,15 @@ export type Database = {
           name?: string
           slug?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "workspaces_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -789,6 +904,8 @@ export type Database = {
       }
     }
     Enums: {
+      agency_request_status: "pending" | "approved" | "rejected"
+      agency_status: "pending" | "active" | "suspended"
       brand_request_status: "pending" | "approved" | "rejected"
       brand_status: "pending" | "active"
       campaign_status: "draft" | "active" | "ended"
@@ -799,7 +916,7 @@ export type Database = {
       job_type: "download" | "metrics_fetch"
       monitoring_status: "pending" | "active" | "paused"
       platform_type: "instagram" | "tiktok" | "youtube"
-      workspace_role: "owner" | "admin" | "editor" | "viewer"
+      workspace_role: "owner" | "admin" | "editor" | "viewer" | "brand"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -927,6 +1044,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agency_request_status: ["pending", "approved", "rejected"],
+      agency_status: ["pending", "active", "suspended"],
       brand_request_status: ["pending", "approved", "rejected"],
       brand_status: ["pending", "active"],
       campaign_status: ["draft", "active", "ended"],
@@ -937,7 +1056,7 @@ export const Constants = {
       job_type: ["download", "metrics_fetch"],
       monitoring_status: ["pending", "active", "paused"],
       platform_type: ["instagram", "tiktok", "youtube"],
-      workspace_role: ["owner", "admin", "editor", "viewer"],
+      workspace_role: ["owner", "admin", "editor", "viewer", "brand"],
     },
   },
 } as const
