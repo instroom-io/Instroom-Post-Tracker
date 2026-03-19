@@ -97,3 +97,16 @@ ALTER TABLE public.brands
 ALTER TABLE public.brands
   ADD CONSTRAINT brands_agency_id_fkey
   FOREIGN KEY (agency_id) REFERENCES public.agencies(id) ON DELETE CASCADE;
+
+-- ─── Additional indexes ────────────────────────────────────────────────────────
+
+CREATE INDEX idx_brand_requests_agency_id ON public.brand_requests(agency_id);
+CREATE INDEX idx_workspaces_agency_id     ON public.workspaces(agency_id);
+
+-- ─── Production deployment note ───────────────────────────────────────────────
+-- brands.agency_id FK swap (above): on a database with existing brands rows,
+-- those rows must first be backfilled to point to a valid agencies.id before
+-- the new FK constraint is applied. In a fresh/wiped DB this is safe as-is.
+-- All agency mutations use createServiceClient() which bypasses RLS — no
+-- UPDATE/DELETE policies are needed on agencies or agency_requests tables.
+-- Anonymous agency_requests inserts are intentional (matches brand_requests pattern).
