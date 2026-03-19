@@ -37,6 +37,9 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
 
   if (!membership) redirect('/app')
 
+  // Brand portal users must not access the full agency dashboard
+  if (membership.role === 'brand') redirect(`/${workspaceSlug}/portal`)
+
   // 4. Fetch all user memberships for workspace switcher
   const { data: allMemberships } = await supabase
     .from('workspace_members')

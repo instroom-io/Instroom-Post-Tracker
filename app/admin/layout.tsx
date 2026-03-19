@@ -1,0 +1,34 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+
+interface LayoutProps {
+  children: React.ReactNode
+}
+
+export default async function AdminLayout({ children }: LayoutProps) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('is_platform_admin')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.is_platform_admin) redirect('/app')
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex h-14 items-center border-b border-border px-6 gap-6">
+        <span className="text-sm font-bold text-foreground">Instroom Admin</span>
+        <nav className="flex items-center gap-4 text-sm text-muted-foreground">
+          <a href="/admin" className="hover:text-foreground transition-colors">Overview</a>
+          <a href="/admin/agencies" className="hover:text-foreground transition-colors">Agencies</a>
+        </nav>
+      </div>
+      <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
+    </div>
+  )
+}
