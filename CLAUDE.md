@@ -29,12 +29,9 @@ Instroom Post Tracker is a **multi-tenant B2B SaaS** for influencer marketing ag
 | 1 | `docs/PRD.md` | Understand the product: what, why, who |
 | 2 | `docs/ARCHITECTURE.md` | System design, App Router structure, data flow |
 | 3 | `docs/DATABASE.md` | Full schema, RLS, enums, query patterns |
-| 4 | `docs/DESIGN_SYSTEM.md` | Every UI decision — MUST read before any component |
-| 5 | `docs/COMPONENTS.md` | Component inventory, status, build guides |
-| 6 | `docs/WORKFLOWS.md` | Post detection, download, metrics, campaign lifecycle |
-| 7 | `docs/DECISIONS.md` | Locked architectural decisions — read before questioning anything |
-| 8 | `docs/CODE_STYLE.md` | TypeScript, Tailwind, Server Action patterns |
-| 9 | `docs/TODO.md` | Active build backlog in priority order |
+| 4 | `docs/WORKFLOWS.md` | Post detection, download, metrics, campaign lifecycle |
+| 5 | `docs/DECISIONS.md` | Locked architectural decisions — read before questioning anything |
+| 6 | `docs/TODO.md` | Active build backlog in priority order |
 
 ---
 

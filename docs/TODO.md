@@ -1,82 +1,173 @@
-# TODO
+# Instroom Post Tracker — TODO
 
-> Active backlog in priority order. Check this before building anything new.
-
----
-
-## Immediate
-
-- [x] **Commit pending changes** — migration rename (`0007_security_fixes.sql`), new `0008_co_member_rls.sql`, modified doc files (`ARCHITECTURE.md`, `CLAUDE.md`, `PRD.md`, `README.md`, `WORKFLOWS.md`)
+> **Last updated:** 2026-03-19
+> Accurate as of current codebase state.
 
 ---
 
-## Pre-production (required before deploying to production)
+## ✅ Fully Complete
 
-### SendGrid Setup
+### Phase 1 — DB Schema + Supabase Project
+- Initial schema, RLS policies, triggers, indexes, pg_cron jobs (`0001_initial_schema.sql`)
 
-- [x] **SendGrid local setup complete** — API key, sender email, and agency notification email all set in `.env.local`
-- [ ] **SendGrid Vercel setup** — add `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `AGENCY_NOTIFICATION_EMAIL` to Vercel env vars (Settings → Environment Variables)
+### Phase 2 — Auth
+- Signup, login, email verification, session management, middleware (`proxy.ts`)
+- Post-login redirect dispatcher: 5-tier routing (platform admin → agency owner → brand portal → workspace member → no-access)
 
-The email code is fully implemented. You just need to configure SendGrid and set 3 env vars.
+### Phase 3 — Workspace Creation + Onboarding
+- Workspace CRUD, `workspace_members` RLS, dev `/onboarding` page (local only)
 
-**Step 1 — Create a SendGrid account**
-- Go to [sendgrid.com](https://sendgrid.com) and sign up (free tier allows 100 emails/day)
+### Phase 4 — Campaign CRUD
+- Create / edit / delete campaigns with platform selection, date range, status lifecycle
 
-**Step 2 — Create an API key**
-- Dashboard → Settings → API Keys → Create API Key
-- Name: `Instroom Post Tracker`
-- Permission: **Restricted Access** → enable **Mail Send** only
-- Copy the key immediately (shown only once) — this is your `SENDGRID_API_KEY`
+### Phase 5 — Influencer Management
+- Add / edit influencers per workspace, social handle fields (IG, TikTok, YouTube)
+- Campaign–influencer linking (`campaign_influencers`)
 
-**Step 3 — Verify your sender email (Single Sender — no DNS required)**
-- Dashboard → Settings → Sender Authentication → **Single Sender Verification**
-- Click "Create New Sender" → fill in your agency email (e.g. `notifications@instroom.co`)
-- SendGrid sends a verification email → click the link to confirm
-- This email address becomes your `SENDGRID_FROM_EMAIL`
+### Phase 6 — Ensemble Webhook + Post Detection
+- HMAC-SHA256 verified webhook at `/api/webhooks/ensemble`
+- Inserts posts, enqueues downloads, deduplicates by platform post ID
 
-> **Note:** Single Sender is sufficient to start. For better deliverability long-term, you can
-> upgrade to Domain Authentication (Settings → Sender Authentication → Authenticate Your Domain)
-> which adds SPF/DKIM DNS records. Do this after the app is live and stable.
+### Phase 7 — Download Worker + Google Drive
+- Cron worker at `/api/cron/download-worker`
+- Downloads media via Ensemble API, uploads to Google Drive service account
+- Parallel execution via `Promise.allSettled`, 10 jobs/run
+- Usage rights gate: skips download if rights not granted
 
-**Step 4 — Set env vars locally and test**
+### Phase 8 — Metrics Worker + EMV
+- Cron worker at `/api/cron/metrics-worker`
+- Fetches frozen performance metrics 7 days after publish
+- EMV calculation using configurable CPM rates per platform
 
-Add to your `.env.local`:
+### Phase 9 — Analytics Dashboard
+- Post volume chart, EMV chart, platform breakdown, ER benchmark, influencer leaderboard
+- Date range filter, TanStack Query caching
+
+### Phase 10 — Settings
+- Workspace settings (name, logo URL, Drive folder ID)
+- Member management (invite, role change, remove)
+- EMV config (CPM rates per platform)
+
+### Phase 11 — Brand Portal
+- Read-only portal at `/(portal)/portal` for `workspace_members(role='brand')`
+- Drive status banner, brand post list
+
+### Phase 12 — Invite Flow
+- Team member invitation at `/invite/[token]`
+- Email-based invite with token expiry, role assignment
+
+### Phase 13 — Usage Rights Gate
+- Per-influencer per-campaign toggle
+- Blocks download worker until rights granted
+- Optimistic UI with `useOptimistic`
+
+### Phase 15 — Multi-Agency Platform
+- 3-tier hierarchy: Instroom (super admin) → Agencies → Brand workspaces
+- **Admin routes:** `/admin`, `/admin/agencies`, `/admin/agencies/[agencyId]`
+- **Agency routes:** `/agency/[slug]/dashboard`, `/requests`, `/brands`, `/settings`
+- **Brand request flow:** `/request-access` (Brand tab) → agency approves → workspace auto-created → brand receives onboarding email → `/onboard/[token]` confirmation → `/[slug]/portal`
+- **Agency request flow:** `/request-access` (Agency tab) → Instroom admin approves → agency owner gets access
+- **Email flows:** brand request → agency notification email; approval → brand confirmation email with onboarding link; team invite → invitation email (SendGrid)
+- DB migration `0011_multi_agency_platform.sql`: `agencies`, `agency_requests`, `is_platform_admin`, `agency_id` FKs, brand role
+
+---
+
+## 🔴 Pre-Production Blockers
+
+These must be resolved before going live.
+
+### 1. `vercel.json` only schedules 1 of 3 cron workers
+
+`posts-worker` (scraping) runs daily at 8 AM. `download-worker` and `metrics-worker` are **never scheduled** — media never downloads and metrics are never fetched in production.
+
+**Worker responsibilities:**
+- `posts-worker` — scrapes EnsembleData API, inserts new posts, enqueues downloads (sequential, runs per influencer)
+- `download-worker` — downloads media to Google Drive (parallel, `Promise.allSettled`, 10 jobs/run)
+- `metrics-worker` — fetches post performance 7 days after publish (parallel, 10 jobs/run)
+
+**Fix for Vercel Hobby (2 cron slots):**
+```json
+{ "path": "/api/cron/posts-worker",    "schedule": "0 */6 * * *" },
+{ "path": "/api/cron/download-worker", "schedule": "*/30 * * * *" }
 ```
-SENDGRID_API_KEY=SG.your_key_here
-SENDGRID_FROM_EMAIL=notifications@yourdomain.com
-AGENCY_NOTIFICATION_EMAIL=your-inbox@yourdomain.com
-```
+`metrics-worker` gets its own slot on Pro, or can be triggered from within `download-worker` as a combined pass.
 
-Test by submitting a brand request at `http://localhost:3000/request-access` — the agency
-notification email (Flow 1) should arrive at `AGENCY_NOTIFICATION_EMAIL` within seconds.
+### 2. Supabase Site URL still set to `http://localhost:3000`
 
-**Step 5 — Set env vars in Vercel**
-- Vercel dashboard → your project → Settings → Environment Variables
-- Add all three vars (`SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `AGENCY_NOTIFICATION_EMAIL`)
-- Set scope to **Production** (and Preview if desired)
-- Redeploy for the changes to take effect
+Auth emails (magic links, email confirmation) will redirect to localhost.
+**Fix:** Supabase Dashboard → Authentication → URL Configuration → set Site URL to production URL.
+
+### 3. SendGrid env vars not set in Vercel
+
+`SENDGRID_API_KEY` and `AGENCY_NOTIFICATION_EMAIL` must be added to Vercel environment variables.
+Without these, brand request notification emails and approval emails silently fail.
+
+**Setup steps:**
+1. Create a SendGrid account at sendgrid.com (free tier: 100 emails/day)
+2. Dashboard → Settings → API Keys → Create API Key (Mail Send permission only)
+3. Dashboard → Settings → Sender Authentication → Single Sender Verification
+4. Add to Vercel env vars: `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `AGENCY_NOTIFICATION_EMAIL`
+
+### 4. `/onboarding` page must be disabled in production
+
+`app/onboarding/page.tsx` is a dev-only manual workspace creator. It bypasses the full brand request flow.
+**Fix:** Add route guard checking `NODE_ENV === 'development'` or remove the page from the production build.
+
+### 5. All Vercel env vars must be set
+
+Ensure these are configured in the Vercel dashboard before deploying:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_APP_URL`
+- `ENSEMBLE_API_KEY`
+- `GOOGLE_SERVICE_ACCOUNT_JSON_B64`
+- `CRON_SECRET`
+- `SENDGRID_API_KEY`
+- `SENDGRID_FROM_EMAIL`
+- `AGENCY_NOTIFICATION_EMAIL`
 
 ---
 
-- [ ] **Supabase Site URL** — change back from `http://localhost:3000` to `https://instroom-post-tracker.vercel.app` in Supabase → Authentication → URL Configuration
-- [ ] **Vercel cron restore** — currently on Free plan: 1 cron (`/api/cron/download-worker`, every 30 min), `maxDuration=60` on all 3 cron routes. On Pro upgrade: restore to 3 crons + `maxDuration=300` in `vercel.json`
+## 🟡 Feature Backlog (post-launch)
+
+### Phase 14 — Google Drive OAuth per Brand Workspace
+
+Schema columns exist (`drive_oauth_token`, `drive_connection_type`, `drive_folder_id`) but nothing is implemented.
+
+- [ ] `app/api/auth/google-drive/route.ts` — OAuth initiation
+- [ ] `app/api/auth/google-drive/callback/route.ts` — OAuth callback + token storage
+- [ ] `lib/drive/client.ts` — per-workspace Drive client factory using stored token
+- [ ] Update `lib/drive/upload.ts` to use per-workspace OAuth token when available
+- [ ] Update download worker to use workspace Drive token
+- [ ] `components/settings/drive-connection-panel.tsx` — UI for connecting Drive
+- [ ] Update `docs/WORKFLOWS.md` with Drive OAuth flow
+
+### UI Polish
+
+- [ ] **Batch influencer input** — textarea that accepts comma- or newline-separated handles; system parses and adds each as a separate influencer in one action (replaces one-by-one dialog)
+- [ ] Workspace logo upload (currently text URL input only)
+- [ ] `PostsTable` pagination (no pagination for >100 posts)
+- [ ] Brand portal: campaign breakdown view
+- [ ] Onboard token regeneration (resend expired onboarding link to brand)
+
+### Admin
+
+- [ ] Agency owner reassignment (in case contact email changes)
+- [ ] Brand request pagination in agency requests view
+- [ ] Admin agency list pagination
+
+### Reliability
+
+- [ ] Webhook rate limiting on `app/api/webhooks/ensemble/route.ts`
+- [ ] `Suspense` boundaries on remaining heavy pages (only `/overview` currently wrapped)
 
 ---
 
-## Feature Backlog
+## 📚 Missing Documentation
 
-- [ ] **Google Drive OAuth per-brand** — `drive_connection_type` and `drive_oauth_token` columns already exist on `workspaces` table. Need OAuth flow + Drive upload wired to brand-specific credentials instead of agency service account
-- [ ] **Campaign detail — influencer UX polish** — "Add influencer to campaign" dialog exists (`add-influencer-to-campaign-dialog.tsx`) but UX may need refinement
-- [ ] **Agency dashboard — brand request pagination** — `/agency/[slug]/requests` currently loads all rows; add pagination for scale
-- [ ] **Posts page — bulk download trigger** — allow manually re-triggering downloads for multiple posts at once from the UI
-- [ ] **Admin agency list pagination** — `/admin/agencies` currently loads all rows; add pagination for scale
-- [ ] **Agency owner reassignment** — if `approveAgencyRequest()` fell back to platform admin as `owner_id`, add a way for the real agency owner to claim ownership after signing up
-- [ ] **Brand portal — campaign breakdown** — add per-campaign post count / metrics summary to portal
-- [ ] **Onboard token regeneration** — add a way for agency to resend onboarding email if brand's token expires (30-day window)
+These files are referenced in `CLAUDE.md` but do not yet exist:
 
----
-
-## Technical Debt
-
-- [ ] **Google Drive in dev** — `GOOGLE_SERVICE_ACCOUNT_JSON_B64` is intentionally empty in `.env.local`; download worker always fails locally. Workaround: manually set `download_status = 'downloaded'` in Supabase for test posts
-- [ ] **Metrics worker in dev** — `enqueue-metrics-fetch` pg_cron does not run on localhost. Workaround: manually `INSERT INTO retry_queue (post_id, job_type) VALUES ('<id>', 'metrics_fetch')` to test the metrics worker
+- [ ] `docs/DESIGN_SYSTEM.md` — design tokens, component patterns, dark mode rules
+- [ ] `docs/COMPONENTS.md` — component inventory with status and build guides
+- [ ] `docs/CODE_STYLE.md` — TypeScript patterns, Server Action conventions, Tailwind rules
