@@ -1,5 +1,6 @@
 import Image from 'next/image'
-import { createServiceClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { ConfirmButton } from './confirm-button'
 
 interface PageProps {
@@ -8,6 +9,8 @@ interface PageProps {
 
 export default async function OnboardPage({ params }: PageProps) {
   const { token } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   const serviceClient = createServiceClient()
 
   // ── Dual-lookup: new request-approval flow first ──────────────────────────
@@ -47,6 +50,15 @@ export default async function OnboardPage({ params }: PageProps) {
             <p className="mt-1 text-[12px] text-foreground-lighter">
               Your agency has everything they need.
             </p>
+          </div>
+        ) : !user ? (
+          <div className="mt-6">
+            <Link
+              href={`/login?redirectTo=/onboard/${token}`}
+              className="inline-block w-full rounded-lg bg-foreground px-4 py-2.5 text-center text-[13px] font-semibold text-background transition-opacity hover:opacity-90"
+            >
+              Sign in to confirm →
+            </Link>
           </div>
         ) : (
           <div className="mt-6">

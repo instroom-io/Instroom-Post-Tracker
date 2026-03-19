@@ -16,11 +16,15 @@ export function ConfirmButton({ token }: ConfirmButtonProps) {
     setError(null)
     startTransition(async () => {
       const result = await acceptBrandOnboarding(token)
-      if (result?.error) {
+      if ('error' in result) {
         setError(result.error)
         return
       }
-      setConfirmed(true)
+      if (result.workspaceSlug) {
+        window.location.href = `/${result.workspaceSlug}/portal`
+      } else {
+        setConfirmed(true)
+      }
     })
   }
 
