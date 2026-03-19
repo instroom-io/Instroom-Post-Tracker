@@ -26,7 +26,7 @@ export default async function AdminPage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground">Pending Agency Requests</h2>
             {pendingRequests.length > 0 && (
-              <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-background">
                 {pendingRequests.length}
               </span>
             )}

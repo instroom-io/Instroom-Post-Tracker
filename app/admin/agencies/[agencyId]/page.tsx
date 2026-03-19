@@ -15,12 +15,12 @@ export default async function AgencyDetailPage({ params }: PageProps) {
     supabase.from('workspaces').select('id, name, slug, created_at').eq('agency_id', agencyId),
   ])
 
+  if (!agency) redirect('/admin/agencies')
+
   const workspaceIds = workspaces?.map((w) => w.id) ?? []
   const { count: postCount } = workspaceIds.length > 0
     ? await supabase.from('posts').select('*', { count: 'exact', head: true }).in('workspace_id', workspaceIds)
     : { count: 0 }
-
-  if (!agency) redirect('/admin/agencies')
 
   return (
     <div className="flex flex-col gap-6">
