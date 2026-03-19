@@ -27,6 +27,7 @@ export async function submitBrandRequest(
     contact_name: parsed.data.contact_name,
     contact_email: parsed.data.contact_email,
     description: parsed.data.description || null,
+    agency_id: parsed.data.agency_id || null,
     status: 'pending',
   })
 
@@ -47,7 +48,7 @@ export async function submitBrandRequest(
             <tr><td><strong>Email:</strong></td><td>${escapeHtml(parsed.data.contact_email)}</td></tr>
             ${parsed.data.description ? `<tr><td><strong>Notes:</strong></td><td>${escapeHtml(parsed.data.description)}</td></tr>` : ''}
           </table>
-          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/agency/requests">Review request →</a></p>
+          <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/agency">Review request →</a></p>
         `,
       })
     } catch (err) {
@@ -63,7 +64,8 @@ export async function submitBrandRequest(
  * Auto-creates workspace + membership + EMV defaults.
  */
 export async function approveBrandRequest(
-  requestId: string
+  requestId: string,
+  agencySlug: string
 ): Promise<{ workspaceSlug: string } | { error: string }> {
   const supabase = await createClient()
   const {
@@ -98,7 +100,7 @@ export async function approveBrandRequest(
   // 3. Create workspace
   const { data: workspace, error: wsError } = await serviceClient
     .from('workspaces')
-    .insert({ name: request.brand_name, slug, logo_url: request.logo_url ?? null })
+    .insert({ name: request.brand_name, slug, logo_url: request.logo_url ?? null, agency_id: request.agency_id || null })
     .select('id, slug')
     .single()
 
@@ -168,7 +170,8 @@ export async function approveBrandRequest(
     })
     .eq('id', requestId)
 
-  revalidatePath('/agency/requests', 'page')
+  revalidatePath(`/agency/${agencySlug}/requests`, 'page')
+  revalidatePath(`/agency/${agencySlug}/dashboard`, 'page')
 
   return { workspaceSlug: workspace.slug }
 }
@@ -177,7 +180,8 @@ export async function approveBrandRequest(
  * Reject a brand request — agency only, uses service client.
  */
 export async function rejectBrandRequest(
-  requestId: string
+  requestId: string,
+  agencySlug: string
 ): Promise<{ success: true } | { error: string }> {
   const supabase = await createClient()
   const {
@@ -208,7 +212,7 @@ export async function rejectBrandRequest(
 
   if (error) return { error: 'Failed to reject request.' }
 
-  revalidatePath('/agency/requests', 'page')
+  revalidatePath(`/agency/${agencySlug}/requests`, 'page')
 
   return { success: true }
 }

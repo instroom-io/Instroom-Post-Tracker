@@ -1,7 +1,6 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
 import { randomBytes } from 'crypto'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { createBrandSchema } from '@/lib/validations'
@@ -10,7 +9,8 @@ import { toSlug } from '@/lib/utils'
 // ── Create brand + generate onboarding token ─────────────────────────────────
 
 export async function createBrand(
-  name: string
+  name: string,
+  agencyId: string
 ): Promise<{ inviteLink: string; brand: { id: string; name: string; slug: string } } | { error: string }> {
   const parsed = createBrandSchema.safeParse({ name })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
@@ -24,7 +24,7 @@ export async function createBrand(
 
   const { data: brand, error: brandError } = await serviceClient
     .from('brands')
-    .insert({ agency_id: user.id, name, slug, status: 'pending' })
+    .insert({ agency_id: agencyId, name, slug, status: 'pending' })
     .select('id, name, slug')
     .single()
 
@@ -143,6 +143,4 @@ export async function acceptBrandOnboarding(
     .from('brand_requests')
     .update({ onboard_accepted_at: new Date().toISOString() })
     .eq('id', req.id)
-
-  revalidatePath('/agency/requests', 'page')
 }

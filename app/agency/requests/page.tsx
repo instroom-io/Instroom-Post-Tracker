@@ -10,7 +10,7 @@ export const metadata = {
 
 async function BrandRequestsData() {
   const requests = await getBrandRequests()
-  return <BrandRequestsTable requests={requests} />
+  return <BrandRequestsTable requests={requests} agencySlug="" />
 }
 
 export default function AgencyRequestsPage() {

@@ -17,9 +17,10 @@ const TABS: { label: string; value: BrandRequestStatus | 'all' }[] = [
 
 interface BrandRequestsTableProps {
   requests: BrandRequest[]
+  agencySlug: string
 }
 
-export function BrandRequestsTable({ requests }: BrandRequestsTableProps) {
+export function BrandRequestsTable({ requests, agencySlug }: BrandRequestsTableProps) {
   const [activeTab, setActiveTab] = useState<BrandRequestStatus | 'all'>('pending')
 
   const filtered = activeTab === 'all'
@@ -97,7 +98,7 @@ export function BrandRequestsTable({ requests }: BrandRequestsTableProps) {
             </thead>
             <tbody>
               {filtered.map((request) => (
-                <RequestRow key={request.id} request={request} showActions={activeTab === 'pending'} />
+                <RequestRow key={request.id} request={request} showActions={activeTab === 'pending'} agencySlug={agencySlug} />
               ))}
             </tbody>
           </table>
@@ -107,13 +108,19 @@ export function BrandRequestsTable({ requests }: BrandRequestsTableProps) {
   )
 }
 
-function RequestRow({ request, showActions }: { request: BrandRequest; showActions: boolean }) {
+interface RequestRowProps {
+  request: BrandRequest
+  showActions: boolean
+  agencySlug: string
+}
+
+function RequestRow({ request, showActions, agencySlug }: RequestRowProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
   function handleApprove() {
     startTransition(async () => {
-      const result = await approveBrandRequest(request.id)
+      const result = await approveBrandRequest(request.id, agencySlug)
       if ('error' in result) {
         toast.error(result.error)
         return
@@ -125,7 +132,7 @@ function RequestRow({ request, showActions }: { request: BrandRequest; showActio
 
   function handleReject() {
     startTransition(async () => {
-      const result = await rejectBrandRequest(request.id)
+      const result = await rejectBrandRequest(request.id, agencySlug)
       if ('error' in result) {
         toast.error(result.error)
         return
