@@ -27,25 +27,24 @@ export default async function BrandPortalPage({ params }: PageProps) {
     agencyName = agency?.name ?? null
   }
 
-  // Stats — sequential: get post IDs first, then metrics in parallel with post count
-  const { data: workspacePosts } = await supabase
+  // Stats — single fetch for posts with count, then metrics
+  const { data: workspacePosts, count: postCount } = await supabase
     .from('posts')
-    .select('id')
+    .select('id', { count: 'exact' })
     .eq('workspace_id', workspace.id)
     .eq('download_status', 'downloaded')
 
   const postIds = workspacePosts?.map((p) => p.id) ?? []
 
-  const [{ count: postCount }, metricsResult] = await Promise.all([
-    supabase.from('posts').select('*', { count: 'exact', head: true }).eq('workspace_id', workspace.id).eq('download_status', 'downloaded'),
+  const { data: metricsRows } = await (
     postIds.length > 0
       ? supabase.from('post_metrics').select('emv, views').in('post_id', postIds)
-      : Promise.resolve({ data: [] as { emv: number | null; views: number | null }[] }),
-  ])
+      : Promise.resolve({ data: [] as { emv: number | null; views: number | null }[] })
+  )
 
-  const metricsRows = metricsResult.data ?? []
-  const totalEmv = metricsRows.reduce((sum, r) => sum + (r.emv ?? 0), 0)
-  const totalReach = metricsRows.reduce((sum, r) => sum + (r.views ?? 0), 0)
+  const metricsRowsSafe = metricsRows ?? []
+  const totalEmv = metricsRowsSafe.reduce((sum, r) => sum + (r.emv ?? 0), 0)
+  const totalReach = metricsRowsSafe.reduce((sum, r) => sum + (r.views ?? 0), 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -59,7 +58,7 @@ export default async function BrandPortalPage({ params }: PageProps) {
         {[
           { label: 'Posts Downloaded', value: (postCount ?? 0).toLocaleString() },
           { label: 'Total Reach', value: totalReach >= 1000 ? `${(totalReach / 1000).toFixed(0)}K` : totalReach.toString() },
-          { label: 'EMV', value: `€${(totalEmv / 1000).toFixed(1)}K` },
+          { label: 'EMV', value: totalEmv >= 1000 ? `€${(totalEmv / 1000).toFixed(1)}K` : `€${totalEmv.toFixed(0)}` },
         ].map((stat) => (
           <div key={stat.label} className="rounded-xl border border-border bg-background-surface p-4">
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{stat.label}</p>

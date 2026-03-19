@@ -10,15 +10,16 @@ export default async function PortalLayout({ children, params }: LayoutProps) {
   const { workspaceSlug } = await params
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const [{ data: { user } }, { data: workspace }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from('workspaces')
+      .select('id, name, slug, drive_folder_id, drive_connection_type, agency_id')
+      .eq('slug', workspaceSlug)
+      .single(),
+  ])
+
   if (!user) redirect(`/login?redirectTo=/${workspaceSlug}/portal`)
-
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('id, name, slug, drive_folder_id, drive_connection_type, agency_id')
-    .eq('slug', workspaceSlug)
-    .single()
-
   if (!workspace) redirect('/app')
 
   const { data: membership } = await supabase
