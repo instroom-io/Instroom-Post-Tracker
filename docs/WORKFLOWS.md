@@ -112,7 +112,13 @@ Each campaign-influencer pair has a `tracking_config` JSONB column:
    - Brand redirected to `/[workspaceSlug]/portal`
 7. Future logins: `app/app/page.tsx` detects `role='brand'` → auto-redirects to `/[slug]/portal`
 
-### 4.2 Team Member Invitation
+### 4.2 Brand Portal Access
+
+- Brand users with `role='brand'` are redirected to `/[workspaceSlug]/portal` after login
+- Portal shows: recent posts, Drive connection status (`DriveStatusBanner`)
+- Portal layout (`(portal)/layout.tsx`) validates `role='brand'`; non-brand users are redirected to the dashboard or `/no-access`
+
+### 4.3 Team Member Invitation
 
 1. Agency member goes to Settings → Members → Invite
 2. `inviteMember()` inserts into `invitations` with DB-generated token
@@ -145,9 +151,12 @@ owner > admin > editor > viewer
 
 ### 5.3 Post-Login Redirect
 
-- `app/app/page.tsx` checks for user's most recent workspace membership
-- If found: redirects to `/{workspaceSlug}/overview`
-- If no workspace: redirects to `/no-access`
+`app/app/page.tsx` uses a 5-tier dispatch:
+1. `is_platform_admin = true` → `/admin`
+2. Active agency `owner_id` match → `/agency/[slug]/dashboard`
+3. `role = 'brand'` in `workspace_members` → `/[slug]/portal`
+4. Regular workspace member → most recent `/[slug]/overview`
+5. No access → `/no-access`
 
 ---
 

@@ -67,8 +67,12 @@ notification email (Flow 1) should arrive at `AGENCY_NOTIFICATION_EMAIL` within 
 
 - [ ] **Google Drive OAuth per-brand** — `drive_connection_type` and `drive_oauth_token` columns already exist on `workspaces` table. Need OAuth flow + Drive upload wired to brand-specific credentials instead of agency service account
 - [ ] **Campaign detail — influencer UX polish** — "Add influencer to campaign" dialog exists (`add-influencer-to-campaign-dialog.tsx`) but UX may need refinement
-- [ ] **Agency dashboard — brand request pagination** — `/agency/requests` currently loads all rows; add pagination for scale
+- [ ] **Agency dashboard — brand request pagination** — `/agency/[slug]/requests` currently loads all rows; add pagination for scale
 - [ ] **Posts page — bulk download trigger** — allow manually re-triggering downloads for multiple posts at once from the UI
+- [ ] **Admin agency list pagination** — `/admin/agencies` currently loads all rows; add pagination for scale
+- [ ] **Agency owner reassignment** — if `approveAgencyRequest()` fell back to platform admin as `owner_id`, add a way for the real agency owner to claim ownership after signing up
+- [ ] **Brand portal — campaign breakdown** — add per-campaign post count / metrics summary to portal
+- [ ] **Onboard token regeneration** — add a way for agency to resend onboarding email if brand's token expires (30-day window)
 
 ---
 
