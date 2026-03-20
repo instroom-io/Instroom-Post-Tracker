@@ -88,6 +88,12 @@ export const trackingConfigSchema = z.object({
 
 // ─── Influencers ──────────────────────────────────────────────────────────────
 
+export const updateProductSentAtSchema = z.object({
+  campaignInfluencerId: z.string().uuid(),
+  productSentAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+})
+export type UpdateProductSentAtInput = z.infer<typeof updateProductSentAtSchema>
+
 export const addInfluencerSchema = z.object({
   ig_handle: z.string().max(100).optional().or(z.literal('')),
   tiktok_handle: z.string().max(100).optional().or(z.literal('')),

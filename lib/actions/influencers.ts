@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { addInfluencerSchema, updateInfluencerSchema } from '@/lib/validations'
+import { addInfluencerSchema, updateInfluencerSchema, updateProductSentAtSchema, type UpdateProductSentAtInput } from '@/lib/validations'
 
 export async function addInfluencer(
   workspaceId: string,
@@ -56,7 +56,8 @@ export async function addInfluencersBatch(
   workspaceId: string,
   handles: string[],
   platform: 'tiktok' | 'instagram' | 'youtube',
-  campaignId?: string
+  campaignId?: string,
+  productSentAt?: string | null,
 ): Promise<{ error?: string; added: number; skipped: number }> {
   const supabase = await createClient()
   const {
@@ -101,6 +102,7 @@ export async function addInfluencersBatch(
       campaign_id: campaignId,
       influencer_id,
       added_by: user.id,
+      ...(productSentAt ? { product_sent_at: productSentAt } : {}),
     }))
     await supabase.from('campaign_influencers').insert(campaignRows)
   }
@@ -112,7 +114,8 @@ export async function addInfluencersBatch(
 export async function addInfluencerToCampaign(
   workspaceId: string,
   campaignId: string,
-  influencerId: string
+  influencerId: string,
+  productSentAt?: string | null,
 ): Promise<{ error: string } | void> {
   const supabase = await createClient()
   const {
@@ -124,6 +127,7 @@ export async function addInfluencerToCampaign(
     campaign_id: campaignId,
     influencer_id: influencerId,
     added_by: user.id,
+    ...(productSentAt ? { product_sent_at: productSentAt } : {}),
   })
 
   if (error) {
@@ -151,6 +155,27 @@ export async function removeInfluencerFromCampaign(
     .eq('id', campaignInfluencerId)
 
   if (error) return { error: 'Failed to remove influencer.' }
+
+  revalidatePath('/', 'layout')
+}
+
+export async function updateProductSentAt(
+  workspaceId: string,
+  input: UpdateProductSentAtInput,
+): Promise<{ error: string } | void> {
+  const parsed = updateProductSentAtSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { error } = await supabase
+    .from('campaign_influencers')
+    .update({ product_sent_at: parsed.data.productSentAt })
+    .eq('id', parsed.data.campaignInfluencerId)
+
+  if (error) return { error: 'Failed to update.' }
 
   revalidatePath('/', 'layout')
 }

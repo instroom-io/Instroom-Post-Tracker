@@ -36,6 +36,7 @@ interface InfluencerRow {
   id: string
   usage_rights: boolean
   monitoring_status: string
+  product_sent_at: string | null
   influencer: {
     id: string
     ig_handle: string | null

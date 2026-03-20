@@ -64,7 +64,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     supabase
       .from('campaign_influencers')
       .select(
-        'id, usage_rights, monitoring_status, influencer:influencers(id, ig_handle, tiktok_handle, youtube_handle)'
+        'id, usage_rights, monitoring_status, product_sent_at, influencer:influencers(id, ig_handle, tiktok_handle, youtube_handle)'
       )
       .eq('campaign_id', campaignId),
     supabase
@@ -135,6 +135,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     id: item.id,
     usage_rights: item.usage_rights,
     monitoring_status: item.monitoring_status,
+    product_sent_at: (item.product_sent_at as string | null) ?? null,
     influencer: item.influencer as unknown as {
       id: string
       ig_handle: string | null

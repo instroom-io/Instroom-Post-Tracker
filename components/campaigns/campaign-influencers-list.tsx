@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
-import { removeInfluencerFromCampaign } from '@/lib/actions/influencers'
+import { removeInfluencerFromCampaign, updateProductSentAt } from '@/lib/actions/influencers'
 import { cn, getInfluencerLabel } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
 
@@ -20,6 +20,7 @@ interface InfluencerRow {
   id: string // campaign_influencer id
   usage_rights: boolean
   monitoring_status: string
+  product_sent_at: string | null
   influencer: {
     id: string
     ig_handle: string | null
@@ -35,6 +36,27 @@ interface CampaignInfluencersListProps {
   canEdit: boolean
   onAddInfluencer?: () => void
   postCountsByInfluencerId?: Record<string, number>
+}
+
+// Thin wrapper so date input can call a transition
+function ProductSentDateCell({ row, canEdit, workspaceId }: { row: InfluencerRow; canEdit: boolean; workspaceId: string }) {
+  const [, startTransition] = useTransition()
+  return (
+    <input
+      type="date"
+      defaultValue={row.product_sent_at ?? ''}
+      disabled={!canEdit}
+      onChange={(e) => {
+        startTransition(async () => {
+          await updateProductSentAt(workspaceId, {
+            campaignInfluencerId: row.id,
+            productSentAt: e.target.value || null,
+          })
+        })
+      }}
+      className="rounded border border-border bg-transparent px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+    />
+  )
 }
 
 const platformsForInfluencer = (inf: InfluencerRow['influencer']): Platform[] => {
@@ -53,6 +75,7 @@ const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
 
 export function CampaignInfluencersList({
   items,
+  workspaceId,
   canEdit,
   onAddInfluencer,
   postCountsByInfluencerId,
@@ -136,6 +159,9 @@ export function CampaignInfluencersList({
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Usage rights
               </th>
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                Product sent
+              </th>
               {canEdit && <th className="w-10 px-5 py-3" />}
             </tr>
           </thead>
@@ -209,6 +235,9 @@ export function CampaignInfluencersList({
                         />
                       </button>
                     </div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <ProductSentDateCell row={item} canEdit={canEdit} workspaceId={workspaceId} />
                   </td>
                   {canEdit && (
                     <td className="px-3 py-3.5">

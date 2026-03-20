@@ -54,6 +54,9 @@ export function AddInfluencerToCampaignDialog({
   const [batchText, setBatchText] = useState('')
   const [batchPlatform, setBatchPlatform] = useState<BatchPlatform>('tiktok')
 
+  // Shared
+  const [productSentAt, setProductSentAt] = useState<string>('')
+
   const hasAvailable = availableInfluencers.length > 0
   const [mode, setMode] = useState<Mode>(hasAvailable ? 'select' : 'batch')
 
@@ -65,6 +68,7 @@ export function AddInfluencerToCampaignDialog({
       setSelectedId('')
       setBatchText('')
       setBatchPlatform('tiktok')
+      setProductSentAt('')
       setMode(hasAvailable ? 'select' : 'batch')
     }
   }
@@ -72,7 +76,7 @@ export function AddInfluencerToCampaignDialog({
   function handleSelectAdd() {
     if (!selectedId) return
     startTransition(async () => {
-      const result = await addInfluencerToCampaign(workspaceId, campaignId, selectedId)
+      const result = await addInfluencerToCampaign(workspaceId, campaignId, selectedId, productSentAt || null)
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -85,7 +89,7 @@ export function AddInfluencerToCampaignDialog({
   function handleBatchAdd() {
     if (parsedHandles.length === 0) return
     startTransition(async () => {
-      const result = await addInfluencersBatch(workspaceId, parsedHandles, batchPlatform, campaignId)
+      const result = await addInfluencersBatch(workspaceId, parsedHandles, batchPlatform, campaignId, productSentAt || null)
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -177,6 +181,22 @@ export function AddInfluencerToCampaignDialog({
                 >
                   + Add new influencers
                 </button>
+
+                {/* Product sent date */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                    Product sent date <span className="normal-case text-foreground-subtle">(optional)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={productSentAt}
+                    onChange={(e) => setProductSentAt(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <p className="text-[11px] text-foreground-subtle">
+                    When products were delivered — limits how far back TikTok is scraped.
+                  </p>
+                </div>
               </DialogBody>
 
               <DialogFooter>
@@ -217,6 +237,22 @@ export function AddInfluencerToCampaignDialog({
                       {tab.label}
                     </button>
                   ))}
+                </div>
+
+                {/* Product sent date */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                    Product sent date <span className="normal-case text-foreground-subtle">(optional)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={productSentAt}
+                    onChange={(e) => setProductSentAt(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <p className="text-[11px] text-foreground-subtle">
+                    When products were delivered — limits how far back TikTok is scraped.
+                  </p>
                 </div>
 
                 {/* Textarea */}

@@ -324,6 +324,7 @@ export async function GET(request: NextRequest) {
       monitoring_status,
       tiktok_next_cursor,
       tiktok_backfill_complete,
+      product_sent_at,
       campaigns!inner (
         id,
         workspace_id,
@@ -412,7 +413,8 @@ export async function GET(request: NextRequest) {
           // - Backfill complete: fetch 1 page (~10 posts) from newest posts for ongoing monitoring.
           const cursorForThisRun = tiktokBackfillComplete ? null : tiktokNextCursor
           const depth = tiktokBackfillComplete ? 1 : 5
-          result = await scrapeTikTok(handle, cursorForThisRun, campaign.start_date, depth)
+          const backfillTarget = (row.product_sent_at as string | null) ?? campaign.start_date
+          result = await scrapeTikTok(handle, cursorForThisRun, backfillTarget, depth)
         } else if (platform === 'youtube') {
           result = await scrapeYouTube(handle, influencer.youtube_channel_id)
         }
