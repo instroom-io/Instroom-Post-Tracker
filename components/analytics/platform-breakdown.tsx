@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  LabelList,
 } from 'recharts'
 import { formatEMV } from '@/lib/utils'
 import { CHART_COLORS } from '@/lib/constants/platform-colors'
@@ -32,7 +33,7 @@ export function PlatformBreakdown({ data }: PlatformBreakdownProps) {
     )
   }
 
-  const axisStyle = { fontSize: 11, fill: 'hsl(150, 5%, 55%)' }
+  const axisStyle = { fontSize: 11, fill: 'hsl(0, 0%, 52%)' }
 
   const colored = data.map((d) => ({
     ...d,
@@ -66,6 +67,7 @@ export function PlatformBreakdown({ data }: PlatformBreakdownProps) {
               {colored.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
+              <LabelList dataKey="posts" position="top" style={{ fontSize: 10, fill: 'hsl(0, 0%, 52%)' }} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

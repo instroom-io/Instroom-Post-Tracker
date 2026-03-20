@@ -9,13 +9,10 @@ import type { User } from '@supabase/supabase-js'
 import {
   LayoutDashboard,
   Megaphone,
-  Users,
-  Image as ImageIcon,
   BarChart2,
   Settings,
   ChevronLeft,
   ChevronRight,
-  Building2,
 } from 'lucide-react'
 import { Toaster } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -31,12 +28,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview',    href: (s) => `/${s}/overview`,    icon: LayoutDashboard },
-  { label: 'Campaigns',   href: (s) => `/${s}/campaigns`,   icon: Megaphone },
-  { label: 'Influencers', href: (s) => `/${s}/influencers`, icon: Users },
-  { label: 'Posts',       href: (s) => `/${s}/posts`,       icon: ImageIcon },
-  { label: 'Analytics',   href: (s) => `/${s}/analytics`,   icon: BarChart2 },
-  { label: 'Settings',    href: (s) => `/${s}/settings`,    icon: Settings },
+  { label: 'Overview',  href: (s) => `/${s}/overview`,  icon: LayoutDashboard },
+  { label: 'Campaigns', href: (s) => `/${s}/campaigns`, icon: Megaphone },
+  { label: 'Analytics', href: (s) => `/${s}/analytics`, icon: BarChart2 },
+  { label: 'Settings',  href: (s) => `/${s}/settings`,  icon: Settings },
 ]
 
 interface AppShellProps {
@@ -46,7 +41,6 @@ interface AppShellProps {
   currentRole: WorkspaceRole
   allMemberships: Array<{ role: WorkspaceRole; workspaces: Workspace }>
   workspaceSlug: string
-  pendingRequestCount?: number
 }
 
 export function AppShell({
@@ -56,7 +50,6 @@ export function AppShell({
   currentRole,
   allMemberships,
   workspaceSlug,
-  pendingRequestCount,
 }: AppShellProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
@@ -76,14 +69,15 @@ export function AppShell({
       {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
       <aside
         className={cn(
-          'relative flex flex-shrink-0 flex-col border-r border-white/10 bg-background-overlay transition-all duration-200 ease-in-out',
+          'relative flex flex-shrink-0 flex-col border-r border-white/8 bg-background-overlay transition-all duration-200 ease-in-out',
           collapsed ? 'w-[56px]' : 'w-[220px]'
         )}
       >
         {/* Toggle button — straddles the sidebar border */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-background-surface shadow-sm transition-colors hover:bg-background-muted"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-background-surface shadow-sm transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
         >
           {collapsed
             ? <ChevronRight size={10} className="text-foreground-lighter" />
@@ -99,8 +93,8 @@ export function AppShell({
           )}
         >
           {collapsed
-            ? <Image src="/INSTROOM_LOGO.svg" alt="Instroom" width={32} height={32} className="brightness-0 invert" />
-            : <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={140} height={32} className="brightness-0 invert" />
+            ? <Image src="/INSTROOM_LOGO.svg" alt="Instroom" width={32} height={32} />
+            : <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={140} height={32} />
           }
         </div>
 
@@ -112,7 +106,7 @@ export function AppShell({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-white/35"
+                className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-white/30"
               >
                 Menu
               </motion.p>
@@ -123,14 +117,14 @@ export function AppShell({
             const href = item.href(workspaceSlug)
             const isActive = pathname === href || pathname.startsWith(href + '/')
             return (
-              <Link key={item.label} href={href}>
+              <Link key={item.label} href={href} aria-current={isActive ? 'page' : undefined} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 rounded-lg block">
                 <motion.div
                   whileTap={{ scale: 0.98 }}
                   className={cn(
                     'mb-0.5 flex items-center rounded-lg px-2.5 py-[7px] text-[12px] transition-colors',
                     collapsed ? 'justify-center gap-0' : 'gap-2.5',
                     isActive
-                      ? 'border border-white/15 bg-white/[0.12] font-medium text-white'
+                      ? 'relative bg-white/[0.08] font-medium text-white before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-r-full before:bg-brand'
                       : 'text-white/55 hover:bg-white/[0.08] hover:text-white/85'
                   )}
                 >
@@ -155,57 +149,6 @@ export function AppShell({
             )
           })}
 
-          {/* Agency section — visible only for owners */}
-          {currentRole === 'owner' && (
-            <>
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="mb-1.5 mt-4 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-white/35"
-                  >
-                    Agency
-                  </motion.p>
-                )}
-              </AnimatePresence>
-              <Link href="/agency/requests">
-                <motion.div
-                  whileTap={{ scale: 0.98 }}
-                  className={cn(
-                    'mb-0.5 flex items-center rounded-lg px-2.5 py-[7px] text-[12px] transition-colors',
-                    collapsed ? 'justify-center gap-0' : 'gap-2.5',
-                    pathname === '/agency/requests'
-                      ? 'border border-white/15 bg-white/[0.12] font-medium text-white'
-                      : 'text-white/55 hover:bg-white/[0.08] hover:text-white/85'
-                  )}
-                >
-                  <Building2
-                    size={14}
-                    className={cn(pathname === '/agency/requests' ? 'text-white' : 'text-white/50')}
-                  />
-                  <AnimatePresence>
-                    {!collapsed && (
-                      <motion.span
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: 'auto' }}
-                        exit={{ opacity: 0, width: 0 }}
-                        className="overflow-hidden whitespace-nowrap"
-                      >
-                        Brand Requests
-                        {typeof pendingRequestCount === 'number' && pendingRequestCount > 0 && (
-                          <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-bold text-white">
-                            {pendingRequestCount}
-                          </span>
-                        )}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              </Link>
-            </>
-          )}
         </nav>
 
         {/* User menu — hidden when collapsed */}
@@ -227,7 +170,7 @@ export function AppShell({
       <div className="flex flex-1 flex-col overflow-hidden">
 
         {/* Top bar — theme toggle + workspace switcher right-aligned */}
-        <div className="flex h-14 flex-shrink-0 items-center justify-end gap-3 border-b border-border bg-background-surface px-5">
+        <div className="flex h-14 flex-shrink-0 items-center justify-end gap-3 border-b border-border bg-background-surface px-6">
           <ThemeToggle />
           <WorkspaceSwitcher
             currentWorkspace={currentWorkspace}

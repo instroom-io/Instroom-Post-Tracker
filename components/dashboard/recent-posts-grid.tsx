@@ -1,5 +1,6 @@
+import { Inbox, ImageOff } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { formatRelativeDate } from '@/lib/utils'
+import { formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
 
 interface Post {
@@ -7,7 +8,7 @@ interface Post {
   thumbnail_url: string | null
   platform: Platform
   posted_at: string
-  influencer: { full_name: string } | null
+  influencer: { tiktok_handle?: string | null; ig_handle?: string | null; youtube_handle?: string | null } | null
 }
 
 interface RecentPostsGridProps {
@@ -23,11 +24,11 @@ const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
 export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
   if (posts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <div className="text-4xl">📭</div>
-        <p className="font-display text-[15px] font-bold text-foreground">
-          No posts detected
-        </p>
+      <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
+          <Inbox size={18} className="text-foreground-muted" />
+        </div>
+        <p className="font-display text-[14px] font-bold text-foreground">No posts detected</p>
         <p className="max-w-xs text-[13px] text-foreground-lighter">
           Posts appear here as Ensemble finds them.
         </p>
@@ -48,12 +49,12 @@ export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={post.thumbnail_url}
-                alt={`Post by ${post.influencer?.full_name ?? 'influencer'}`}
+                alt={`Post by @${post.influencer ? getInfluencerLabel(post.influencer) : 'influencer'} on ${post.platform}, ${formatRelativeDate(post.posted_at)}`}
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-foreground-muted text-2xl">
-                🖼
+              <div className="flex h-full items-center justify-center">
+                <ImageOff size={20} className="text-foreground-muted" aria-label="No thumbnail" />
               </div>
             )}
           </div>
@@ -65,7 +66,7 @@ export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
             </Badge>
             <div>
               <p className="text-[11px] font-medium text-white truncate">
-                {post.influencer?.full_name ?? 'Unknown'}
+                @{post.influencer ? getInfluencerLabel(post.influencer) : 'Unknown'}
               </p>
               <p className="text-[10px] text-white/70">
                 {formatRelativeDate(post.posted_at)}

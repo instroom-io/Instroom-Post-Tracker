@@ -78,7 +78,7 @@ export function TrackingConfigPanel({
             type="button"
             onClick={() => setActiveTab(p)}
             className={cn(
-              'px-4 py-2.5 text-[12px] font-medium capitalize transition-colors',
+              'px-4 py-2.5 text-[13px] font-medium capitalize transition-colors',
               activeTab === p
                 ? 'border-b-2 border-brand text-brand'
                 : 'text-foreground-lighter hover:text-foreground'

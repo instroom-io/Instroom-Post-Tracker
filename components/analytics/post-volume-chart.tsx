@@ -34,7 +34,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
     )
   }
 
-  const axisStyle = { fontSize: 11, fill: 'hsl(150, 5%, 55%)' }
+  const axisStyle = { fontSize: 11, fill: 'hsl(0, 0%, 52%)' }
 
   return (
     <ResponsiveContainer width="100%" height={180}>
@@ -72,10 +72,10 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
           <Line type="monotone" dataKey="instagram" stroke={CHART_COLORS.instagram} strokeWidth={2} dot={false} name="Instagram" />
         )}
         {multiPlatform && (
-          <Line type="monotone" dataKey="tiktok" stroke={CHART_COLORS.tiktok} strokeWidth={2} dot={false} name="TikTok" />
+          <Line type="monotone" dataKey="tiktok" stroke={CHART_COLORS.tiktok} strokeWidth={2} strokeDasharray="5 5" dot={false} name="TikTok" />
         )}
         {multiPlatform && (
-          <Line type="monotone" dataKey="youtube" stroke={CHART_COLORS.youtube} strokeWidth={2} dot={false} name="YouTube" />
+          <Line type="monotone" dataKey="youtube" stroke={CHART_COLORS.youtube} strokeWidth={2} strokeDasharray="2 4" dot={false} name="YouTube" />
         )}
         {!multiPlatform && (
           <Line type="monotone" dataKey="total" stroke={CHART_COLORS.brand} strokeWidth={2} dot={false} name="Posts" />

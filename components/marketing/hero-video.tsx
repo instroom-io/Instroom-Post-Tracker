@@ -103,6 +103,7 @@ export function HeroVideo() {
       {/* Video with organic radial dissolve on all edges */}
       <motion.div
         className="absolute inset-0"
+        suppressHydrationWarning
         style={{
           opacity,
           filter: isDark ? 'saturate(1.1) brightness(0.75)' : 'saturate(1.05)',

@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition, useEffect } from 'react'
 import { toast } from 'sonner'
-import { MoreHorizontal, Trash2, AlertCircle } from 'lucide-react'
+import { MoreHorizontal, Trash2, AlertCircle, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
 import { removeInfluencerFromCampaign } from '@/lib/actions/influencers'
-import { cn } from '@/lib/utils'
+import { cn, getInfluencerLabel } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
 
 interface InfluencerRow {
@@ -22,7 +22,6 @@ interface InfluencerRow {
   monitoring_status: string
   influencer: {
     id: string
-    full_name: string
     ig_handle: string | null
     tiktok_handle: string | null
     youtube_handle: string | null
@@ -93,7 +92,7 @@ export function CampaignInfluencersList({
         item.monitoring_status === 'active' &&
         (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0
       ) {
-        const handle = item.influencer.tiktok_handle ?? item.influencer.ig_handle ?? item.influencer.full_name
+        const handle = getInfluencerLabel(item.influencer)
         toast.warning(`No posts found for @${handle} — verify the username is correct`)
       }
     })
@@ -102,11 +101,11 @@ export function CampaignInfluencersList({
 
   if (optimisticItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-        <div className="text-3xl">👤</div>
-        <p className="font-display text-[15px] font-bold text-foreground">
-          No influencers added
-        </p>
+      <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
+          <Users size={18} className="text-foreground-muted" />
+        </div>
+        <p className="font-display text-[14px] font-bold text-foreground">No influencers added</p>
         <p className="max-w-xs text-[13px] text-foreground-lighter">
           Add influencers to enable tracking for this campaign.
         </p>
@@ -125,19 +124,19 @@ export function CampaignInfluencersList({
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Influencer
               </th>
-              <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Platforms
               </th>
-              <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Monitoring
               </th>
-              <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Usage rights
               </th>
-              {canEdit && <th className="w-10 px-5 py-2.5" />}
+              {canEdit && <th className="w-10 px-5 py-3" />}
             </tr>
           </thead>
           <tbody>
@@ -146,19 +145,14 @@ export function CampaignInfluencersList({
               return (
                 <tr
                   key={item.id}
-                  className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/30"
+                  className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/40"
                 >
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-3.5">
                     <p className="text-[12px] font-medium text-foreground">
-                      {item.influencer.full_name}
+                      @{getInfluencerLabel(item.influencer)}
                     </p>
-                    {item.influencer.ig_handle && (
-                      <p className="text-[11px] text-foreground-lighter">
-                        @{item.influencer.ig_handle}
-                      </p>
-                    )}
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-3.5">
                     <div className="flex gap-1">
                       {platforms.map((p) => (
                         <Badge key={p} variant={platformVariant[p]}>
@@ -167,7 +161,7 @@ export function CampaignInfluencersList({
                       ))}
                     </div>
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-1.5">
                       <Badge
                         variant={
@@ -188,7 +182,7 @@ export function CampaignInfluencersList({
                         )}
                     </div>
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
                       {!item.usage_rights && (
                         <AlertCircle size={13} className="text-warning flex-shrink-0" />
@@ -197,9 +191,10 @@ export function CampaignInfluencersList({
                         type="button"
                         disabled={!canEdit || isPending}
                         onClick={() => handleToggle(item.id, item.usage_rights)}
+                        aria-label={`Toggle usage rights for @${getInfluencerLabel(item.influencer)}`}
                         className={cn(
-                          'relative inline-flex h-4 w-7 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
-                          'transition-colors duration-200 focus:outline-none',
+                          'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
+                          'transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
                           'disabled:cursor-not-allowed disabled:opacity-50',
                           item.usage_rights ? 'bg-brand' : 'bg-foreground-muted'
                         )}
@@ -208,15 +203,15 @@ export function CampaignInfluencersList({
                       >
                         <span
                           className={cn(
-                            'pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow transform transition-transform duration-200',
-                            item.usage_rights ? 'translate-x-3' : 'translate-x-0'
+                            'pointer-events-none inline-block h-4 w-4 rounded-full bg-background-surface shadow transform transition-transform duration-200',
+                            item.usage_rights ? 'translate-x-4' : 'translate-x-0'
                           )}
                         />
                       </button>
                     </div>
                   </td>
                   {canEdit && (
-                    <td className="px-3 py-3">
+                    <td className="px-3 py-3.5">
                       <DropdownMenu>
                         <DropdownMenuTrigger>
                           <button
@@ -230,7 +225,7 @@ export function CampaignInfluencersList({
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={() =>
-                              handleRemove(item.id, item.influencer.full_name)
+                              handleRemove(item.id, `@${getInfluencerLabel(item.influencer)}`)
                             }
                           >
                             <Trash2 size={13} />

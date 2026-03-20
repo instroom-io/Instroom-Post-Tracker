@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import { Settings, LogOut } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
@@ -16,6 +16,7 @@ interface UserMenuProps {
 export function UserMenu({ user, compact }: UserMenuProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const pathname = usePathname()
 
   const email = user.email ?? ''
@@ -25,26 +26,43 @@ export function UserMenu({ user, compact }: UserMenuProps) {
   // Extract workspaceSlug from current pathname (e.g. "/zippit/overview" → "zippit")
   const workspaceSlug = pathname.split('/')[1] ?? ''
 
+  const close = useCallback(() => {
+    setOpen(false)
+    triggerRef.current?.focus()
+  }, [])
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') close()
+    }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [close])
 
   return (
     <div ref={ref} className="relative">
       {compact ? (
         /* ── Compact trigger: avatar circle only ── */
         <button
+          ref={triggerRef}
           onClick={() => setOpen(!open)}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label={`User menu for ${displayName}`}
           className={cn(
             'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
             'bg-background-muted text-foreground-light text-[11px] font-semibold',
             'hover:bg-background-muted/80 border border-border/60',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
             open && 'bg-background-muted border-border'
           )}
         >
@@ -53,18 +71,24 @@ export function UserMenu({ user, compact }: UserMenuProps) {
       ) : (
         /* ── Normal trigger: avatar + name ── */
         <button
+          ref={triggerRef}
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/10"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label={`User menu for ${displayName}`}
+          className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
         >
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 border border-white/15 text-[10px] font-bold text-white/80">
             {initials}
           </div>
-          <span className="text-[12px] font-medium text-[#94B89E]">{displayName}</span>
+          <span className="text-[12px] font-medium text-white/60">{displayName}</span>
         </button>
       )}
 
       {open && (
         <div
+          role="menu"
+          aria-label="User menu"
           className={cn(
             'absolute z-50 w-48 rounded-lg border border-border bg-background-surface shadow-lg',
             compact
@@ -72,7 +96,7 @@ export function UserMenu({ user, compact }: UserMenuProps) {
               : 'bottom-full left-0 mb-1'
           )}
         >
-          <div className="border-b border-border px-3 py-2">
+          <div className="border-b border-border px-3 py-2" role="presentation">
             <p className="truncate text-[12px] font-medium text-foreground">{displayName}</p>
             <p className="truncate text-[11px] text-foreground-lighter">{email}</p>
           </div>
@@ -80,8 +104,9 @@ export function UserMenu({ user, compact }: UserMenuProps) {
           <div className="p-1">
             <a
               href={`/${workspaceSlug}/settings`}
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted"
+              role="menuitem"
+              onClick={() => close()}
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
             >
               <Settings size={13} />
               Settings
@@ -90,7 +115,8 @@ export function UserMenu({ user, compact }: UserMenuProps) {
             <form action={signOut}>
               <button
                 type="submit"
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] text-destructive transition-colors hover:bg-destructive-muted"
+                role="menuitem"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] text-destructive transition-colors hover:bg-destructive-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50"
               >
                 <LogOut size={13} />
                 Sign out

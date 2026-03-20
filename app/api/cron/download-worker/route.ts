@@ -101,7 +101,7 @@ async function processJob(
       platform,
       post_url,
       campaign:campaigns(name),
-      influencer:influencers(full_name, ig_handle, tiktok_handle),
+      influencer:influencers(ig_handle, tiktok_handle, youtube_handle),
       workspace:workspaces(name)
     `
     )
@@ -113,7 +113,7 @@ async function processJob(
   }
 
   const campaign = post.campaign as unknown as { name: string } | null
-  const influencer = post.influencer as unknown as { full_name: string | null; ig_handle: string | null; tiktok_handle: string | null } | null
+  const influencer = post.influencer as unknown as { ig_handle: string | null; tiktok_handle: string | null; youtube_handle: string | null } | null
   const workspace = post.workspace as unknown as { name: string } | null
   const campaignName = campaign?.name
   const workspaceName = workspace?.name
@@ -138,7 +138,7 @@ async function processJob(
     const handle =
       influencer?.ig_handle ??
       influencer?.tiktok_handle ??
-      influencer?.full_name ??
+      influencer?.youtube_handle ??
       'unknown'
     const folderPath = `${workspaceName}/${campaignName}/${handle}/${post.platform}`
 

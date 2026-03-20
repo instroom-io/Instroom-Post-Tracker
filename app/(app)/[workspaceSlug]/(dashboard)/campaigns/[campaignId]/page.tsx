@@ -3,13 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/layout/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { TrackingConfigPanel } from '@/components/campaigns/tracking-config-panel'
-import { CampaignInfluencersList } from '@/components/campaigns/campaign-influencers-list'
-import { CampaignPostsTable } from '@/components/campaigns/campaign-posts-table'
+import { CampaignTabs } from '@/components/campaigns/campaign-tabs'
 import { formatDateRange } from '@/lib/utils'
 import { updateCampaign } from '@/lib/actions/campaigns'
-import { AddInfluencerToCampaignDialog } from '@/components/campaigns/add-influencer-to-campaign-dialog'
-import type { WorkspaceRole, CampaignStatus, Platform } from '@/lib/types'
+import type { WorkspaceRole, CampaignStatus, Platform, DownloadStatus, CollabStatus } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string; campaignId: string }>
@@ -67,23 +64,26 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     supabase
       .from('campaign_influencers')
       .select(
-        'id, usage_rights, monitoring_status, influencer:influencers(id, full_name, ig_handle, tiktok_handle, youtube_handle)'
+        'id, usage_rights, monitoring_status, influencer:influencers(id, ig_handle, tiktok_handle, youtube_handle)'
       )
       .eq('campaign_id', campaignId),
     supabase
       .from('posts')
       .select(
-        'id, influencer_id, thumbnail_url, platform, posted_at, download_status, collab_status, influencer:influencers(full_name, ig_handle), metrics:post_metrics(views, engagement_rate, emv)'
+        'id, influencer_id, thumbnail_url, platform, posted_at, download_status, collab_status, caption, post_url, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), metrics:post_metrics(views, likes, comments, shares, saves, follower_count, engagement_rate, emv)'
       )
       .eq('campaign_id', campaignId)
       .order('posted_at', { ascending: false }),
     supabase
       .from('influencers')
-      .select('id, full_name, ig_handle, tiktok_handle')
+      .select('id, ig_handle, tiktok_handle, youtube_handle')
       .eq('workspace_id', workspace.id),
   ])
 
   if (!campaign) redirect(`/${workspaceSlug}/campaigns`)
+
+  // Pre-filter downloaded posts (no extra DB query needed)
+  const downloadedPosts = (posts ?? []).filter((p) => p.download_status === 'downloaded')
 
   // Build post count map per influencer for zero-post warning
   const postCountsByInfluencerId = (posts ?? []).reduce<Record<string, number>>((acc, p) => {
@@ -101,6 +101,47 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     'use server'
     await updateCampaign(workspace!.id, campaignId, { status: 'ended' })
   }
+
+  const typedPosts = (posts ?? []).map((p) => {
+    const m = p.metrics as unknown as Record<string, unknown> | null
+    return {
+      id: p.id,
+      thumbnail_url: p.thumbnail_url,
+      caption: p.caption,
+      post_url: p.post_url,
+      platform: p.platform as Platform,
+      posted_at: p.posted_at,
+      download_status: p.download_status as DownloadStatus,
+      collab_status: p.collab_status as CollabStatus,
+      influencer: p.influencer as unknown as { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null,
+      metrics: m
+        ? {
+            views: Number(m.views),
+            likes: Number(m.likes),
+            comments: Number(m.comments),
+            shares: Number(m.shares),
+            saves: m.saves != null ? Number(m.saves) : null,
+            follower_count: Number(m.follower_count),
+            engagement_rate: Number(m.engagement_rate),
+            emv: Number(m.emv),
+          }
+        : null,
+    }
+  })
+
+  const typedDownloadedPosts = typedPosts.filter((p) => p.download_status === 'downloaded')
+
+  const typedInfluencers = (influencers ?? []).map((item) => ({
+    id: item.id,
+    usage_rights: item.usage_rights,
+    monitoring_status: item.monitoring_status,
+    influencer: item.influencer as unknown as {
+      id: string
+      ig_handle: string | null
+      tiktok_handle: string | null
+      youtube_handle: string | null
+    },
+  }))
 
   return (
     <div>
@@ -130,91 +171,19 @@ export default async function CampaignDetailPage({ params }: PageProps) {
         }
       />
 
-      <div className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-[1fr_280px]">
-        {/* Main content */}
-        <div className="space-y-5">
-          {/* Posts table */}
-          <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-            <div className="border-b border-border px-5 py-3.5">
-              <h2 className="font-display text-[15px] font-bold text-foreground">
-                Posts
-              </h2>
-            </div>
-            <CampaignPostsTable
-              posts={(posts ?? []).map((p) => ({
-                id: p.id,
-                thumbnail_url: p.thumbnail_url,
-                platform: p.platform as Platform,
-                posted_at: p.posted_at,
-                download_status: p.download_status as import('@/lib/types').DownloadStatus,
-                collab_status: p.collab_status as import('@/lib/types').CollabStatus,
-                influencer: p.influencer as unknown as { full_name: string; ig_handle: string | null } | null,
-                metrics: p.metrics ? { views: Number((p.metrics as unknown as Record<string, unknown>).views), engagement_rate: Number((p.metrics as unknown as Record<string, unknown>).engagement_rate), emv: Number((p.metrics as unknown as Record<string, unknown>).emv) } : null,
-              }))}
-            />
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-5">
-          {/* Influencers */}
-          <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-            <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-              <h2 className="font-display text-[15px] font-bold text-foreground">
-                Influencers
-              </h2>
-              {canEdit && (() => {
-                const campaignInfluencerIds = new Set(
-                  (influencers ?? []).map((i) => (i.influencer as unknown as { id: string })?.id)
-                )
-                const available = (workspaceInfluencers ?? []).filter(
-                  (inf) => !campaignInfluencerIds.has(inf.id)
-                )
-                return (
-                  <AddInfluencerToCampaignDialog
-                    workspaceId={workspace.id}
-                    campaignId={campaignId}
-                    availableInfluencers={available}
-                  />
-                )
-              })()}
-            </div>
-            <CampaignInfluencersList
-              items={(influencers ?? []).map((item) => ({
-                id: item.id,
-                usage_rights: item.usage_rights,
-                monitoring_status: item.monitoring_status,
-                influencer: item.influencer as unknown as {
-                  id: string
-                  full_name: string
-                  ig_handle: string | null
-                  tiktok_handle: string | null
-                  youtube_handle: string | null
-                },
-              }))}
-              workspaceId={workspace.id}
-              campaignId={campaignId}
-              canEdit={canEdit}
-              postCountsByInfluencerId={postCountsByInfluencerId}
-            />
-          </div>
-
-          {/* Tracking config */}
-          <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-            <div className="border-b border-border px-5 py-3.5">
-              <h2 className="font-display text-[15px] font-bold text-foreground">
-                Tracking config
-              </h2>
-            </div>
-            <TrackingConfigPanel
-              campaignId={campaignId}
-              workspaceId={workspace.id}
-              platforms={campaign.platforms as Platform[]}
-              configs={trackingConfigs ?? []}
-              canEdit={canEdit}
-            />
-          </div>
-        </div>
+      <div className="rounded-xl border border-border bg-background-surface shadow-sm mx-5 mb-5">
+        <CampaignTabs
+          posts={typedPosts}
+          downloadedPosts={typedDownloadedPosts}
+          influencers={typedInfluencers}
+          workspaceInfluencers={workspaceInfluencers ?? []}
+          trackingConfigs={trackingConfigs ?? []}
+          workspaceId={workspace.id}
+          campaignId={campaignId}
+          campaignPlatforms={campaign.platforms as Platform[]}
+          canEdit={canEdit}
+          postCountsByInfluencerId={postCountsByInfluencerId}
+        />
       </div>
     </div>
   )

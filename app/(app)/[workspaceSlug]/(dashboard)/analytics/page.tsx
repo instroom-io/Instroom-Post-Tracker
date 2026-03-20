@@ -49,7 +49,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
             platform,
             posted_at,
             campaign_id,
-            influencer:influencers(full_name, ig_handle)
+            influencer:influencers(tiktok_handle, ig_handle, youtube_handle)
           )
         `
         )
@@ -75,9 +75,10 @@ export default async function AnalyticsPage({ params }: PageProps) {
     member?.role === 'owner' || member?.role === 'admin'
 
   const metricsData = (metrics ?? []).map((m) => {
+    type InfluencerShape = { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null }
     const rawPost = (Array.isArray(m.post) ? (m.post[0] ?? null) : m.post) as {
       id: string; platform: string; posted_at: string; campaign_id: string | null;
-      influencer: { full_name: string; ig_handle: string | null } | { full_name: string; ig_handle: string | null }[] | null
+      influencer: InfluencerShape | InfluencerShape[] | null
     } | null
     return {
       views: Number(m.views),
@@ -88,7 +89,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
         platform: rawPost.platform as import('@/lib/types').Platform,
         posted_at: rawPost.posted_at,
         campaign_id: rawPost.campaign_id,
-        influencer: (Array.isArray(rawPost.influencer) ? (rawPost.influencer[0] ?? null) : rawPost.influencer) as { full_name: string; ig_handle: string | null } | null,
+        influencer: (Array.isArray(rawPost.influencer) ? (rawPost.influencer[0] ?? null) : rawPost.influencer) as InfluencerShape | null,
       } : null,
     }
   })

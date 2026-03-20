@@ -21,9 +21,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-brand text-white hover:bg-brand/90 active:bg-brand/80',
+    'bg-brand text-white hover:bg-brand/90 active:bg-brand/80 shadow-xs hover:shadow-sm',
   secondary:
-    'border border-border bg-background-surface text-foreground hover:bg-background-muted',
+    'border border-border-strong bg-background-surface text-foreground hover:bg-background-muted shadow-xs',
   ghost:
     'text-foreground hover:bg-background-muted',
   destructive:
@@ -35,9 +35,9 @@ const variantClasses: Record<ButtonVariant, string> = {
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-7 px-3',
-  md: 'h-8 px-4',
-  lg: 'h-9 px-5',
+  sm: 'h-8 px-3 text-[12px]',
+  md: 'h-9 px-4 text-[13px]',
+  lg: 'h-10 px-5 text-[13px]',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -58,7 +58,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center gap-1.5 rounded-lg text-[12px] font-semibold transition-colors',
+          'inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-colors',
           'disabled:cursor-not-allowed disabled:opacity-60',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
           variant !== 'link' && sizeClasses[size],
@@ -67,7 +67,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        {loading && <Loader2 size={13} className="animate-spin" />}
+        {loading && <Loader2 size={14} className="animate-spin" />}
         {children}
       </button>
     )

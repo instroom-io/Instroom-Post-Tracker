@@ -8,7 +8,7 @@ import { EmvChart } from '@/components/analytics/emv-chart'
 import { ErBenchmarkChart } from '@/components/analytics/er-benchmark-chart'
 import { InfluencerLeaderboard } from '@/components/analytics/influencer-leaderboard'
 import { EmvConfigForm } from '@/components/analytics/emv-config-form'
-import { formatEMV, formatNumber, formatPercent } from '@/lib/utils'
+import { formatEMV, formatNumber, formatPercent, getInfluencerLabel } from '@/lib/utils'
 import type { Platform, EmvConfig } from '@/lib/types'
 
 export interface PostMetricRow {
@@ -21,8 +21,9 @@ export interface PostMetricRow {
     posted_at: string
     campaign_id: string | null
     influencer: {
-      full_name: string
+      tiktok_handle: string | null
       ig_handle: string | null
+      youtube_handle: string | null
     } | null
   } | null
 }
@@ -105,7 +106,7 @@ export function AnalyticsClient({
   const influencerEmvMap = new Map<string, { handle: string; emv: number }>()
   filtered.forEach((m) => {
     if (!m.post?.influencer) return
-    const handle = m.post.influencer.ig_handle ?? m.post.influencer.full_name
+    const handle = getInfluencerLabel(m.post.influencer)
     const existing = influencerEmvMap.get(handle) ?? { handle, emv: 0 }
     existing.emv += m.emv
     influencerEmvMap.set(handle, existing)
@@ -116,7 +117,7 @@ export function AnalyticsClient({
   const influencerErMap = new Map<string, { handle: string; erSum: number; count: number }>()
   filtered.forEach((m) => {
     if (!m.post?.influencer) return
-    const handle = m.post.influencer.ig_handle ?? m.post.influencer.full_name
+    const handle = getInfluencerLabel(m.post.influencer)
     const existing = influencerErMap.get(handle) ?? { handle, erSum: 0, count: 0 }
     existing.erSum += m.engagement_rate
     existing.count += 1
@@ -134,10 +135,10 @@ export function AnalyticsClient({
   >()
   filtered.forEach((m) => {
     if (!m.post?.influencer) return
-    const key = m.post.influencer.full_name
+    const key = getInfluencerLabel(m.post.influencer)
     const existing = leaderboardMap.get(key) ?? {
-      fullName: m.post.influencer.full_name,
-      handle: m.post.influencer.ig_handle ?? '',
+      fullName: key,
+      handle: key,
       posts: 0,
       totalViews: 0,
       erSum: 0,

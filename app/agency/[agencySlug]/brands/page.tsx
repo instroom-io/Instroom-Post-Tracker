@@ -27,7 +27,7 @@ export default async function AgencyBrandsPage({ params }: PageProps) {
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-bold text-foreground">Brand Clients</h1>
       {(workspaces ?? []).length === 0 ? (
-        <p className="text-sm text-muted-foreground">No brand workspaces yet.</p>
+        <p className="text-[13px] text-foreground-lighter">No brand workspaces yet.</p>
       ) : (
         <div className="flex flex-col gap-2">
           {workspaces!.map((w) => (
@@ -37,10 +37,10 @@ export default async function AgencyBrandsPage({ params }: PageProps) {
               className="flex items-center justify-between rounded-xl border border-border bg-background-surface px-5 py-3 hover:border-foreground/20 transition-colors"
             >
               <div>
-                <p className="text-sm font-semibold text-foreground">{w.name}</p>
-                <p className="text-[11px] text-muted-foreground">{w.slug} · Drive: {w.drive_connection_type ?? 'not set'}</p>
+                <p className="text-[13px] font-semibold text-foreground">{w.name}</p>
+                <p className="text-[11px] text-foreground-lighter">{w.slug} · Drive: {w.drive_connection_type ?? 'not set'}</p>
               </div>
-              <span className="text-xs text-muted-foreground">Open workspace →</span>
+              <span className="text-[12px] text-foreground-lighter">Open workspace →</span>
             </a>
           ))}
         </div>

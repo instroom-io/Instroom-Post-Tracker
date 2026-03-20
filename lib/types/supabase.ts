@@ -352,7 +352,6 @@ export type Database = {
       influencers: {
         Row: {
           created_at: string
-          full_name: string
           id: string
           ig_handle: string | null
           instagram_user_id: string | null
@@ -364,7 +363,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          full_name: string
           id?: string
           ig_handle?: string | null
           instagram_user_id?: string | null
@@ -376,7 +374,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          full_name?: string
           id?: string
           ig_handle?: string | null
           instagram_user_id?: string | null

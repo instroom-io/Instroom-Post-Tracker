@@ -32,7 +32,6 @@ export function AddInfluencerDialog({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
-    full_name: '',
     ig_handle: '',
     tiktok_handle: '',
     youtube_handle: '',
@@ -56,12 +55,7 @@ export function AddInfluencerDialog({
 
       toast.success('Influencer added')
       setOpen(false)
-      setForm({
-        full_name: '',
-        ig_handle: '',
-        tiktok_handle: '',
-        youtube_handle: '',
-      })
+      setForm({ ig_handle: '', tiktok_handle: '', youtube_handle: '' })
     })
   }
 
@@ -87,23 +81,12 @@ export function AddInfluencerDialog({
 
         <form onSubmit={handleSubmit}>
           <DialogBody className="space-y-4">
-            <Input
-              label="Full name"
-              value={form.full_name}
-              onChange={(e) => handleChange('full_name', e.target.value)}
-              placeholder="Jane Smith"
-              required
-            />
-
             <div className="grid grid-cols-2 gap-3">
               <Input
                 label="Instagram handle"
                 value={form.ig_handle}
                 onChange={(e) =>
-                  handleChange(
-                    'ig_handle',
-                    e.target.value.replace(/^@/, '')
-                  )
+                  handleChange('ig_handle', e.target.value.replace(/^@/, ''))
                 }
                 placeholder="janesmithig"
                 hint="Without @"
@@ -112,10 +95,7 @@ export function AddInfluencerDialog({
                 label="TikTok handle"
                 value={form.tiktok_handle}
                 onChange={(e) =>
-                  handleChange(
-                    'tiktok_handle',
-                    e.target.value.replace(/^@/, '')
-                  )
+                  handleChange('tiktok_handle', e.target.value.replace(/^@/, ''))
                 }
                 placeholder="janesmithtt"
                 hint="Without @"
@@ -126,10 +106,7 @@ export function AddInfluencerDialog({
               label="YouTube handle"
               value={form.youtube_handle}
               onChange={(e) =>
-                handleChange(
-                  'youtube_handle',
-                  e.target.value.replace(/^@/, '')
-                )
+                handleChange('youtube_handle', e.target.value.replace(/^@/, ''))
               }
               placeholder="janesmith"
               hint="Without @"

@@ -89,11 +89,6 @@ export const trackingConfigSchema = z.object({
 // ─── Influencers ──────────────────────────────────────────────────────────────
 
 export const addInfluencerSchema = z.object({
-  full_name: z
-    .string()
-    .min(1, 'Name is required')
-    .max(100)
-    .trim(),
   ig_handle: z.string().max(100).optional().or(z.literal('')),
   tiktok_handle: z.string().max(100).optional().or(z.literal('')),
   youtube_handle: z.string().max(100).optional().or(z.literal('')),
@@ -104,7 +99,6 @@ export const addInfluencerSchema = z.object({
 )
 
 export const updateInfluencerSchema = z.object({
-  full_name: z.string().min(1).max(100).trim().optional(),
   ig_handle: z.string().max(100).optional().or(z.literal('')),
   tiktok_handle: z.string().max(100).optional().or(z.literal('')),
   youtube_handle: z.string().max(100).optional().or(z.literal('')),

@@ -54,14 +54,14 @@ export default async function OverviewPage({ params }: PageProps) {
       .limit(5),
     supabase
       .from('posts')
-      .select('id, thumbnail_url, platform, posted_at, influencer:influencers(full_name)')
+      .select('id, thumbnail_url, platform, posted_at, influencer:influencers(tiktok_handle, ig_handle, youtube_handle)')
       .eq('workspace_id', workspace.id)
       .order('detected_at', { ascending: false })
       .limit(8),
     supabase
       .from('campaign_influencers')
       .select(
-        'id, usage_rights, influencer:influencers(full_name, ig_handle), campaign:campaigns(name)'
+        'id, usage_rights, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), campaign:campaigns(name)'
       )
       .in(
         'campaign_id',
@@ -140,8 +140,9 @@ export default async function OverviewPage({ params }: PageProps) {
                 id: item.id,
                 usage_rights: item.usage_rights,
                 influencer: item.influencer as unknown as {
-                  full_name: string
+                  tiktok_handle: string | null
                   ig_handle: string | null
+                  youtube_handle: string | null
                 } | null,
                 campaign: item.campaign as unknown as { name: string } | null,
               }))}
@@ -157,7 +158,7 @@ export default async function OverviewPage({ params }: PageProps) {
               Recent posts
             </h2>
             <a
-              href={`/${workspaceSlug}/posts`}
+              href={`/${workspaceSlug}/campaigns`}
               className="text-[12px] text-brand hover:underline"
             >
               View all
@@ -170,7 +171,7 @@ export default async function OverviewPage({ params }: PageProps) {
                 thumbnail_url: p.thumbnail_url,
                 platform: p.platform,
                 posted_at: p.posted_at,
-                influencer: p.influencer as unknown as { full_name: string } | null,
+                influencer: p.influencer as unknown as { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null,
               }))}
             />
           </div>

@@ -150,7 +150,6 @@ export interface CampaignTrackingConfig {
 export interface Influencer {
   id: string
   workspace_id: string
-  full_name: string
   ig_handle: string | null
   tiktok_handle: string | null
   youtube_handle: string | null

@@ -1,0 +1,230 @@
+'use client'
+
+import { ExternalLink, ImageOff } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogBody,
+} from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { formatNumber, formatEMV, formatPercent, formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
+import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } from '@/lib/types'
+
+interface PostRow {
+  id: string
+  thumbnail_url: string | null
+  caption: string | null
+  post_url: string | null
+  platform: Platform
+  posted_at: string
+  download_status: DownloadStatus
+  collab_status: CollabStatus
+  influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
+  metrics: {
+    views: number
+    likes: number
+    comments: number
+    shares: number
+    saves: number | null
+    follower_count: number
+    engagement_rate: number
+    emv: number
+  } | null
+}
+
+interface PostDetailModalProps {
+  post: PostRow | null
+  onClose: () => void
+  trackingConfigs: CampaignTrackingConfig[]
+}
+
+const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
+  instagram: 'instagram',
+  tiktok: 'tiktok',
+  youtube: 'youtube',
+}
+
+const downloadVariant: Record<DownloadStatus, 'muted' | 'success' | 'warning' | 'destructive'> = {
+  pending: 'muted',
+  downloaded: 'success',
+  blocked: 'warning',
+  failed: 'destructive',
+}
+
+const collabVariant: Record<
+  Exclude<CollabStatus, 'n/a'>,
+  'muted' | 'success' | 'destructive'
+> = {
+  pending: 'muted',
+  confirmed: 'success',
+  not_added: 'destructive',
+}
+
+function MetricCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-background-muted p-3">
+      <p className="text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
+        {label}
+      </p>
+      <p className="mt-1 font-display text-[17px] font-extrabold text-foreground">{value}</p>
+    </div>
+  )
+}
+
+export function PostDetailModal({ post, onClose, trackingConfigs }: PostDetailModalProps) {
+  // Detect which tracking hashtags/mentions appear in the caption
+  const caption = post?.caption?.toLowerCase() ?? ''
+  const matchedHashtags = post && caption
+    ? trackingConfigs.flatMap((cfg) => cfg.hashtags).filter(
+        (h, i, arr) => arr.indexOf(h) === i && caption.includes(`#${h}`.toLowerCase())
+      )
+    : []
+  const matchedMentions = post && caption
+    ? trackingConfigs.flatMap((cfg) => cfg.mentions).filter(
+        (m, i, arr) => arr.indexOf(m) === i && caption.includes(`@${m}`.toLowerCase())
+      )
+    : []
+  const hasMatches = matchedHashtags.length > 0 || matchedMentions.length > 0
+
+  const m = post?.metrics
+
+  return (
+    <Dialog open={post !== null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent size="lg" className="max-w-2xl">
+        {post && (
+          <>
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <Badge variant={platformVariant[post.platform]}>{post.platform}</Badge>
+                <DialogTitle>@{post.influencer ? getInfluencerLabel(post.influencer) : 'Unknown influencer'}</DialogTitle>
+              </div>
+              <DialogDescription>
+                {post.influencer?.ig_handle ? `@${post.influencer.ig_handle} · ` : ''}
+                {formatRelativeDate(post.posted_at)}
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogBody className="p-0">
+              <div className="flex flex-col gap-0 sm:flex-row">
+                {/* Thumbnail */}
+                <div className="flex-shrink-0 p-5 sm:pb-5 sm:pr-0">
+                  <div className="h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
+                    {post.thumbnail_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={post.thumbnail_url}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <ImageOff size={24} className="text-foreground-muted" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Right side */}
+                <div className="flex flex-1 flex-col gap-4 p-5">
+                  {/* Caption */}
+                  <div>
+                    <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
+                      Caption
+                    </p>
+                    {post.caption ? (
+                      <p className="text-[12px] text-foreground leading-relaxed whitespace-pre-wrap line-clamp-5">
+                        {post.caption}
+                      </p>
+                    ) : (
+                      <p className="text-[12px] text-foreground-muted italic">No caption available</p>
+                    )}
+                  </div>
+
+                  {/* Matched tracking keywords */}
+                  {hasMatches && (
+                    <div>
+                      <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
+                        Matched tracking
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {matchedHashtags.map((h) => (
+                          <span
+                            key={`h-${h}`}
+                            className="inline-flex items-center rounded-full bg-brand/10 px-2 py-0.5 text-[11px] font-medium text-brand"
+                          >
+                            #{h}
+                          </span>
+                        ))}
+                        {matchedMentions.map((m) => (
+                          <span
+                            key={`m-${m}`}
+                            className="inline-flex items-center rounded-full bg-brand/10 px-2 py-0.5 text-[11px] font-medium text-brand"
+                          >
+                            @{m}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Metrics grid */}
+              <div className="border-t border-border px-5 py-4">
+                <p className="mb-3 text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
+                  Performance metrics
+                </p>
+                {m ? (
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    <MetricCell label="Views" value={formatNumber(m.views)} />
+                    <MetricCell label="Likes" value={formatNumber(m.likes)} />
+                    <MetricCell label="Comments" value={formatNumber(m.comments)} />
+                    <MetricCell label="Shares" value={formatNumber(m.shares)} />
+                    {post.platform === 'instagram' && m.saves !== null && (
+                      <MetricCell label="Saves" value={formatNumber(m.saves)} />
+                    )}
+                    <MetricCell label="Followers" value={formatNumber(m.follower_count)} />
+                    <MetricCell label="ER%" value={formatPercent(m.engagement_rate)} />
+                    <MetricCell label="EMV" value={formatEMV(m.emv)} />
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-foreground-muted">
+                    Metrics are fetched 7 days after publish and not yet available for this post.
+                  </p>
+                )}
+              </div>
+
+              {/* Footer — statuses + open link */}
+              <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <Badge variant={downloadVariant[post.download_status]}>
+                    {post.download_status}
+                  </Badge>
+                  {post.platform === 'instagram' && post.collab_status !== 'n/a' && (
+                    <Badge
+                      variant={
+                        collabVariant[post.collab_status as Exclude<CollabStatus, 'n/a'>]
+                      }
+                    >
+                      collab: {post.collab_status}
+                    </Badge>
+                  )}
+                </div>
+                {post.post_url && (
+                  <a href={post.post_url} target="_blank" rel="noopener noreferrer">
+                    <Button variant="secondary" size="sm">
+                      <ExternalLink size={13} className="mr-1.5" />
+                      Open post
+                    </Button>
+                  </a>
+                )}
+              </div>
+            </DialogBody>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}

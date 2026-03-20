@@ -77,20 +77,20 @@ export function BrandRequestsTable({ requests, agencySlug }: BrandRequestsTableP
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                   Brand
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                   Contact
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                   Description
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                   Submitted
                 </th>
                 {activeTab === 'pending' && (
-                  <th className="px-5 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                  <th className="px-5 py-2.5 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                     Actions
                   </th>
                 )}
@@ -143,8 +143,8 @@ function RequestRow({ request, showActions, agencySlug }: RequestRowProps) {
   }
 
   return (
-    <tr className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/30">
-      <td className="px-5 py-3">
+    <tr className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/40">
+      <td className="px-5 py-3.5">
         <div>
           <p className="text-[12px] font-medium text-foreground">{request.brand_name}</p>
           <a
@@ -158,7 +158,7 @@ function RequestRow({ request, showActions, agencySlug }: RequestRowProps) {
           </a>
         </div>
       </td>
-      <td className="px-5 py-3">
+      <td className="px-5 py-3.5">
         <p className="text-[12px] text-foreground">{request.contact_name}</p>
         <p className="text-[11px] text-foreground-lighter">{request.contact_email}</p>
       </td>
@@ -167,11 +167,11 @@ function RequestRow({ request, showActions, agencySlug }: RequestRowProps) {
           {request.description || '—'}
         </p>
       </td>
-      <td className="px-5 py-3 text-[12px] text-foreground-lighter">
+      <td className="px-5 py-3.5 text-[12px] text-foreground-lighter">
         {formatDate(request.created_at)}
       </td>
       {showActions && (
-        <td className="px-5 py-3">
+        <td className="px-5 py-3.5">
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={handleApprove}

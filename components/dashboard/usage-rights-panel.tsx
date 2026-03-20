@@ -2,14 +2,14 @@
 
 import { useOptimistic, useTransition } from 'react'
 import { toast } from 'sonner'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Users } from 'lucide-react'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
-import { cn } from '@/lib/utils'
+import { cn, getInfluencerLabel } from '@/lib/utils'
 
 interface CampaignInfluencer {
   id: string
   usage_rights: boolean
-  influencer: { full_name: string; ig_handle: string | null } | null
+  influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
   campaign: { name: string } | null
 }
 
@@ -41,11 +41,11 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-        <div className="text-3xl">👥</div>
-        <p className="font-display text-[15px] font-bold text-foreground">
-          No influencers added
-        </p>
+      <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
+          <Users size={18} className="text-foreground-muted" />
+        </div>
+        <p className="font-display text-[14px] font-bold text-foreground">No influencers added</p>
         <p className="max-w-xs text-[13px] text-foreground-lighter">
           Add influencers to campaigns to manage usage rights here.
         </p>
@@ -62,13 +62,10 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
         >
           <div className="min-w-0 flex-1">
             <p className="truncate text-[12px] font-medium text-foreground">
-              {item.influencer?.full_name ?? 'Unknown'}
+              @{item.influencer ? getInfluencerLabel(item.influencer) : 'Unknown'}
             </p>
             <p className="text-[11px] text-foreground-lighter">
               {item.campaign?.name ?? ''}
-              {item.influencer?.ig_handle
-                ? ` · @${item.influencer.ig_handle}`
-                : ''}
             </p>
           </div>
 
@@ -82,9 +79,10 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
               type="button"
               disabled={!canEdit || isPending}
               onClick={() => handleToggle(item.id, item.usage_rights)}
+              aria-label={`Toggle usage rights for @${item.influencer ? getInfluencerLabel(item.influencer) : 'influencer'}`}
               className={cn(
                 'relative inline-flex h-4 w-7 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
-                'transition-colors duration-200 focus:outline-none',
+                'transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
                 'disabled:cursor-not-allowed disabled:opacity-50',
                 item.usage_rights ? 'bg-brand' : 'bg-foreground-muted'
               )}
@@ -93,7 +91,7 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
             >
               <span
                 className={cn(
-                  'pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow',
+                  'pointer-events-none inline-block h-3 w-3 rounded-full bg-background-surface shadow',
                   'transform transition-transform duration-200',
                   item.usage_rights ? 'translate-x-3' : 'translate-x-0'
                 )}

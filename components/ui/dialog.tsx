@@ -145,9 +145,9 @@ export function DialogContent({
               initial={{ opacity: 0, scale: 0.96, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                'relative w-full rounded-xl border border-border bg-background-surface shadow-xl',
+                'relative w-full rounded-2xl border border-border bg-background-surface shadow-lg',
                 sizeClasses[size],
                 className
               )}
@@ -156,7 +156,8 @@ export function DialogContent({
               {/* Close button */}
               <button
                 onClick={() => setOpen(false)}
-                className="absolute right-4 top-4 rounded-md p-0.5 text-foreground-muted transition-colors hover:text-foreground"
+                aria-label="Close dialog"
+                className="absolute right-4 top-4 rounded-md p-0.5 text-foreground-muted transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
               >
                 <X size={15} />
               </button>

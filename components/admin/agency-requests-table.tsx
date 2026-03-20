@@ -15,7 +15,7 @@ export function AgencyRequestsTable({ requests }: Props) {
 
   if (requests.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
+      <p className="py-8 text-center text-[13px] text-foreground-lighter">
         No pending agency requests.
       </p>
     )
@@ -46,12 +46,12 @@ export function AgencyRequestsTable({ requests }: Props) {
           className="flex items-center justify-between rounded-lg border border-border bg-background-surface px-4 py-3"
         >
           <div>
-            <p className="text-sm font-semibold text-foreground">{req.agency_name}</p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-[13px] font-semibold text-foreground">{req.agency_name}</p>
+            <p className="text-[11px] text-foreground-lighter">
               {req.contact_email} · {new Date(req.created_at).toLocaleDateString()}
             </p>
             {req.description && (
-              <p className="mt-1 text-[11px] text-muted-foreground line-clamp-1">{req.description}</p>
+              <p className="mt-1 text-[11px] text-foreground-lighter line-clamp-1">{req.description}</p>
             )}
           </div>
           <div className="flex items-center gap-2">

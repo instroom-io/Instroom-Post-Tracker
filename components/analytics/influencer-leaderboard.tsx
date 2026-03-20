@@ -1,3 +1,4 @@
+import { BarChart2 } from 'lucide-react'
 import { formatNumber, formatEMV, formatPercent } from '@/lib/utils'
 
 interface LeaderboardRow {
@@ -17,10 +18,12 @@ interface InfluencerLeaderboardProps {
 export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <div className="text-4xl">📊</div>
-        <p className="text-[13px] font-bold text-foreground">No data yet</p>
-        <p className="max-w-xs text-[12px] text-foreground-lighter">
+      <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
+          <BarChart2 size={18} className="text-foreground-muted" />
+        </div>
+        <p className="font-display text-[14px] font-bold text-foreground">No data yet</p>
+        <p className="max-w-xs text-[13px] text-foreground-lighter">
           Influencer rankings appear once posts have metrics.
         </p>
       </div>

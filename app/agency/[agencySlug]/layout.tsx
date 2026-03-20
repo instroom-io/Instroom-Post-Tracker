@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
+import Link from 'next/link'
+import { ThemeToggle } from '@/components/layout/theme-toggle'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -36,23 +38,26 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex h-14 items-center justify-between border-b border-border px-6">
         <div className="flex items-center gap-4">
-          <Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} className="brightness-0 dark:invert" priority />
-          <span className="text-xs text-muted-foreground">/</span>
-          <span className="text-sm font-semibold text-foreground">{agency.name}</span>
+          <Link href="/"><Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} priority /></Link>
+          <span className="text-[12px] text-foreground-muted">/</span>
+          <span className="text-[13px] font-semibold text-foreground">{agency.name}</span>
         </div>
-        <nav className="flex items-center gap-4 text-sm">
-          <a href={`/agency/${agencySlug}/dashboard`} className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</a>
-          <a href={`/agency/${agencySlug}/brands`} className="text-muted-foreground hover:text-foreground transition-colors">Brands</a>
-          <a href={`/agency/${agencySlug}/requests`} className="relative text-muted-foreground hover:text-foreground transition-colors">
-            Requests
-            {(pendingBrandCount ?? 0) > 0 && (
-              <span className="absolute -right-3 -top-1 rounded-full bg-destructive px-1.5 py-0.5 text-[9px] font-bold text-background">
-                {pendingBrandCount}
-              </span>
-            )}
-          </a>
-          <a href={`/agency/${agencySlug}/settings`} className="text-muted-foreground hover:text-foreground transition-colors">Settings</a>
-        </nav>
+        <div className="flex items-center gap-4">
+          <nav className="flex items-center gap-4">
+            <a href={`/agency/${agencySlug}/dashboard`} className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Dashboard</a>
+            <a href={`/agency/${agencySlug}/brands`} className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Brands</a>
+            <a href={`/agency/${agencySlug}/requests`} className="relative text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">
+              Requests
+              {(pendingBrandCount ?? 0) > 0 && (
+                <span className="absolute -right-3 -top-1 rounded-full bg-destructive px-1.5 py-0.5 text-[9px] font-bold text-background">
+                  {pendingBrandCount}
+                </span>
+              )}
+            </a>
+            <a href={`/agency/${agencySlug}/settings`} className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Settings</a>
+          </nav>
+          <ThemeToggle />
+        </div>
       </div>
       <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
     </div>

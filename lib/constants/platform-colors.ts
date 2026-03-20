@@ -21,6 +21,6 @@ export const ER_BENCHMARK_COLORS = {
 // Import this in chart components instead of defining local CHART_COLORS objects.
 export const CHART_COLORS = {
   brand:  'hsl(145, 72%, 40%)', // --brand
-  muted:  'hsl(150, 9%, 78%)',  // --foreground-muted (grid lines, axis ticks)
+  muted:  'hsl(0, 0%, 88%)',   // --foreground-muted (grid lines, axis ticks)
   ...PLATFORM_COLORS,
 } as const

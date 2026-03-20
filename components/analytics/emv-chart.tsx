@@ -10,11 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { formatEMV } from '@/lib/utils'
-
-const CHART_COLORS = {
-  brand: 'hsl(145, 72%, 40%)',
-  muted: 'hsl(150, 9%, 78%)',
-} as const
+import { CHART_COLORS } from '@/lib/constants/platform-colors'
 
 interface EmvData {
   handle: string
@@ -35,7 +31,7 @@ export function EmvChart({ data }: EmvChartProps) {
   }
 
   const sorted = [...data].sort((a, b) => b.emv - a.emv).slice(0, 10)
-  const axisStyle = { fontSize: 11, fill: 'hsl(150, 5%, 55%)' }
+  const axisStyle = { fontSize: 11, fill: 'hsl(0, 0%, 52%)' }
 
   return (
     <ResponsiveContainer width="100%" height={Math.max(180, sorted.length * 32)}>

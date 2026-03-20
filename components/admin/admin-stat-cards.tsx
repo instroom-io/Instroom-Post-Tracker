@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 
 export async function AdminStatCards() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const [
     { count: agencyCount },
@@ -29,9 +29,9 @@ export async function AdminStatCards() {
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      {stats.map((stat) => (
-        <div key={stat.label} className="rounded-xl border border-border bg-background-surface p-4">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{stat.label}</p>
+      {stats.map((stat, i) => (
+        <div key={stat.label} className={`rounded-xl border border-border bg-background-surface p-4 shadow-md animate-fade-up animate-fade-up-delay-${i + 1}`}>
+          <p className="text-[11px] uppercase tracking-wide text-foreground-muted">{stat.label}</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{stat.value}</p>
         </div>
       ))}

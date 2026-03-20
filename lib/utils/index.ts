@@ -8,6 +8,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// ─── Influencer Helpers ───────────────────────────────────────────────────────
+
+export function getInfluencerLabel(inf: {
+  tiktok_handle?: string | null
+  ig_handle?: string | null
+  youtube_handle?: string | null
+}): string {
+  return inf.tiktok_handle || inf.ig_handle || inf.youtube_handle || 'Unknown'
+}
+
 // ─── Date Formatters ──────────────────────────────────────────────────────────
 
 export function formatDate(date: string | Date): string {

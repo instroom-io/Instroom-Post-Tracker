@@ -35,6 +35,10 @@ const config: Config = {
           muted: 'hsl(var(--brand-muted))',
           dark: 'hsl(var(--brand-dark))',
         },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          muted: 'hsl(var(--accent-muted))',
+        },
         warning: {
           DEFAULT: 'hsl(var(--warning))',
           muted: 'hsl(var(--warning-muted))',
@@ -63,9 +67,17 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: '0.5rem',
-        md: '0.375rem',
-        sm: '0.25rem',
+        sm:    '0.25rem',   // 4px
+        md:    '0.375rem',  // 6px
+        lg:    '0.5rem',    // 8px
+        xl:    '0.75rem',   // 12px — explicit semantic token
+        '2xl': '1rem',      // 16px — modals, large panels
+      },
+      boxShadow: {
+        xs:  'var(--shadow-xs)',
+        sm:  'var(--shadow-sm)',
+        md:  'var(--shadow-md)',
+        lg:  'var(--shadow-lg)',
       },
     },
   },

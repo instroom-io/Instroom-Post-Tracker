@@ -8,33 +8,38 @@
   }
 
   :root {
-    /* Backgrounds */
-    --background: 150 20% 97%;          /* #F7F9F8 — app canvas */
-    --background-surface: 0 0% 100%;    /* #FFFFFF — cards, panels */
-    --background-muted: 150 10% 95%;    /* #F0F2F1 — table hover, input fill */
-    --background-overlay: 150 68% 24%;  /* #0F6B3E — sidebar deep green */
+    /* Backgrounds — neutral zinc base (no green tint) */
+    --background: 0 0% 97.5%;            /* #F9F9F9 — zinc canvas */
+    --background-surface: 0 0% 100%;     /* #FFFFFF — cards, panels */
+    --background-muted: 0 0% 95.5%;      /* #F4F4F4 — table hover, input fill */
+    --background-overlay: 240 6% 10%;    /* #18181B — zinc-950 sidebar (Linear-style) */
 
-    /* Foregrounds */
-    --foreground: 0 0% 12%;             /* #1E1E1E — primary body text */
-    --foreground-light: 30 2% 26%;      /* #444441 — secondary labels */
-    --foreground-lighter: 160 4% 61%;   /* #9CA3A0 — captions, hints */
-    --foreground-muted: 155 12% 81%;    /* #C8D4CF — placeholders, disabled */
+    /* Foregrounds — neutral, no green cast */
+    --foreground: 0 0% 9%;               /* #171717 — primary body text */
+    --foreground-light: 0 0% 32%;        /* #525252 — secondary labels */
+    --foreground-lighter: 0 0% 52%;      /* #858585 — captions, hints */
+    --foreground-muted: 0 0% 72%;        /* #B8B8B8 — placeholders, disabled */
 
-    /* Borders */
-    --border: 150 8% 89%;               /* #E2E5E3 — card borders, dividers */
-    --border-strong: 155 8% 71%;        /* #B4BDB8 — input focus, active */
+    /* Borders — neutral */
+    --border: 0 0% 91%;                  /* #E8E8E8 — card borders, dividers */
+    --border-strong: 0 0% 78%;           /* #C7C7C7 — input focus, active */
 
-    /* Brand */
-    --brand: 145 72% 40%;               /* #1FAE5B — primary CTAs, toggles */
-    --brand-muted: 145 60% 93%;         /* #E2F5EB — active nav background */
-    --brand-dark: 150 68% 24%;          /* #0F6B3E — sidebar, authority headings */
+    /* Brand — green stays as accent only */
+    --brand: 145 72% 40%;                /* #1FAE5B — primary CTAs, toggles */
+    --brand-muted: 145 55% 95%;          /* #E8F8EE — active nav background */
+    --brand-dark: 145 72% 30%;           /* #177A40 — authority text, not sidebar */
+
+    /* Accent — indigo for analytics, links */
+    --accent: 241 78% 59%;               /* #5B6FE6 — indigo */
+    --accent-muted: 241 78% 96%;         /* #EEEFFE — indigo badge bg */
 
     /* Semantic */
-    --warning: 40 90% 60%;              /* #F4B740 — usage rights off, alerts */
-    --warning-muted: 40 100% 97%;       /* #FEF8EC — warning backgrounds */
-    --info: 205 63% 48%;                /* #2C8EC4 — links */
-    --destructive: 1 75% 59%;           /* #E24B4A — errors, delete */
-    --destructive-muted: 1 90% 97%;     /* #FEECEC — error backgrounds */
+    --warning: 40 90% 60%;               /* #F4B740 — usage rights off, alerts */
+    --warning-muted: 40 100% 97%;        /* #FEF8EC — warning backgrounds */
+    --info: 205 63% 48%;                 /* #2C8EC4 — links */
+    --info-muted: 205 63% 95%;
+    --destructive: 1 75% 59%;            /* #E24B4A — errors, delete */
+    --destructive-muted: 1 90% 97%;      /* #FEECEC — error backgrounds */
 
     /* Platform — brand colors for Instagram, TikTok, YouTube badges & charts */
     --platform-instagram: 271 91% 65%;        /* #A855F7 */
@@ -44,40 +49,48 @@
     --platform-youtube: 0 84% 60%;            /* #EF4444 */
     --platform-youtube-muted: 0 84% 95%;
 
-    /* Info muted — for info badge background (--info token already exists) */
-    --info-muted: 205 63% 95%;
+    /* Shadows — 4-level elevation scale */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
 
     /* Marketing landing page */
-    --marketing-vignette-start: hsl(150 20% 97%);
-    --marketing-grid-color: rgba(31, 174, 91, 0.04);
+    --marketing-vignette-start: hsl(0 0% 97.5%);
+    --marketing-grid-color: rgba(91, 111, 230, 0.04);
   }
 
   .dark {
     /* Backgrounds */
-    --background: 150 15% 8%;
-    --background-surface: 150 12% 11%;
-    --background-muted: 150 10% 15%;
-    --background-overlay: 150 68% 18%;
+    --background: 240 6% 9%;
+    --background-surface: 240 5% 12%;
+    --background-muted: 240 4% 16%;
+    --background-overlay: 240 6% 7%;
 
     /* Foregrounds */
-    --foreground: 150 5% 95%;
-    --foreground-light: 150 4% 75%;
-    --foreground-lighter: 150 4% 55%;
-    --foreground-muted: 150 4% 35%;
+    --foreground: 0 0% 96%;
+    --foreground-light: 0 0% 76%;
+    --foreground-lighter: 0 0% 56%;
+    --foreground-muted: 0 0% 38%;
 
     /* Borders */
-    --border: 150 8% 18%;
-    --border-strong: 150 8% 28%;
+    --border: 0 0% 18%;
+    --border-strong: 0 0% 28%;
 
     /* Brand — unchanged in dark mode */
     --brand: 145 72% 40%;
-    --brand-muted: 145 60% 12%;
-    --brand-dark: 150 68% 24%;
+    --brand-muted: 145 55% 12%;
+    --brand-dark: 145 72% 30%;
+
+    /* Accent */
+    --accent: 241 78% 59%;
+    --accent-muted: 241 78% 12%;
 
     /* Semantic */
     --warning: 40 90% 60%;
     --warning-muted: 40 60% 12%;
     --info: 205 63% 55%;
+    --info-muted: 205 63% 10%;
     --destructive: 1 75% 59%;
     --destructive-muted: 1 60% 12%;
 
@@ -85,11 +98,10 @@
     --platform-instagram-muted: 271 91% 10%;
     --platform-tiktok-muted: 217 91% 10%;
     --platform-youtube-muted: 0 84% 10%;
-    --info-muted: 205 63% 10%;
 
     /* Marketing landing page */
-    --marketing-vignette-start: hsl(150 15% 8%);
-    --marketing-grid-color: rgba(31, 174, 91, 0.06);
+    --marketing-vignette-start: hsl(240 6% 9%);
+    --marketing-grid-color: rgba(91, 111, 230, 0.06);
   }
 
   * {
@@ -114,4 +126,49 @@
     @apply hover:border-border-strong hover:shadow-md transition-all duration-300;
     @apply dark:hover:border-brand/50 dark:hover:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_40px_rgba(31,174,91,0.12),inset_0_1px_0_rgba(255,255,255,0.08)];
   }
+
+  /* Shimmer skeleton — replaces animate-pulse for all *-skeleton.tsx files */
+  .skeleton {
+    @apply relative overflow-hidden bg-background-muted rounded-md;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--background-surface) / 0.6) 50%,
+      transparent 100%
+    );
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  /* Staggered fade-up entry animation — for stat card rows (RSC-safe, no Framer needed) */
+  .animate-fade-up {
+    animation: fadeUp 0.3s ease both;
+  }
+  .animate-fade-up-delay-1 { animation-delay: 60ms; }
+  .animate-fade-up-delay-2 { animation-delay: 120ms; }
+  .animate-fade-up-delay-3 { animation-delay: 180ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .animate-fade-up-delay-1,
+    .animate-fade-up-delay-2,
+    .animate-fade-up-delay-3 {
+      animation: none;
+    }
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Inbox, ImageOff } from 'lucide-react'
 import { PostsFilterBar } from './posts-filter-bar'
 import { DownloadStatusBadge } from './download-status-badge'
 import { CollabStatusSelect } from './collab-status-select'
@@ -66,6 +67,26 @@ export function PostsTable({
     return true
   })
 
+  const activeFilterChips = [
+    filters.platform !== 'all' && { key: 'platform' as const, label: filters.platform },
+    filters.campaignId !== 'all' && {
+      key: 'campaignId' as const,
+      label: campaigns.find((c) => c.id === filters.campaignId)?.name ?? filters.campaignId,
+    },
+    filters.downloadStatus !== 'all' && { key: 'downloadStatus' as const, label: filters.downloadStatus },
+    filters.collabStatus !== 'all' && { key: 'collabStatus' as const, label: filters.collabStatus },
+  ].filter(Boolean) as { key: 'platform' | 'campaignId' | 'downloadStatus' | 'collabStatus'; label: string }[]
+
+  function clearFilter(key: typeof activeFilterChips[number]['key']) {
+    setFilters((prev) => ({ ...prev, [key]: 'all' }))
+  }
+
+  function clearAll() {
+    setFilters({ platform: 'all', campaignId: 'all', downloadStatus: 'all', collabStatus: 'all' })
+  }
+
+  const isFiltered = activeFilterChips.length > 0
+
   return (
     <div className="space-y-4">
       <PostsFilterBar
@@ -74,12 +95,52 @@ export function PostsTable({
         campaigns={campaigns}
       />
 
+      {/* Active filter chips */}
+      {isFiltered && (
+        <div className="flex flex-wrap items-center gap-2">
+          {activeFilterChips.map((chip) => (
+            <span
+              key={chip.key}
+              className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-medium text-brand"
+            >
+              {chip.label}
+              <button
+                type="button"
+                onClick={() => clearFilter(chip.key)}
+                aria-label={`Remove ${chip.label} filter`}
+                className="ml-0.5 rounded-full hover:opacity-70"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          {activeFilterChips.length >= 2 && (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="text-[11px] text-foreground-muted hover:text-foreground underline"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Result count */}
+      {posts.length > 0 && (
+        <p className="text-[12px] text-foreground-lighter">
+          {isFiltered
+            ? `Showing ${filtered.length} of ${posts.length} posts`
+            : `${posts.length} post${posts.length === 1 ? '' : 's'}`}
+        </p>
+      )}
+
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-20 text-center rounded-xl border border-border bg-background-surface">
-          <div className="text-4xl">📭</div>
-          <p className="font-display text-[15px] font-bold text-foreground">
-            No posts detected
-          </p>
+        <div className="flex flex-col items-center justify-center gap-2 py-20 text-center rounded-xl border border-border bg-background-surface">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
+            <Inbox size={18} className="text-foreground-muted" />
+          </div>
+          <p className="font-display text-[14px] font-bold text-foreground">No posts detected</p>
           <p className="max-w-xs text-[13px] text-foreground-lighter">
             Posts appear here as Ensemble finds them.
           </p>
@@ -139,8 +200,8 @@ export function PostsTable({
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-foreground-muted text-sm">
-                          🖼
+                        <div className="flex h-full items-center justify-center">
+                          <ImageOff size={14} className="text-foreground-muted" aria-label="No thumbnail" />
                         </div>
                       )}
                     </div>

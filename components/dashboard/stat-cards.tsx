@@ -36,6 +36,11 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
 
   const totalEmv = (emvData ?? []).reduce((sum, m) => sum + Number(m.emv ?? 0), 0)
 
+  const downloadRate =
+    totalPosts && totalPosts > 0
+      ? Math.round(((downloadedPosts ?? 0) / totalPosts) * 100)
+      : 0
+
   const stats = [
     {
       label: 'Total posts',
@@ -45,7 +50,9 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
     {
       label: 'Downloads',
       value: formatNumber(downloadedPosts ?? 0),
-      sub: `of ${totalPosts ?? 0} posts`,
+      sub: totalPosts
+        ? `${downloadRate}% of ${totalPosts} downloaded`
+        : 'no posts yet',
     },
     {
       label: 'Total EMV',
@@ -59,12 +66,14 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
     },
   ]
 
+  const delayClasses = ['', 'animate-fade-up-delay-1', 'animate-fade-up-delay-2', 'animate-fade-up-delay-3']
+
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      {stats.map((stat) => (
+      {stats.map((stat, i) => (
         <div
           key={stat.label}
-          className="rounded-xl border border-border bg-background-surface p-4 shadow-sm"
+          className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[i] ?? ''}`}
         >
           <p className="text-[12px] font-medium text-foreground-lighter">
             {stat.label}

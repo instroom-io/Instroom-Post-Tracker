@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronsUpDown } from 'lucide-react'
@@ -31,15 +31,34 @@ export function WorkspaceSwitcher({
 }: WorkspaceSwitcherProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const close = useCallback(() => {
+    setOpen(false)
+    triggerRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && open) close()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open, close])
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
 
       {/* ── Trigger button ─────────────────────────────────────────────── */}
       <button
+        ref={triggerRef}
         onClick={() => setOpen(!open)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Switch workspace, current: ${currentWorkspace.name}`}
         className={cn(
-          'flex items-center gap-2.5 rounded-xl border transition-colors',
+          'flex items-center gap-2.5 rounded-xl border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
           align === 'left' && [
             'w-full px-3 py-2',
             'border-white/10 bg-white/8',
@@ -68,8 +87,10 @@ export function WorkspaceSwitcher({
           />
         ) : (
           <div className={cn(
-            'flex flex-shrink-0 items-center justify-center bg-brand font-bold text-white',
-            align === 'left' ? 'h-9 w-9 rounded-xl text-[10px]' : 'h-7 w-7 rounded-lg text-[9px]'
+            'flex flex-shrink-0 items-center justify-center font-bold',
+            align === 'left'
+              ? 'h-9 w-9 rounded-xl text-[10px] bg-white/10 border border-white/15 text-white/70'
+              : 'h-7 w-7 rounded-lg text-[9px] bg-background-muted border border-border text-foreground-lighter'
           )}>
             {getInitials(currentWorkspace.name)}
           </div>
@@ -98,12 +119,14 @@ export function WorkspaceSwitcher({
       {open && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div aria-hidden="true" className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
 
           {/* Panel */}
           <div
+            role="listbox"
+            aria-label="Workspaces"
             className={cn(
-              'absolute top-full z-20 mt-1 w-56 overflow-hidden rounded-lg border border-border bg-background-surface shadow-xl',
+              'absolute top-full z-20 mt-1 w-56 overflow-hidden rounded-xl border border-border bg-background-surface shadow-lg',
               align === 'right' ? 'right-0' : 'left-0'
             )}
           >
@@ -114,13 +137,15 @@ export function WorkspaceSwitcher({
             {memberships.map(({ workspaces: ws, role }) => (
               <button
                 key={ws.id}
+                role="option"
+                aria-selected={ws.id === currentWorkspace.id}
                 onClick={() => {
                   router.push(`/${ws.slug}/overview`)
-                  setOpen(false)
+                  close()
                 }}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-background-muted"
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
               >
-                <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand/20 text-[8px] font-bold text-brand">
+                <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-background-muted border border-border text-[8px] font-bold text-foreground-lighter">
                   {getInitials(ws.name)}
                 </div>
                 <div className="min-w-0 flex-1">

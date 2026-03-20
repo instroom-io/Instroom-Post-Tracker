@@ -51,10 +51,17 @@ export function DropdownMenu({ children, open: controlledOpen, onOpenChange }: D
         setOpen(false)
       }
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
     if (open) {
       document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
@@ -73,7 +80,7 @@ export function DropdownMenuTrigger({ children, asChild: _asChild }: { children:
   const { open, setOpen } = useDropdownContext()
 
   return (
-    <span onClick={() => setOpen(!open)} className="contents cursor-pointer">
+    <span onClick={() => setOpen(!open)} className="contents">
       {children}
     </span>
   )
@@ -106,12 +113,13 @@ export function DropdownMenuContent({
     <AnimatePresence>
       {open && (
         <motion.div
+          role="menu"
           initial={{ opacity: 0, y: -4, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.97 }}
           transition={{ duration: 0.1 }}
           className={cn(
-            'absolute top-full z-50 mt-1 min-w-[160px] rounded-lg border border-border bg-background-surface shadow-lg',
+            'absolute top-full z-50 mt-1 min-w-[160px] rounded-xl border border-border bg-background-surface shadow-md',
             alignClasses[align],
             className
           )}
@@ -151,10 +159,11 @@ export function DropdownMenuItem({
   return (
     <button
       type="button"
+      role="menuitem"
       onClick={handleClick}
       disabled={disabled}
       className={cn(
-        'flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] transition-colors',
+        'flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
         variant === 'default'
           ? 'text-foreground hover:bg-background-muted'
           : 'text-destructive hover:bg-destructive-muted',
@@ -177,7 +186,7 @@ export function DropdownMenuSeparator() {
 
 export function DropdownMenuLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+    <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
       {children}
     </div>
   )

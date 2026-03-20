@@ -50,7 +50,7 @@ export default async function BrandPortalPage({ params }: PageProps) {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold text-foreground">My Content</h1>
-        <p className="text-sm text-muted-foreground">Influencer posts downloaded for {workspace.name}</p>
+        <p className="text-[13px] text-foreground-lighter">Influencer posts downloaded for {workspace.name}</p>
       </div>
 
       {/* Stats */}
@@ -59,9 +59,9 @@ export default async function BrandPortalPage({ params }: PageProps) {
           { label: 'Posts Downloaded', value: (postCount ?? 0).toLocaleString() },
           { label: 'Total Reach', value: totalReach >= 1000 ? `${(totalReach / 1000).toFixed(0)}K` : totalReach.toString() },
           { label: 'EMV', value: totalEmv >= 1000 ? `€${(totalEmv / 1000).toFixed(1)}K` : `€${totalEmv.toFixed(0)}` },
-        ].map((stat) => (
-          <div key={stat.label} className="rounded-xl border border-border bg-background-surface p-4">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{stat.label}</p>
+        ].map((stat, i) => (
+          <div key={stat.label} className={`rounded-xl border border-border bg-background-surface p-4 shadow-md animate-fade-up animate-fade-up-delay-${i + 1}`}>
+            <p className="text-[11px] uppercase tracking-wide text-foreground-muted">{stat.label}</p>
             <p className="mt-1 text-2xl font-bold text-foreground">{stat.value}</p>
           </div>
         ))}
@@ -74,8 +74,8 @@ export default async function BrandPortalPage({ params }: PageProps) {
       />
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-foreground">Recent Posts</h2>
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-xl bg-background-surface" />}>
+        <h2 className="mb-3 text-[14px] font-semibold text-foreground">Recent Posts</h2>
+        <Suspense fallback={<div className="h-48 skeleton rounded-xl" />}>
           <BrandPortalPosts workspaceId={workspace.id} />
         </Suspense>
       </div>
