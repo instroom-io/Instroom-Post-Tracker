@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/posts-worker",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/download-worker",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/metrics-worker",
+      "schedule": "0 10 * * *"
     }
   ]
 }
