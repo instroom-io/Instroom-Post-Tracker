@@ -52,12 +52,18 @@ export default async function OnboardPage({ params }: PageProps) {
             </p>
           </div>
         ) : !user ? (
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col gap-2">
             <Link
-              href={`/login?redirectTo=/onboard/${token}`}
+              href={`/signup?redirectTo=/onboard/${token}`}
               className="inline-block w-full rounded-lg bg-foreground px-4 py-2.5 text-center text-[13px] font-semibold text-background transition-opacity hover:opacity-90"
             >
-              Sign in to confirm →
+              Create account to confirm →
+            </Link>
+            <Link
+              href={`/login?redirectTo=/onboard/${token}`}
+              className="inline-block w-full rounded-lg border border-border px-4 py-2.5 text-center text-[13px] font-medium text-foreground-lighter transition-colors hover:text-foreground"
+            >
+              Already have an account? Sign in
             </Link>
           </div>
         ) : (

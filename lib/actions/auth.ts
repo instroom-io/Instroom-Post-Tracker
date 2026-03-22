@@ -66,13 +66,12 @@ export async function signUp(
       .in('status', ['pending', 'approved'])
       .maybeSingle()
 
-    // Check 3: approved brand request with unused onboard token (brand contact signing up)
+    // Check 3: invited or approved brand request (agency-initiated invite OR request-approval flow)
     const { data: brandRequest } = await serviceClient
       .from('brand_requests')
       .select('id')
       .eq('contact_email', email)
-      .eq('status', 'approved')
-      .is('onboard_accepted_at', null)
+      .in('status', ['invited', 'approved'])
       .maybeSingle()
 
     if (!invite && !agencyRequest && !brandRequest) {
