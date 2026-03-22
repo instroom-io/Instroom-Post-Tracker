@@ -25,8 +25,11 @@ export async function signIn(
     return { error: 'Invalid email or password.' }
   }
 
+  const redirectTo = formData.get('redirectTo')
+  const destination = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
+
   revalidatePath('/', 'layout')
-  redirect('/app')
+  redirect(destination)
 }
 
 export async function signUp(
@@ -79,6 +82,10 @@ export async function signUp(
     }
   }
 
+  const redirectTo = formData.get('redirectTo')
+  const nextPath = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
+  const emailRedirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(nextPath)}`
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
     email: parsed.data.email,
@@ -87,7 +94,7 @@ export async function signUp(
       data: {
         full_name: parsed.data.full_name,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      emailRedirectTo,
     },
   })
 

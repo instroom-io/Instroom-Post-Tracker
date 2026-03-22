@@ -8,7 +8,7 @@ import { signUp } from '@/lib/actions/auth'
 
 const initialState = undefined
 
-export function SignupForm() {
+export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [state, action, isPending] = useActionState(signUp, initialState)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -49,6 +49,7 @@ export function SignupForm() {
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="full_name"

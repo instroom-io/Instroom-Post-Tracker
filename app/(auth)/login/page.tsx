@@ -3,7 +3,12 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { LoginForm } from './login-form'
 
-export default function LoginPage() {
+interface PageProps {
+  searchParams: Promise<{ redirectTo?: string }>
+}
+
+export default async function LoginPage({ searchParams }: PageProps) {
+  const { redirectTo } = await searchParams
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
@@ -26,7 +31,7 @@ export default function LoginPage() {
         </div>
 
         <div className="rounded-xl border border-border bg-background-surface p-6 shadow-sm">
-          <LoginForm />
+          <LoginForm redirectTo={redirectTo} />
         </div>
       </div>
     </div>

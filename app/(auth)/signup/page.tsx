@@ -3,7 +3,12 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { SignupForm } from './signup-form'
 
-export default function SignupPage() {
+interface PageProps {
+  searchParams: Promise<{ redirectTo?: string }>
+}
+
+export default async function SignupPage({ searchParams }: PageProps) {
+  const { redirectTo } = await searchParams
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
@@ -26,7 +31,7 @@ export default function SignupPage() {
         </div>
 
         <div className="rounded-xl border border-border bg-background-surface p-6 shadow-sm">
-          <SignupForm />
+          <SignupForm redirectTo={redirectTo} />
         </div>
       </div>
     </div>
