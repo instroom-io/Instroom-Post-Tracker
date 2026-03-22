@@ -21,7 +21,7 @@ export type JobStatus = 'pending' | 'processing' | 'done' | 'failed'
 
 export type BrandStatus = 'pending' | 'active'
 
-export type BrandRequestStatus = 'pending' | 'approved' | 'rejected'
+export type BrandRequestStatus = 'pending' | 'approved' | 'rejected' | 'invited'
 
 export type DriveConnectionType = 'agency' | 'brand'
 
@@ -56,6 +56,8 @@ export interface BrandRequest {
   workspace_id: string | null
   reviewed_by: string | null
   reviewed_at: string | null
+  invite_token: string | null
+  invite_token_expires_at: string | null
   created_at: string
 }
 

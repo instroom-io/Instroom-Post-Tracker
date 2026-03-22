@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { InviteBrandDialog } from '@/components/agency/invite-brand-dialog'
 
 interface PageProps {
   params: Promise<{ agencySlug: string }>
@@ -25,9 +26,17 @@ export default async function AgencyBrandsPage({ params }: PageProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-bold text-foreground">Brand Clients</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-foreground">Brand Clients</h1>
+        <InviteBrandDialog agencyId={agency.id} agencySlug={agencySlug} />
+      </div>
       {(workspaces ?? []).length === 0 ? (
-        <p className="text-[13px] text-foreground-lighter">No brand workspaces yet.</p>
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-background-surface py-20 text-center">
+          <p className="font-display text-[15px] font-bold text-foreground">No brand clients yet</p>
+          <p className="max-w-xs text-[13px] text-foreground-lighter">
+            Invite a brand to get started. They'll receive an email to confirm their details.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           {workspaces!.map((w) => (

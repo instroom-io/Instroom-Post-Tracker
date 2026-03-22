@@ -10,6 +10,7 @@ import type { BrandRequest, BrandRequestStatus } from '@/lib/types'
 
 const TABS: { label: string; value: BrandRequestStatus | 'all' }[] = [
   { label: 'Pending', value: 'pending' },
+  { label: 'Invited', value: 'invited' },
   { label: 'Approved', value: 'approved' },
   { label: 'Rejected', value: 'rejected' },
   { label: 'All', value: 'all' },
@@ -69,6 +70,8 @@ export function BrandRequestsTable({ requests, agencySlug }: BrandRequestsTableP
           <p className="max-w-xs text-[13px] text-foreground-lighter">
             {activeTab === 'pending'
               ? 'New brand requests will appear here when brands submit the request form.'
+              : activeTab === 'invited'
+              ? 'Invited brands will appear here. Use the "Invite Brand" button on the Brands page to send invitations.'
               : 'No requests match this filter.'}
           </p>
         </div>
@@ -94,11 +97,22 @@ export function BrandRequestsTable({ requests, agencySlug }: BrandRequestsTableP
                     Actions
                   </th>
                 )}
+                {activeTab === 'invited' && (
+                  <th className="px-5 py-2.5 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                    Status
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
               {filtered.map((request) => (
-                <RequestRow key={request.id} request={request} showActions={activeTab === 'pending'} agencySlug={agencySlug} />
+                <RequestRow
+                  key={request.id}
+                  request={request}
+                  showActions={activeTab === 'pending'}
+                  showInvitedStatus={activeTab === 'invited'}
+                  agencySlug={agencySlug}
+                />
               ))}
             </tbody>
           </table>
@@ -111,10 +125,11 @@ export function BrandRequestsTable({ requests, agencySlug }: BrandRequestsTableP
 interface RequestRowProps {
   request: BrandRequest
   showActions: boolean
+  showInvitedStatus: boolean
   agencySlug: string
 }
 
-function RequestRow({ request, showActions, agencySlug }: RequestRowProps) {
+function RequestRow({ request, showActions, showInvitedStatus, agencySlug }: RequestRowProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
@@ -147,15 +162,19 @@ function RequestRow({ request, showActions, agencySlug }: RequestRowProps) {
       <td className="px-5 py-3.5">
         <div>
           <p className="text-[12px] font-medium text-foreground">{request.brand_name}</p>
-          <a
-            href={request.website_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[11px] text-brand hover:underline"
-          >
-            {request.website_url.replace(/^https?:\/\//, '')}
-            <ExternalLink size={10} />
-          </a>
+          {request.website_url ? (
+            <a
+              href={request.website_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] text-brand hover:underline"
+            >
+              {request.website_url.replace(/^https?:\/\//, '')}
+              <ExternalLink size={10} />
+            </a>
+          ) : (
+            <span className="text-[11px] text-foreground-muted">Not yet provided</span>
+          )}
         </div>
       </td>
       <td className="px-5 py-3.5">
@@ -170,6 +189,13 @@ function RequestRow({ request, showActions, agencySlug }: RequestRowProps) {
       <td className="px-5 py-3.5 text-[12px] text-foreground-lighter">
         {formatDate(request.created_at)}
       </td>
+      {showInvitedStatus && (
+        <td className="px-5 py-3.5 text-right">
+          <span className="inline-flex items-center rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-medium text-warning">
+            Awaiting response
+          </span>
+        </td>
+      )}
       {showActions && (
         <td className="px-5 py-3.5">
           <div className="flex items-center justify-end gap-2">
