@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
+import { signOut } from '@/lib/actions/auth'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -66,6 +67,11 @@ export default async function PortalLayout({ children, params }: LayoutProps) {
             instroom.co
           </a>
           <ThemeToggle />
+          <form action={signOut}>
+            <button type="submit" className="text-[11px] text-foreground-muted hover:text-foreground transition-colors">
+              Sign out
+            </button>
+          </form>
         </div>
       </div>
       {/* Main */}

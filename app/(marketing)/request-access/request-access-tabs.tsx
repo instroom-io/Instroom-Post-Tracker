@@ -67,7 +67,7 @@ function BrandForm({ agencies }: { agencies: Pick<Agency, 'id' | 'name'>[] }) {
     return (
       <SuccessState
         title="Request Received"
-        body="Your request has been received. We'll be in touch soon."
+        body="Your request has been received. Check your inbox — you'll get a confirmation email once your agency reviews it."
       />
     )
   }

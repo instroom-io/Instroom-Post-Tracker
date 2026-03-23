@@ -103,7 +103,7 @@ export function AcceptInviteForm({ token }: Props) {
       <button
         type="submit"
         disabled={isPending}
-        className="h-10 w-full rounded-lg bg-foreground px-4 text-[13px] font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="h-10 w-full rounded-lg bg-brand px-4 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {isPending ? 'Submitting…' : 'Confirm details'}
       </button>
