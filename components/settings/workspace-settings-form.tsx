@@ -52,14 +52,24 @@ export function WorkspaceSettingsForm({ workspace, canEdit }: WorkspaceSettingsF
         placeholder="https://..."
         hint="Paste a public image URL for your logo"
       />
-      <Input
-        label="Google Drive folder ID"
-        value={driveFolderId}
-        onChange={(e) => setDriveFolderId(e.target.value)}
-        disabled={!canEdit || isPending}
-        placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE..."
-        hint="The ID from the Drive folder URL"
-      />
+      <div className="space-y-2">
+        <Input
+          label="Google Drive folder ID"
+          value={driveFolderId}
+          onChange={(e) => setDriveFolderId(e.target.value)}
+          disabled={!canEdit || isPending}
+          placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE..."
+        />
+        <div className="text-[11px] text-foreground-muted space-y-1 leading-relaxed">
+          <p>Downloaded posts will be uploaded to this folder. To set it up:</p>
+          <ol className="list-decimal list-inside space-y-0.5 pl-1">
+            <li>Create a folder in Google Drive</li>
+            <li>Share it with <span className="font-mono text-foreground select-all">drive-uploader@instroom-post-tracker-drive.iam.gserviceaccount.com</span> as <strong>Editor</strong></li>
+            <li>Copy the folder ID from the URL: drive.google.com/drive/folders/<strong>FOLDER_ID</strong></li>
+            <li>Paste the ID above and save</li>
+          </ol>
+        </div>
+      </div>
 
       {error && (
         <p className="text-[11px] text-destructive">{error}</p>

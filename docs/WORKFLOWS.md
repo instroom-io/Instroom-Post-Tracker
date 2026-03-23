@@ -251,8 +251,9 @@ For each claimed job (up to 10 per run):
 2. Load post + campaign + influencer + workspace.
 3. **Usage rights gate:** If `campaign_influencers.usage_rights = false` → skip (leave job in queue until rights are granted).
 4. `fetchFreshMediaUrl(platform, platformPostId, postUrl)` → EnsembleData API:
-   - **TikTok** `/tt/post/info`: extract `video.download_addr.url_list[0]` or `video.play_addr_h264.url_list[0]`
-   - **Instagram** `/instagram/post/details`: prefer `data.video_url`, fallback to `data.display_url`
+   - **TikTok** `/tt/post/info`: extract `video.download_addr.url_list[0]` (preferred) or `video.play_addr_h264.url_list[0]` (fallback). CDN links expire — must be re-fetched at download time, not stored.
+     > ⚠️ **Watermark note (verified 2026-03-23):** `download_addr` is TikTok's highest-quality CDN stream but the creator handle overlay (`TikTok @handle`) is still burned into the video. EnsembleData has no no-watermark endpoint. Truly watermark-free TikTok content must come directly from the influencer. The download pipeline still works end-to-end — it stores the best available stream.
+   - **Instagram** `/instagram/post/details`: prefer `data.video_url`, fallback to `data.display_url`. Instagram downloads are clean — no platform watermark.
    - **YouTube**: not supported — returns `null`, job skipped
 5. `fetch(mediaUrl)` → `arrayBuffer()` → determine MIME type and file extension.
 6. `uploadToDrive({ fileBuffer, fileName, folderPath })` (`lib/drive/upload.ts`):

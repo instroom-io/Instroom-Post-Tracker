@@ -200,6 +200,7 @@ export function CampaignTabs({
                   workspaceId={workspaceId}
                   campaignId={campaignId}
                   availableInfluencers={availableInfluencers}
+                  campaignPlatforms={campaignPlatforms}
                 />
               )}
             </div>

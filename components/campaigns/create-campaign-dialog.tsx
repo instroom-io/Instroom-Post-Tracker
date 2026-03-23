@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { TagInput } from '@/components/ui/tag-input'
 import { Button } from '@/components/ui/button'
 import { createCampaign } from '@/lib/actions/campaigns'
 import type { Platform } from '@/lib/types'
@@ -22,10 +23,10 @@ interface CreateCampaignDialogProps {
   workspaceId: string
 }
 
-const platforms: { value: Platform; label: string }[] = [
-  { value: 'instagram', label: 'Instagram' },
-  { value: 'tiktok', label: 'TikTok' },
-  { value: 'youtube', label: 'YouTube' },
+const PLATFORMS: { value: Platform; label: string; color: string }[] = [
+  { value: 'instagram', label: 'Instagram', color: '#e1306c' },
+  { value: 'tiktok', label: 'TikTok', color: '#0ea5e9' },
+  { value: 'youtube', label: 'YouTube', color: '#ef4444' },
 ]
 
 export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps) {
@@ -36,18 +37,58 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
   const [name, setName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [trackingConfigs, setTrackingConfigs] = useState<
+    Record<Platform, { hashtags: string[]; mentions: string[] }>
+  >({} as Record<Platform, { hashtags: string[]; mentions: string[] }>)
 
   function togglePlatform(platform: Platform) {
-    setSelectedPlatforms((prev) =>
-      prev.includes(platform)
-        ? prev.filter((p) => p !== platform)
-        : [...prev, platform]
-    )
+    setSelectedPlatforms((prev) => {
+      if (prev.includes(platform)) {
+        // Remove config for deselected platform
+        setTrackingConfigs((cfg) => {
+          const next = { ...cfg }
+          delete next[platform]
+          return next
+        })
+        return prev.filter((p) => p !== platform)
+      }
+      // Init empty config for newly selected platform
+      setTrackingConfigs((cfg) => ({
+        ...cfg,
+        [platform]: { hashtags: [], mentions: [] },
+      }))
+      return [...prev, platform]
+    })
+  }
+
+  function updateConfig(platform: Platform, field: 'hashtags' | 'mentions', tags: string[]) {
+    setTrackingConfigs((prev) => ({
+      ...prev,
+      [platform]: { ...prev[platform], [field]: tags },
+    }))
+  }
+
+  function handleClose() {
+    setOpen(false)
+    setName('')
+    setSelectedPlatforms([])
+    setStartDate('')
+    setEndDate('')
+    setTrackingConfigs({} as Record<Platform, { hashtags: string[]; mentions: string[] }>)
+    setError(null)
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+
+    const tracking_configs = selectedPlatforms
+      .map((p) => ({
+        platform: p,
+        hashtags: trackingConfigs[p]?.hashtags ?? [],
+        mentions: trackingConfigs[p]?.mentions ?? [],
+      }))
+      .filter((tc) => tc.hashtags.length > 0 || tc.mentions.length > 0)
 
     startTransition(async () => {
       const result = await createCampaign(workspaceId, {
@@ -55,6 +96,7 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
         platforms: selectedPlatforms,
         start_date: startDate,
         end_date: endDate,
+        tracking_configs: tracking_configs.length > 0 ? tracking_configs : undefined,
       })
 
       if (result?.error) {
@@ -63,16 +105,12 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
       }
 
       toast.success('Campaign created')
-      setOpen(false)
-      setName('')
-      setSelectedPlatforms([])
-      setStartDate('')
-      setEndDate('')
+      handleClose()
     })
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); else setOpen(true) }}>
       <DialogTrigger>
         <Button variant="primary" size="sm">
           <Plus size={13} />
@@ -80,7 +118,7 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
         </Button>
       </DialogTrigger>
 
-      <DialogContent size="md">
+      <DialogContent size={selectedPlatforms.length > 0 ? 'lg' : 'md'}>
         <DialogHeader>
           <DialogTitle>Create campaign</DialogTitle>
           <DialogDescription>
@@ -105,7 +143,7 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
                 Platforms
               </p>
               <div className="flex gap-2">
-                {platforms.map((p) => (
+                {PLATFORMS.map((p) => (
                   <button
                     key={p.value}
                     type="button"
@@ -121,6 +159,52 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
                 ))}
               </div>
             </div>
+
+            {/* Inline tracking config — appears per selected platform */}
+            {selectedPlatforms.length > 0 && (
+              <div className="flex flex-col gap-0 overflow-hidden rounded-lg border border-border">
+                {selectedPlatforms.map((platform, idx) => {
+                  const p = PLATFORMS.find((x) => x.value === platform)!
+                  return (
+                    <div
+                      key={platform}
+                      className={`space-y-3 px-4 py-3 ${idx > 0 ? 'border-t border-border' : ''}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="inline-block h-2 w-2 rounded-full"
+                          style={{ background: p.color }}
+                        />
+                        <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
+                          {p.label}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <TagInput
+                          label="Hashtags"
+                          tags={trackingConfigs[platform]?.hashtags ?? []}
+                          onChange={(tags) => updateConfig(platform, 'hashtags', tags)}
+                          prefix="#"
+                          placeholder="brandname, collab"
+                        />
+                        <TagInput
+                          label="Mentions"
+                          tags={trackingConfigs[platform]?.mentions ?? []}
+                          onChange={(tags) => updateConfig(platform, 'mentions', tags)}
+                          prefix="@"
+                          placeholder="brandhandle"
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+                <div className="border-t border-border bg-background-muted px-4 py-2">
+                  <p className="text-[10px] text-foreground-subtle">
+                    Required for posts to be detected by the posts worker
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Date range */}
             <div className="grid grid-cols-2 gap-3">
@@ -150,7 +234,7 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
               type="button"
               variant="secondary"
               size="md"
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
             >
               Cancel
             </Button>

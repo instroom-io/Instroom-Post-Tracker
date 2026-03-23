@@ -10,7 +10,7 @@ export const signInSchema = z.object({
 export const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  full_name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  full_name: z.string().min(2).max(100).optional(),
 })
 
 // ─── Workspace ────────────────────────────────────────────────────────────────
@@ -80,6 +80,11 @@ export const createCampaignSchema = z.object({
     .min(1, 'Select at least one platform'),
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  tracking_configs: z.array(z.object({
+    platform: z.enum(['instagram', 'tiktok', 'youtube']),
+    hashtags: z.array(z.string().max(100)).default([]),
+    mentions: z.array(z.string().max(100)).default([]),
+  })).optional(),
 }).refine(
   (data) => new Date(data.end_date) >= new Date(data.start_date),
   { message: 'End date must be on or after start date', path: ['end_date'] }

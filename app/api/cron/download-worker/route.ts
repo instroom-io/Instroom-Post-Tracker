@@ -3,7 +3,7 @@ import { uploadToDrive } from '@/lib/drive/upload'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 800
 
 const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
 const ENSEMBLE_API_KEY = process.env.ENSEMBLE_API_KEY!
@@ -102,7 +102,7 @@ async function processJob(
       post_url,
       campaign:campaigns(name),
       influencer:influencers(ig_handle, tiktok_handle, youtube_handle),
-      workspace:workspaces(name)
+      workspace:workspaces(name, drive_folder_id)
     `
     )
     .eq('id', job.post_id)
@@ -114,7 +114,7 @@ async function processJob(
 
   const campaign = post.campaign as unknown as { name: string } | null
   const influencer = post.influencer as unknown as { ig_handle: string | null; tiktok_handle: string | null; youtube_handle: string | null } | null
-  const workspace = post.workspace as unknown as { name: string } | null
+  const workspace = post.workspace as unknown as { name: string; drive_folder_id: string | null } | null
   const campaignName = campaign?.name
   const workspaceName = workspace?.name
 
@@ -142,11 +142,12 @@ async function processJob(
       'unknown'
     const folderPath = `${workspaceName}/${campaignName}/${handle}/${post.platform}`
 
-    // Upload to Google Drive
+    // Upload to Google Drive — use workspace-specific folder if set, else global root
     const { fileId, folderPath: savedFolderPath } = await uploadToDrive({
       fileBuffer,
       fileName: `post-${post.id}.${ext}`,
       folderPath,
+      rootFolderId: workspace?.drive_folder_id ?? undefined,
     })
 
     // Update post on success

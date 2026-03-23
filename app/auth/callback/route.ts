@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
@@ -21,7 +21,48 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) return redirectTo(next)
+
+    if (!error) {
+      // For new OAuth users, enforce the invite-only gate
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        // Detect new user: created_at and last_sign_in_at are within 10 seconds
+        const createdAt = new Date(user.created_at).getTime()
+        const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : createdAt
+        const isNewUser = Math.abs(createdAt - lastSignIn) < 10000
+
+        if (isNewUser) {
+          const adminEmail = process.env.ADMIN_EMAIL
+          const email = user.email!
+          const isAdmin = adminEmail && email.toLowerCase() === adminEmail.toLowerCase()
+
+          if (!isAdmin) {
+            const serviceClient = createServiceClient()
+
+            const [{ data: invite }, { data: agencyRequest }, { data: brandRequest }] = await Promise.all([
+              serviceClient.from('invitations').select('id')
+                .eq('email', email).is('accepted_at', null)
+                .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+                .maybeSingle(),
+              serviceClient.from('agency_requests').select('id')
+                .eq('contact_email', email).in('status', ['pending', 'approved'])
+                .maybeSingle(),
+              serviceClient.from('brand_requests').select('id')
+                .eq('contact_email', email).in('status', ['invited', 'approved'])
+                .maybeSingle(),
+            ])
+
+            if (!invite && !agencyRequest && !brandRequest) {
+              await supabase.auth.signOut()
+              return redirectTo('/request-access?error=invite_only')
+            }
+          }
+        }
+      }
+
+      return redirectTo(next)
+    }
   }
 
   // Email OTP / magic link verification

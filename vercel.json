@@ -2,15 +2,15 @@
   "crons": [
     {
       "path": "/api/cron/posts-worker",
-      "schedule": "0 8 * * *"
+      "schedule": "*/30 * * * *"
     },
     {
       "path": "/api/cron/download-worker",
-      "schedule": "0 9 * * *"
+      "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/cron/metrics-worker",
-      "schedule": "0 10 * * *"
+      "schedule": "*/10 * * * *"
     }
   ]
 }

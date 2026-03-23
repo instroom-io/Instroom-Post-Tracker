@@ -5,6 +5,83 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { addInfluencerSchema, updateInfluencerSchema, updateProductSentAtSchema, type UpdateProductSentAtInput } from '@/lib/validations'
 
+const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
+const ENSEMBLE_API_KEY = process.env.ENSEMBLE_API_KEY!
+
+export type HandleValidationResult = {
+  handle: string
+  status: 'valid' | 'private' | 'not_found'
+}
+
+export async function validateInfluencerHandles(
+  workspaceId: string,
+  platform: 'tiktok' | 'instagram' | 'youtube',
+  handles: string[]
+): Promise<HandleValidationResult[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!member) return handles.map((handle) => ({ handle, status: 'not_found' }))
+
+  async function checkTikTok(handle: string): Promise<HandleValidationResult> {
+    try {
+      const res = await fetch(
+        `${ENSEMBLE_API_URL}/tt/user/posts?username=${encodeURIComponent(handle)}&depth=1&token=${ENSEMBLE_API_KEY}`
+      )
+      if (!res.ok) return { handle, status: 'not_found' }
+      const json = await res.json() as { data?: unknown[] }
+      if (!Array.isArray(json.data)) return { handle, status: 'not_found' }
+      return { handle, status: json.data.length > 0 ? 'valid' : 'private' }
+    } catch {
+      return { handle, status: 'not_found' }
+    }
+  }
+
+  async function checkInstagram(handle: string): Promise<HandleValidationResult> {
+    try {
+      const res = await fetch(
+        `${ENSEMBLE_API_URL}/instagram/user/info?username=${encodeURIComponent(handle)}&token=${ENSEMBLE_API_KEY}`
+      )
+      if (!res.ok) return { handle, status: 'not_found' }
+      const json = await res.json() as { data?: { id?: string; pk?: string; user_id?: string } }
+      const userId = json.data?.id ?? json.data?.pk ?? json.data?.user_id
+      return { handle, status: userId ? 'valid' : 'not_found' }
+    } catch {
+      return { handle, status: 'not_found' }
+    }
+  }
+
+  async function checkYouTube(handle: string): Promise<HandleValidationResult> {
+    try {
+      const res = await fetch(
+        `${ENSEMBLE_API_URL}/youtube/channel/name-to-id?username=${encodeURIComponent(handle)}&token=${ENSEMBLE_API_KEY}`
+      )
+      if (!res.ok) return { handle, status: 'not_found' }
+      const json = await res.json() as { data?: string | { channel_id?: string } }
+      const channelId = typeof json.data === 'string'
+        ? json.data
+        : json.data?.channel_id
+      return { handle, status: channelId ? 'valid' : 'not_found' }
+    } catch {
+      return { handle, status: 'not_found' }
+    }
+  }
+
+  const checker = platform === 'tiktok' ? checkTikTok
+    : platform === 'instagram' ? checkInstagram
+    : checkYouTube
+
+  return Promise.all(handles.map(checker))
+}
+
 export async function addInfluencer(
   workspaceId: string,
   data: unknown,

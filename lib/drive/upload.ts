@@ -19,16 +19,32 @@ function getAuth() {
 
 // In-memory folder ID cache: path string → folder ID
 const folderCache = new Map<string, string>()
+// In-flight promises to prevent parallel creation of the same folder path
+const folderInFlight = new Map<string, Promise<string>>()
 
-async function getFolderIdOrCreate(path: string[]): Promise<string> {
-  const cacheKey = path.join('/')
+async function getFolderIdOrCreate(path: string[], rootFolderId?: string): Promise<string> {
+  const cacheKey = (rootFolderId ?? '') + '|' + path.join('/')
+  const cached = folderCache.get(cacheKey)
+  if (cached) return cached
+
+  // Deduplicate concurrent calls for the same path
+  const inFlight = folderInFlight.get(cacheKey)
+  if (inFlight) return inFlight
+
+  const promise = _getFolderIdOrCreate(path, rootFolderId).finally(() => folderInFlight.delete(cacheKey))
+  folderInFlight.set(cacheKey, promise)
+  return promise
+}
+
+async function _getFolderIdOrCreate(path: string[], rootFolderId?: string): Promise<string> {
+  const cacheKey = (rootFolderId ?? '') + '|' + path.join('/')
   const cached = folderCache.get(cacheKey)
   if (cached) return cached
 
   const auth = getAuth()
   const drive = google.drive({ version: 'v3', auth })
 
-  let parentId = 'root'
+  let parentId = rootFolderId ?? process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID ?? 'root'
   let currentPath = ''
 
   for (const segment of path) {
@@ -46,6 +62,8 @@ async function getFolderIdOrCreate(path: string[]): Promise<string> {
       q: `name = '${segment.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder' and '${parentId}' in parents and trashed = false`,
       fields: 'files(id)',
       pageSize: 1,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
     })
 
     let folderId: string
@@ -61,6 +79,7 @@ async function getFolderIdOrCreate(path: string[]): Promise<string> {
           parents: [parentId],
         },
         fields: 'id',
+        supportsAllDrives: true,
       })
       folderId = created.data.id!
     }
@@ -76,16 +95,18 @@ export async function uploadToDrive({
   fileBuffer,
   fileName,
   folderPath,
+  rootFolderId,
 }: {
   fileBuffer: ArrayBuffer
   fileName: string
   folderPath: string
+  rootFolderId?: string
 }): Promise<{ fileId: string; webViewLink: string; folderPath: string }> {
   const auth = getAuth()
   const drive = google.drive({ version: 'v3', auth })
 
   const pathSegments = folderPath.split('/').filter(Boolean)
-  const folderId = await getFolderIdOrCreate(pathSegments)
+  const folderId = await getFolderIdOrCreate(pathSegments, rootFolderId)
 
   const mimeType = getMimeType(fileName)
   const stream = Readable.from(Buffer.from(fileBuffer))
@@ -100,6 +121,7 @@ export async function uploadToDrive({
       body: stream,
     },
     fields: 'id, webViewLink',
+    supportsAllDrives: true,
   })
 
   return {

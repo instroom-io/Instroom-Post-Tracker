@@ -118,7 +118,12 @@ Cron runs every 30 minutes (`GET /api/cron/posts-worker`):
 
 ### 4.5 Content Download
 
-- Download via Ensemble API (no watermark)
+- Download via EnsembleData API — uses TikTok's internal `download_addr` CDN stream, which provides the highest available quality and avoids the in-app "Save video" compression
+- **Watermark reality (verified 2026-03-23):** TikTok's `download_addr` CDN URL still bakes in the creator handle overlay (`TikTok @handle`) in the corner of the video. This is not a post-processing watermark — it is burned into the CDN stream itself. Truly watermark-free content requires either:
+  1. The influencer shares the original file directly (recommended for campaign wrap reports)
+  2. A TikTok official business API partnership (not publicly available)
+  - EnsembleData has no dedicated no-watermark endpoint for TikTok
+- **Instagram** downloads from `/instagram/post/details` (`video_url`) are clean — no platform watermark
 - Upload to Google Drive at path: `/{workspace.name}/{campaign.name}/{influencer.handle}/{platform}/`
 - Failed downloads go into `retry_queue` (up to 3 retries, 15-min backoff)
 - Store `drive_file_id` and `drive_folder_path` on the post record

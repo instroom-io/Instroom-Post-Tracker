@@ -10,7 +10,7 @@
 Instroom Post Tracker is a **multi-tenant B2B SaaS** for influencer marketing agencies. It automatically:
 
 1. **Detects** influencer posts via the **Ensemble** social monitoring API (webhook)
-2. **Downloads** content watermark-free to a structured **Google Drive** folder
+2. **Downloads** content to a structured **Google Drive** folder (TikTok: best available CDN stream — creator handle overlay still present; Instagram: clean)
 3. **Gates** downloads behind a **usage rights** toggle — per influencer, per campaign
 4. **Fetches performance metrics** 7 days after publish (frozen, never updated)
 5. **Calculates EMV** (Estimated Media Value) using configurable CPM rates per platform

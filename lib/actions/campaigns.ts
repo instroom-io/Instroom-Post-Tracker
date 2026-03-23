@@ -34,16 +34,26 @@ export async function createCampaign(
     return { error: 'Insufficient permissions.' }
   }
 
-  const { error } = await supabase.from('campaigns').insert({
+  const { data: campaign, error } = await supabase.from('campaigns').insert({
     workspace_id: workspaceId,
     name: parsed.data.name,
     platforms: parsed.data.platforms,
     start_date: parsed.data.start_date,
     end_date: parsed.data.end_date,
     created_by: user.id,
-  })
+  }).select('id').single()
 
-  if (error) return { error: 'Failed to create campaign.' }
+  if (error || !campaign) return { error: 'Failed to create campaign.' }
+
+  if (parsed.data.tracking_configs && parsed.data.tracking_configs.length > 0) {
+    const configRows = parsed.data.tracking_configs.map((tc) => ({
+      campaign_id: campaign.id,
+      platform: tc.platform,
+      hashtags: tc.hashtags,
+      mentions: tc.mentions,
+    }))
+    await supabase.from('campaign_tracking_configs').upsert(configRows, { onConflict: 'campaign_id,platform' })
+  }
 
   revalidatePath('/', 'layout')
 }
