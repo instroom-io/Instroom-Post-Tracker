@@ -73,7 +73,8 @@ export async function approveAgencyRequest(
     .eq('email', request.contact_email)
     .maybeSingle()
 
-  // Fall back to platform admin only if contact hasn't signed up yet (temporary — they must sign up)
+  // Fall back to platform admin if contact hasn't signed up yet — owner_id is claimed on first
+  // OAuth login via the auth callback (app/auth/callback/route.ts)
   const agencyOwnerId = agencyOwnerUser?.id ?? user.id
 
   const { data: agency, error: agencyError } = await serviceClient

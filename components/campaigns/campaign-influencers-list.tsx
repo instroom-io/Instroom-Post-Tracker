@@ -48,10 +48,15 @@ function ProductSentDateCell({ row, canEdit, workspaceId }: { row: InfluencerRow
       disabled={!canEdit}
       onChange={(e) => {
         startTransition(async () => {
-          await updateProductSentAt(workspaceId, {
+          const result = await updateProductSentAt(workspaceId, {
             campaignInfluencerId: row.id,
             productSentAt: e.target.value || null,
           })
+          if (result?.error) {
+            toast.error(result.error)
+          } else {
+            toast.success('Product sent date saved')
+          }
         })
       }}
       className="rounded border border-border bg-transparent px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"

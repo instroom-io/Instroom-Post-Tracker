@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Manrope } from 'next/font/google'
+import { Toaster } from 'sonner'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import '@/styles/globals.css'
@@ -39,7 +40,10 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            {children}
+            <Toaster position="bottom-right" richColors />
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

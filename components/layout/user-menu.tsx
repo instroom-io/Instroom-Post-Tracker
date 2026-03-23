@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Settings, LogOut } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
@@ -22,6 +23,7 @@ export function UserMenu({ user, compact }: UserMenuProps) {
   const email = user.email ?? ''
   const displayName = (user.user_metadata?.full_name as string | undefined) ?? email.split('@')[0]
   const initials = getInitials(displayName)
+  const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null
 
   // Extract workspaceSlug from current pathname (e.g. "/zippit/overview" → "zippit")
   const workspaceSlug = pathname.split('/')[1] ?? ''
@@ -59,14 +61,18 @@ export function UserMenu({ user, compact }: UserMenuProps) {
           aria-expanded={open}
           aria-label={`User menu for ${displayName}`}
           className={cn(
-            'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
-            'bg-background-muted text-foreground-light text-[11px] font-semibold',
+            'flex h-7 w-7 items-center justify-center rounded-full transition-colors overflow-hidden',
+            !avatarUrl && 'bg-background-muted text-foreground-light text-[11px] font-semibold',
             'hover:bg-background-muted/80 border border-border/60',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
             open && 'bg-background-muted border-border'
           )}
         >
-          {initials}
+          {avatarUrl ? (
+            <Image src={avatarUrl} alt={displayName} width={28} height={28} className="h-7 w-7 rounded-full object-cover" />
+          ) : (
+            initials
+          )}
         </button>
       ) : (
         /* ── Normal trigger: avatar + name ── */
@@ -78,9 +84,13 @@ export function UserMenu({ user, compact }: UserMenuProps) {
           aria-label={`User menu for ${displayName}`}
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
         >
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 border border-white/15 text-[10px] font-bold text-white/80">
-            {initials}
-          </div>
+          {avatarUrl ? (
+            <Image src={avatarUrl} alt={displayName} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
+          ) : (
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 border border-white/15 text-[10px] font-bold text-white/80">
+              {initials}
+            </div>
+          )}
           <span className="text-[12px] font-medium text-white/60">{displayName}</span>
         </button>
       )}

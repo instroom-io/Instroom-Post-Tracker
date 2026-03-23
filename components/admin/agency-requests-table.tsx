@@ -1,6 +1,8 @@
 'use client'
 
 import { useTransition, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { approveAgencyRequest, rejectAgencyRequest } from '@/lib/actions/agencies'
 import { Button } from '@/components/ui/button'
 import type { AgencyRequest } from '@/lib/types'
@@ -12,6 +14,7 @@ interface Props {
 export function AgencyRequestsTable({ requests }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   if (requests.length === 0) {
     return (
@@ -21,19 +24,29 @@ export function AgencyRequestsTable({ requests }: Props) {
     )
   }
 
-  function handleApprove(id: string) {
+  function handleApprove(req: AgencyRequest) {
     setError(null)
     startTransition(async () => {
-      const result = await approveAgencyRequest(id)
-      if (result?.error) setError(result.error)
+      const result = await approveAgencyRequest(req.id)
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        toast.success(`${req.agency_name} approved`)
+        router.refresh()
+      }
     })
   }
 
-  function handleReject(id: string) {
+  function handleReject(req: AgencyRequest) {
     setError(null)
     startTransition(async () => {
-      const result = await rejectAgencyRequest(id)
-      if (result?.error) setError(result.error)
+      const result = await rejectAgencyRequest(req.id)
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        toast.success(`${req.agency_name} rejected`)
+        router.refresh()
+      }
     })
   }
 
@@ -59,7 +72,7 @@ export function AgencyRequestsTable({ requests }: Props) {
               variant="primary"
               size="sm"
               loading={isPending}
-              onClick={() => handleApprove(req.id)}
+              onClick={() => handleApprove(req)}
             >
               Approve
             </Button>
@@ -67,7 +80,7 @@ export function AgencyRequestsTable({ requests }: Props) {
               variant="outline"
               size="sm"
               loading={isPending}
-              onClick={() => handleReject(req.id)}
+              onClick={() => handleReject(req)}
             >
               Reject
             </Button>

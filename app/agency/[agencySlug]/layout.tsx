@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
-import { Toaster } from 'sonner'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -61,7 +60,6 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
         </div>
       </div>
       <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
-      <Toaster position="bottom-right" richColors />
     </div>
   )
 }

@@ -81,7 +81,16 @@ export function AddInfluencerToCampaignDialog({
   // Shared
   const [productSentAt, setProductSentAt] = useState<string>('')
 
-  const hasAvailable = availableInfluencers.length > 0
+  // Only show influencers who have a handle on at least one campaign platform
+  const platformFilteredInfluencers = availableInfluencers.filter((inf) =>
+    campaignPlatforms.some((p) =>
+      (p === 'instagram' && !!inf.ig_handle) ||
+      (p === 'tiktok' && !!inf.tiktok_handle) ||
+      (p === 'youtube' && !!inf.youtube_handle)
+    )
+  )
+
+  const hasAvailable = platformFilteredInfluencers.length > 0
   const [mode, setMode] = useState<Mode>(hasAvailable ? 'select' : 'batch')
 
   const parsedHandles = parseHandles(batchText)
@@ -95,7 +104,7 @@ export function AddInfluencerToCampaignDialog({
       setValidationResults([])
       setSelectedHandles(new Set())
       setProductSentAt('')
-      setMode(hasAvailable ? 'select' : 'batch')
+      setMode(platformFilteredInfluencers.length > 0 ? 'select' : 'batch')
     }
   }
 
@@ -203,8 +212,12 @@ export function AddInfluencerToCampaignDialog({
             <>
               <DialogBody className="space-y-3">
                 <div className="max-h-60 overflow-y-auto rounded-lg border border-border">
-                  {availableInfluencers.map((inf) => {
-                    const label = getInfluencerLabel(inf)
+                  {platformFilteredInfluencers.map((inf) => {
+                    const label =
+                      (campaignPlatforms.includes('instagram') && inf.ig_handle) ||
+                      (campaignPlatforms.includes('tiktok') && inf.tiktok_handle) ||
+                      (campaignPlatforms.includes('youtube') && inf.youtube_handle) ||
+                      getInfluencerLabel(inf)
                     return (
                       <button
                         key={inf.id}
@@ -254,7 +267,7 @@ export function AddInfluencerToCampaignDialog({
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <p className="text-[11px] text-foreground-subtle">
-                    When products were delivered — limits how far back TikTok is scraped.
+                    When products were delivered{campaignPlatforms.includes('tiktok') ? ' — limits how far back TikTok is scraped' : ''}.
                   </p>
                 </div>
               </DialogBody>
@@ -319,7 +332,7 @@ export function AddInfluencerToCampaignDialog({
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <p className="text-[11px] text-foreground-subtle">
-                    When products were delivered — limits how far back TikTok is scraped.
+                    When products were delivered{campaignPlatforms.includes('tiktok') ? ' — limits how far back TikTok is scraped' : ''}.
                   </p>
                 </div>
 

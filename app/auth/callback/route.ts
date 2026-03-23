@@ -57,6 +57,26 @@ export async function GET(request: NextRequest) {
               await supabase.auth.signOut()
               return redirectTo('/request-access?error=invite_only')
             }
+
+            // Claim agency ownership if this user is the approved agency contact
+            if (agencyRequest) {
+              const { data: approvedRequest } = await serviceClient
+                .from('agency_requests')
+                .select('agency_name')
+                .eq('contact_email', email)
+                .eq('status', 'approved')
+                .maybeSingle()
+
+              if (approvedRequest) {
+                const { toSlug } = await import('@/lib/utils')
+                const slug = toSlug(approvedRequest.agency_name)
+                await serviceClient
+                  .from('agencies')
+                  .update({ owner_id: user.id })
+                  .eq('slug', slug)
+                  .or('owner_id.is.null,owner_id.neq.' + user.id)
+              }
+            }
           }
         }
       }

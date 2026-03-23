@@ -99,6 +99,13 @@ export function getInitials(name: string): string {
     .slice(0, 2)
 }
 
+// ─── Google Drive Utilities ───────────────────────────────────────────────────
+
+export function extractDriveFolderId(input: string): string {
+  const match = input.match(/\/folders\/([a-zA-Z0-9_-]+)/)
+  return match ? match[1] : input.trim()
+}
+
 // ─── Webhook Signature Verification ──────────────────────────────────────────
 
 export async function verifyEnsembleSignature(

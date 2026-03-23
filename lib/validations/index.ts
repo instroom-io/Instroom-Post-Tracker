@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { extractDriveFolderId } from '@/lib/utils'
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -31,7 +32,7 @@ export const updateWorkspaceSchema = z.object({
     .trim()
     .optional(),
   logo_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
-  drive_folder_id: z.string().optional(),
+  drive_folder_id: z.string().transform((val) => extractDriveFolderId(val)).optional(),
 })
 
 export const inviteMemberSchema = z.object({

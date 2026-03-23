@@ -44,12 +44,13 @@ async function _getFolderIdOrCreate(path: string[], rootFolderId?: string): Prom
   const auth = getAuth()
   const drive = google.drive({ version: 'v3', auth })
 
-  let parentId = rootFolderId ?? process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID ?? 'root'
+  const root = rootFolderId ?? process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID ?? 'root'
+  let parentId = root
   let currentPath = ''
 
   for (const segment of path) {
     currentPath = currentPath ? `${currentPath}/${segment}` : segment
-    const partialKey = currentPath
+    const partialKey = root + '|' + currentPath
 
     const partialCached = folderCache.get(partialKey)
     if (partialCached) {

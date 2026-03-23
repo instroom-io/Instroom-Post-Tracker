@@ -145,9 +145,19 @@ export function WorkspaceSwitcher({
                 }}
                 className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
               >
-                <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-background-muted border border-border text-[8px] font-bold text-foreground-lighter">
-                  {getInitials(ws.name)}
-                </div>
+                {ws.logo_url ? (
+                  <Image
+                    src={ws.logo_url}
+                    alt={ws.name}
+                    width={20}
+                    height={20}
+                    className="h-5 w-5 flex-shrink-0 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-background-muted border border-border text-[8px] font-bold text-foreground-lighter">
+                    {getInitials(ws.name)}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[12px] font-medium text-foreground">
                     {ws.name}
