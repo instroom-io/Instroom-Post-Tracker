@@ -134,7 +134,7 @@ export interface Campaign {
   name: string
   platforms: Platform[]
   start_date: string
-  end_date: string
+  end_date: string | null
   status: CampaignStatus
   drive_folder_id: string | null
   created_by: string

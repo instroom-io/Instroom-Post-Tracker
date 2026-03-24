@@ -100,6 +100,8 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          invite_token: string | null
+          invite_token_expires_at: string | null
           logo_url: string | null
           onboard_accepted_at: string | null
           onboard_token: string | null
@@ -118,6 +120,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          invite_token?: string | null
+          invite_token_expires_at?: string | null
           logo_url?: string | null
           onboard_accepted_at?: string | null
           onboard_token?: string | null
@@ -136,6 +140,8 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          invite_token?: string | null
+          invite_token_expires_at?: string | null
           logo_url?: string | null
           onboard_accepted_at?: string | null
           onboard_token?: string | null
@@ -178,6 +184,7 @@ export type Database = {
           id: string
           influencer_id: string
           monitoring_status: Database["public"]["Enums"]["monitoring_status"]
+          product_sent_at: string | null
           tiktok_backfill_complete: boolean
           tiktok_next_cursor: number | null
           usage_rights: boolean
@@ -190,6 +197,7 @@ export type Database = {
           id?: string
           influencer_id: string
           monitoring_status?: Database["public"]["Enums"]["monitoring_status"]
+          product_sent_at?: string | null
           tiktok_backfill_complete?: boolean
           tiktok_next_cursor?: number | null
           usage_rights?: boolean
@@ -202,6 +210,7 @@ export type Database = {
           id?: string
           influencer_id?: string
           monitoring_status?: Database["public"]["Enums"]["monitoring_status"]
+          product_sent_at?: string | null
           tiktok_backfill_complete?: boolean
           tiktok_next_cursor?: number | null
           usage_rights?: boolean
@@ -268,7 +277,7 @@ export type Database = {
           created_at: string
           created_by: string
           drive_folder_id: string | null
-          end_date: string
+          end_date: string | null
           id: string
           name: string
           platforms: Database["public"]["Enums"]["platform_type"][]
@@ -280,7 +289,7 @@ export type Database = {
           created_at?: string
           created_by: string
           drive_folder_id?: string | null
-          end_date: string
+          end_date?: string | null
           id?: string
           name: string
           platforms?: Database["public"]["Enums"]["platform_type"][]
@@ -292,7 +301,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           drive_folder_id?: string | null
-          end_date?: string
+          end_date?: string | null
           id?: string
           name?: string
           platforms?: Database["public"]["Enums"]["platform_type"][]
@@ -833,7 +842,7 @@ export type Database = {
     Enums: {
       agency_request_status: "pending" | "approved" | "rejected"
       agency_status: "pending" | "active" | "suspended"
-      brand_request_status: "pending" | "approved" | "rejected"
+      brand_request_status: "pending" | "approved" | "rejected" | "invited"
       brand_status: "pending" | "active"
       campaign_status: "draft" | "active" | "ended"
       collab_status: "n/a" | "pending" | "confirmed" | "not_added"
@@ -973,7 +982,7 @@ export const Constants = {
     Enums: {
       agency_request_status: ["pending", "approved", "rejected"],
       agency_status: ["pending", "active", "suspended"],
-      brand_request_status: ["pending", "approved", "rejected"],
+      brand_request_status: ["pending", "approved", "rejected", "invited"],
       brand_status: ["pending", "active"],
       campaign_status: ["draft", "active", "ended"],
       collab_status: ["n/a", "pending", "confirmed", "not_added"],
