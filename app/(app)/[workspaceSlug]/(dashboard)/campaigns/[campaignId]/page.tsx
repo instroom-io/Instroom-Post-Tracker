@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/layout/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { CampaignTabs } from '@/components/campaigns/campaign-tabs'
 import { formatDateRange } from '@/lib/utils'
 import { updateCampaign } from '@/lib/actions/campaigns'
@@ -72,7 +73,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     supabase
       .from('posts')
       .select(
-        'id, influencer_id, thumbnail_url, platform, posted_at, download_status, collab_status, caption, post_url, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), metrics:post_metrics(views, likes, comments, shares, saves, follower_count, engagement_rate, emv)'
+        'id, influencer_id, thumbnail_url, platform, posted_at, download_status, drive_file_id, collab_status, caption, post_url, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), metrics:post_metrics(views, likes, comments, shares, saves, follower_count, engagement_rate, emv)'
       )
       .eq('campaign_id', campaignId)
       .order('posted_at', { ascending: false }),
@@ -94,8 +95,47 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     return acc
   }, {})
 
+  const today = new Date().toISOString().split('T')[0]
+
+  const missingPlatforms = (campaign.platforms as string[]).filter((platform) => {
+    const config = trackingConfigs?.find((c) => c.platform === platform)
+    return !config || !config.hashtags?.length || !config.mentions?.length
+  })
+  const canActivate = missingPlatforms.length === 0
+
+  const endDateBlocking =
+    campaign.end_date !== null && campaign.end_date < today
+
   async function activateCampaign() {
     'use server'
+    // Re-fetch inside the action — never rely on RSC closure variables for security guards.
+    // Note: return values from <form action={fn}> are discarded by Next.js.
+    // Client-side disabled state handles UX; this guard stops bypassed requests.
+    const supabase = await createClient()
+    const today = new Date().toISOString().split('T')[0]
+
+    const [{ data: freshCampaign }, { data: configs }] = await Promise.all([
+      supabase
+        .from('campaigns')
+        .select('platforms, end_date')
+        .eq('id', campaignId)
+        .single(),
+      supabase
+        .from('campaign_tracking_configs')
+        .select('platform, hashtags, mentions')
+        .eq('campaign_id', campaignId),
+    ])
+
+    if (!freshCampaign) return
+
+    const incomplete = (freshCampaign.platforms as string[]).filter((platform) => {
+      const config = configs?.find((c) => c.platform === platform)
+      return !config || !config.hashtags?.length || !config.mentions?.length
+    })
+    if (incomplete.length > 0) return
+
+    if (freshCampaign.end_date && freshCampaign.end_date < today) return
+
     await updateCampaign(workspace!.id, campaignId, { status: 'active' })
   }
 
@@ -114,6 +154,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
       platform: p.platform as Platform,
       posted_at: p.posted_at,
       download_status: p.download_status as DownloadStatus,
+      drive_file_id: (p as unknown as { drive_file_id: string | null }).drive_file_id,
       collab_status: p.collab_status as CollabStatus,
       influencer: p.influencer as unknown as { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null,
       metrics: m
@@ -163,13 +204,30 @@ export default async function CampaignDetailPage({ params }: PageProps) {
             <Badge variant={statusVariant[campaign.status as CampaignStatus]}>
               {campaign.status}
             </Badge>
-            {canEdit && campaign.status === 'draft' && (
-              <form action={activateCampaign}>
-                <Button type="submit" variant="primary" size="sm">
-                  Activate
-                </Button>
-              </form>
-            )}
+            {canEdit && (campaign.status === 'draft' || campaign.status === 'ended') && (() => {
+              const tooltipMsg = !canActivate
+                ? `Complete tracking config (# and @) for: ${missingPlatforms.join(', ')}`
+                : endDateBlocking
+                ? 'End date has passed — update or clear it before re-activating'
+                : null
+
+              const button = (
+                <form action={activateCampaign}>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={!canActivate || endDateBlocking}
+                  >
+                    {campaign.status === 'ended' ? 'Re-activate' : 'Activate'}
+                  </Button>
+                </form>
+              )
+
+              return tooltipMsg ? (
+                <Tooltip content={tooltipMsg}>{button}</Tooltip>
+              ) : button
+            })()}
             {canEdit && campaign.status === 'active' && (
               <form action={endCampaign}>
                 <Button type="submit" variant="secondary" size="sm">
