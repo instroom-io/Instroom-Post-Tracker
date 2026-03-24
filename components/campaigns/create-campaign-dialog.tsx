@@ -95,7 +95,7 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
         name,
         platforms: selectedPlatforms,
         start_date: startDate,
-        end_date: endDate,
+        end_date: endDate || undefined,
         tracking_configs: tracking_configs.length > 0 ? tracking_configs : undefined,
       })
 
@@ -216,11 +216,10 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
                 required
               />
               <Input
-                label="End date"
+                label="End date (optional)"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                required
               />
             </div>
 
