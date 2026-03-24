@@ -45,11 +45,12 @@ export function formatRelativeDate(date: string | Date): string {
   return formatDate(date)
 }
 
-export function formatDateRange(startDate: string, endDate: string): string {
+export function formatDateRange(startDate: string, endDate: string | null): string {
   const start = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
   }).format(new Date(startDate))
+  if (!endDate) return `${start} – ongoing`
   const end = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
