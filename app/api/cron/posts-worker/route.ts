@@ -43,9 +43,10 @@ function matchesTrackingConfig(
   )
 }
 
-function isWithinCampaignWindow(postedAt: string, startDate: string, endDate: string): boolean {
+function isWithinCampaignWindow(postedAt: string, startDate: string, endDate: string | null): boolean {
   const posted = new Date(postedAt).getTime()
   const start = new Date(startDate).getTime()
+  if (!endDate) return posted >= start
   const end = new Date(`${endDate}T23:59:59Z`).getTime()
   return posted >= start && posted <= end
 }
@@ -368,7 +369,7 @@ export async function GET(request: NextRequest) {
       id: string
       workspace_id: string
       start_date: string
-      end_date: string
+      end_date: string | null
       platforms: string[]
       campaign_tracking_configs: Array<{ platform: string; hashtags: string[]; mentions: string[] }>
     }
