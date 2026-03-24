@@ -12,7 +12,7 @@ interface Campaign {
   name: string
   status: CampaignStatus
   start_date: string
-  end_date: string
+  end_date: string | null
   post_count: number
 }
 
