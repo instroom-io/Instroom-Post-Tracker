@@ -37,7 +37,23 @@ async function fetchMetrics(
       const likes = stats.digg_count ?? 0
       const comments = stats.comment_count ?? 0
       const shares = stats.share_count ?? 0
-      const followerCount = (author?.follower_count as number | undefined) ?? 0
+      // follower_count is not populated in the post/info endpoint — fall back to a user/info call
+      let followerCount = (author?.follower_count as number | undefined) ?? 0
+      if (followerCount === 0) {
+        const uniqueId = author?.unique_id as string | undefined
+        if (uniqueId) {
+          try {
+            const userRes = await fetch(
+              `${ENSEMBLE_API_URL}/tt/user/info?username=${encodeURIComponent(uniqueId)}&token=${ENSEMBLE_API_KEY}`
+            )
+            if (userRes.ok) {
+              const userJson = await userRes.json() as { data?: { stats?: { followerCount?: number } } }
+              const fc = userJson.data?.stats?.followerCount
+              if (typeof fc === 'number' && fc > 0) followerCount = fc
+            }
+          } catch { /* fall back to 0 */ }
+        }
+      }
       const engagementRate = views > 0 ? ((likes + comments + shares) / views) * 100 : 0
       return { views, likes, comments, shares, saves: 0, follower_count: followerCount, engagement_rate: Math.round(engagementRate * 10000) / 10000 }
     }

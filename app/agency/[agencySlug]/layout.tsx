@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
+import { UserMenu } from '@/components/layout/user-menu'
+import { AgencyLogoImage } from '@/components/agency/agency-logo-image'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -40,7 +42,12 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
         <div className="flex items-center gap-4">
           <Link href="/"><Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} priority /></Link>
           <span className="text-[12px] text-foreground-muted">/</span>
-          <span className="text-[13px] font-semibold text-foreground">{agency.name}</span>
+          <div className="flex items-center gap-2">
+            {agency.logo_url && (
+              <AgencyLogoImage src={agency.logo_url} alt={agency.name} className="h-4 w-4 rounded object-contain" />
+            )}
+            <span className="text-[13px] font-semibold text-foreground">{agency.name}</span>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <nav className="flex items-center gap-4">
@@ -56,6 +63,7 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
             </a>
             <a href={`/agency/${agencySlug}/settings`} className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Settings</a>
           </nav>
+          <UserMenu user={user} compact settingsHref={`/agency/${agencySlug}/settings`} />
           <ThemeToggle />
         </div>
       </div>

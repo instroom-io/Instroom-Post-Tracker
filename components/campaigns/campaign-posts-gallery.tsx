@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Inbox, ImageOff, Eye, Percent, DollarSign } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { Inbox, ImageOff, Eye, Percent, DollarSign, Download, Loader2, ExternalLink, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, cn, getInfluencerLabel } from '@/lib/utils'
+import { triggerPostDownload } from '@/lib/actions/download'
+import { toast } from 'sonner'
 import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } from '@/lib/types'
 
 interface PostRow {
@@ -15,6 +17,7 @@ interface PostRow {
   platform: Platform
   posted_at: string
   download_status: DownloadStatus
+  drive_file_id: string | null
   collab_status: CollabStatus
   influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
   metrics: {
@@ -32,6 +35,15 @@ interface PostRow {
 interface CampaignPostsGalleryProps {
   posts: PostRow[]
   trackingConfigs?: CampaignTrackingConfig[]
+  workspaceId: string
+}
+
+function getThumbnailSrc(post: PostRow): string | null {
+  if (!post.thumbnail_url) return null
+  if (post.platform === 'instagram') {
+    return `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
+  }
+  return post.thumbnail_url
 }
 
 const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
@@ -71,13 +83,81 @@ function groupByMonth(posts: PostRow[]): { label: string; posts: PostRow[] }[] {
     })
     ;(map[key] ??= []).push(post)
   }
-  // Preserve insertion order (posts are already newest-first from DB)
   return Object.entries(map).map(([label, posts]) => ({ label, posts }))
+}
+
+function PostDownloadButton({
+  post,
+  workspaceId,
+}: {
+  post: PostRow
+  workspaceId: string
+}) {
+  const [isPending, startTransition] = useTransition()
+
+  if (post.download_status === 'blocked') {
+    return (
+      <span title="No usage rights granted">
+        <Lock size={13} className="text-foreground-muted opacity-40" />
+      </span>
+    )
+  }
+
+  if (post.download_status === 'downloaded') {
+    const driveUrl = post.drive_file_id
+      ? `https://drive.google.com/file/d/${post.drive_file_id}/view`
+      : null
+    if (!driveUrl) return null
+    return (
+      <a
+        href={driveUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        title="View in Google Drive"
+        className="flex h-6 w-6 items-center justify-center rounded-md text-brand transition-colors hover:bg-brand/10"
+      >
+        <ExternalLink size={12} />
+      </a>
+    )
+  }
+
+  // pending or failed — show download trigger
+  function handleDownload(e: React.MouseEvent) {
+    e.stopPropagation()
+    startTransition(async () => {
+      const result = await triggerPostDownload(post.id, workspaceId)
+      if ('error' in result) {
+        toast.error(result.error)
+      } else {
+        toast.success('Saved to Drive')
+        window.open(result.driveUrl, '_blank')
+      }
+    })
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleDownload}
+      disabled={isPending}
+      title={post.download_status === 'failed' ? 'Retry download' : 'Download to Drive'}
+      className={cn(
+        'flex h-6 w-6 items-center justify-center rounded-md transition-colors',
+        isPending
+          ? 'cursor-wait text-foreground-muted'
+          : 'text-foreground-muted hover:bg-background-muted hover:text-foreground'
+      )}
+    >
+      {isPending ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+    </button>
+  )
 }
 
 export function CampaignPostsGallery({
   posts,
   trackingConfigs = [],
+  workspaceId,
 }: CampaignPostsGalleryProps) {
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null)
 
@@ -114,18 +194,20 @@ export function CampaignPostsGallery({
             {/* Cards grid */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {groupPosts.map((post) => (
-                <button
+                <div
                   key={post.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelectedPost(post)}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedPost(post)}
                   className="group rounded-xl overflow-hidden border border-border bg-background-surface shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-border-strong text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                 >
                   {/* Thumbnail */}
                   <div className="relative aspect-square bg-background-muted overflow-hidden">
-                    {post.thumbnail_url ? (
+                    {getThumbnailSrc(post) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={post.thumbnail_url}
+                        src={getThumbnailSrc(post) ?? ''}
                         alt=""
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                       />
@@ -163,23 +245,26 @@ export function CampaignPostsGallery({
                       {formatRelativeDate(post.posted_at)}
                     </p>
 
-                    {/* Metrics row */}
-                    <div className="mt-0.5 flex items-center gap-2 flex-wrap">
-                      <MetricChip
-                        icon={Eye}
-                        value={post.metrics ? formatNumber(post.metrics.views) : '—'}
-                      />
-                      <MetricChip
-                        icon={Percent}
-                        value={post.metrics ? formatPercent(post.metrics.engagement_rate) : '—'}
-                      />
-                      <MetricChip
-                        icon={DollarSign}
-                        value={post.metrics ? formatEMV(post.metrics.emv) : '—'}
-                      />
+                    {/* Metrics + download action row */}
+                    <div className="mt-0.5 flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <MetricChip
+                          icon={Eye}
+                          value={post.metrics ? formatNumber(post.metrics.views) : '—'}
+                        />
+                        <MetricChip
+                          icon={Percent}
+                          value={post.metrics ? formatPercent(post.metrics.engagement_rate) : '—'}
+                        />
+                        <MetricChip
+                          icon={DollarSign}
+                          value={post.metrics ? formatEMV(post.metrics.emv) : '—'}
+                        />
+                      </div>
+                      <PostDownloadButton post={post} workspaceId={workspaceId} />
                     </div>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -190,6 +275,7 @@ export function CampaignPostsGallery({
         post={selectedPost}
         onClose={() => setSelectedPost(null)}
         trackingConfigs={trackingConfigs}
+        workspaceId={workspaceId}
       />
     </>
   )

@@ -75,6 +75,8 @@ function parseIgItem(
   ).toISOString()
 
   const captionRaw = p.caption
+    ?? (p.edge_media_to_caption as { edges?: Array<{ node?: { text?: string } }> } | undefined)
+         ?.edges?.[0]?.node?.text
   const caption =
     typeof captionRaw === 'string'
       ? captionRaw
@@ -114,22 +116,41 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null): Pr
 
   // Fetch regular posts and Reels in parallel — Reels are a separate EnsembleData endpoint
   const [postsRes, reelsRes] = await Promise.all([
-    fetch(`${ENSEMBLE_API_URL}/instagram/user/posts?user_id=${encodeURIComponent(userId)}&token=${ENSEMBLE_API_KEY}`),
-    fetch(`${ENSEMBLE_API_URL}/ig/user/reels?user_id=${encodeURIComponent(userId)}&token=${ENSEMBLE_API_KEY}`),
+    fetch(`${ENSEMBLE_API_URL}/instagram/user/posts?user_id=${encodeURIComponent(userId)}&depth=3&token=${ENSEMBLE_API_KEY}`),
+    fetch(`${ENSEMBLE_API_URL}/ig/user/reels?user_id=${encodeURIComponent(userId)}&depth=3&token=${ENSEMBLE_API_KEY}`),
   ])
 
   const seenShortcodes = new Set<string>()
   const posts: NormalizedPost[] = []
 
+  /** Normalise EnsembleData IG response to a flat array of raw post objects.
+   *  Handles two shapes:
+   *  1. Flat array: data = [ { shortcode, taken_at_timestamp, caption, ... } ]
+   *  2. GraphQL-style: data = { count, posts: [ { node: { shortcode, ... } } ] } */
+  function extractIgItems(raw: unknown): Record<string, unknown>[] {
+    if (Array.isArray(raw)) {
+      return raw.map((item) => {
+        const r = item as Record<string, unknown>
+        return (r.node as Record<string, unknown> | undefined) ?? r
+      })
+    }
+    const nested = (raw as Record<string, unknown> | null)?.posts
+    if (Array.isArray(nested)) {
+      return nested.map((item) => {
+        const r = item as Record<string, unknown>
+        return (r.node as Record<string, unknown> | undefined) ?? r
+      })
+    }
+    return []
+  }
+
   if (postsRes.ok) {
-    const postsJson = await postsRes.json() as { data?: unknown[] }
-    if (Array.isArray(postsJson.data)) {
-      for (const item of postsJson.data) {
-        const normalized = parseIgItem(item as Record<string, unknown>, 'p')
-        if (normalized && !seenShortcodes.has(normalized.ensemble_post_id)) {
-          seenShortcodes.add(normalized.ensemble_post_id)
-          posts.push(normalized)
-        }
+    const postsJson = await postsRes.json() as { data?: unknown }
+    for (const item of extractIgItems(postsJson.data)) {
+      const normalized = parseIgItem(item, 'p')
+      if (normalized && !seenShortcodes.has(normalized.ensemble_post_id)) {
+        seenShortcodes.add(normalized.ensemble_post_id)
+        posts.push(normalized)
       }
     }
   } else {
@@ -137,14 +158,12 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null): Pr
   }
 
   if (reelsRes.ok) {
-    const reelsJson = await reelsRes.json() as { data?: unknown[] }
-    if (Array.isArray(reelsJson.data)) {
-      for (const item of reelsJson.data) {
-        const normalized = parseIgItem(item as Record<string, unknown>, 'reel')
-        if (normalized && !seenShortcodes.has(normalized.ensemble_post_id)) {
-          seenShortcodes.add(normalized.ensemble_post_id)
-          posts.push(normalized)
-        }
+    const reelsJson = await reelsRes.json() as { data?: unknown }
+    for (const item of extractIgItems(reelsJson.data)) {
+      const normalized = parseIgItem(item, 'reel')
+      if (normalized && !seenShortcodes.has(normalized.ensemble_post_id)) {
+        seenShortcodes.add(normalized.ensemble_post_id)
+        posts.push(normalized)
       }
     }
   } else {

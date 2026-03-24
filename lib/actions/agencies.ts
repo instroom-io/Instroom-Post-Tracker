@@ -77,6 +77,15 @@ export async function approveAgencyRequest(
   // OAuth login via the auth callback (app/auth/callback/route.ts)
   const agencyOwnerId = agencyOwnerUser?.id ?? user.id
 
+  // Derive logo from website domain via Clearbit logo API
+  let logo_url: string | null = null
+  try {
+    const domain = new URL(request.website_url).hostname.replace(/^www\./, '')
+    logo_url = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=64`
+  } catch {
+    // invalid URL — leave null
+  }
+
   const { data: agency, error: agencyError } = await serviceClient
     .from('agencies')
     .insert({
@@ -84,6 +93,7 @@ export async function approveAgencyRequest(
       slug,
       owner_id: agencyOwnerId,
       status: 'active',
+      logo_url,
     })
     .select('id')
     .single()

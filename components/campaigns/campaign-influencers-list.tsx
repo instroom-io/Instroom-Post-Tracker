@@ -1,8 +1,8 @@
 'use client'
 
-import { useOptimistic, useTransition, useEffect } from 'react'
+import { useOptimistic, useTransition, useState } from 'react'
 import { toast } from 'sonner'
-import { MoreHorizontal, Trash2, AlertCircle, Users } from 'lucide-react'
+import { MoreHorizontal, Trash2, AlertCircle, Users, RefreshCw } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,8 +12,8 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
-import { removeInfluencerFromCampaign, updateProductSentAt } from '@/lib/actions/influencers'
-import { cn, getInfluencerLabel } from '@/lib/utils'
+import { removeInfluencerFromCampaign, updateProductSentAt, refreshInfluencerProfile } from '@/lib/actions/influencers'
+import { cn, getInfluencerLabel, getInitials } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
 
 interface InfluencerRow {
@@ -26,6 +26,7 @@ interface InfluencerRow {
     ig_handle: string | null
     tiktok_handle: string | null
     youtube_handle: string | null
+    profile_pic_url: string | null
   }
 }
 
@@ -36,6 +37,52 @@ interface CampaignInfluencersListProps {
   canEdit: boolean
   onAddInfluencer?: () => void
   postCountsByInfluencerId?: Record<string, number>
+}
+
+// Avatar cell with optional refresh button for influencers without a profile pic
+function AvatarCell({ row, workspaceId }: { row: InfluencerRow; workspaceId: string }) {
+  const [picUrl, setPicUrl] = useState<string | null>(row.influencer.profile_pic_url)
+  const [isRefreshing, startRefresh] = useTransition()
+  const label = getInfluencerLabel(row.influencer)
+  const initials = getInitials(label)
+
+  function handleRefresh(e: React.MouseEvent) {
+    e.stopPropagation()
+    startRefresh(async () => {
+      const result = await refreshInfluencerProfile(workspaceId, row.influencer.id)
+      if ('error' in result) {
+        toast.error(result.error)
+      } else if (result.profile_pic_url) {
+        setPicUrl(result.profile_pic_url)
+      } else {
+        toast.error('Could not fetch profile picture')
+      }
+    })
+  }
+
+  if (picUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={picUrl} alt="" className="h-7 w-7 flex-shrink-0 rounded-full object-cover" />
+    )
+  }
+
+  return (
+    <div className="relative flex-shrink-0">
+      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-muted text-[10px] font-bold text-brand">
+        {initials}
+      </div>
+      <button
+        type="button"
+        onClick={handleRefresh}
+        disabled={isRefreshing}
+        title="Fetch profile picture"
+        className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-background-surface border border-border text-foreground-muted transition-colors hover:text-foreground disabled:opacity-50"
+      >
+        <RefreshCw size={7} className={isRefreshing ? 'animate-spin' : ''} />
+      </button>
+    </div>
+  )
 }
 
 // Thin wrapper so date input can call a transition
@@ -95,11 +142,22 @@ export function CampaignInfluencersList({
   )
 
   function handleToggle(id: string, currentValue: boolean) {
+    if (currentValue) {
+      toast.warning('Usage rights removed', {
+        description: 'New posts from this influencer will not be downloaded to Drive.',
+      })
+    }
     const newValue = !currentValue
     startTransition(async () => {
       updateOptimistic({ id, value: newValue })
       const result = await toggleUsageRights(id, newValue)
-      if (result?.error) toast.error(result.error)
+      if (result && 'error' in result) {
+        toast.error(result.error)
+      } else if (result && 'unblocked' in result && result.unblocked > 0) {
+        toast.success(
+          `${result.unblocked} post${result.unblocked > 1 ? 's' : ''} unblocked and queued for download`
+        )
+      }
     })
   }
 
@@ -113,19 +171,6 @@ export function CampaignInfluencersList({
       }
     })
   }
-
-  useEffect(() => {
-    items.forEach((item) => {
-      if (
-        item.monitoring_status === 'active' &&
-        (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0
-      ) {
-        const handle = getInfluencerLabel(item.influencer)
-        toast.warning(`No posts found for @${handle} — verify the username is correct`)
-      }
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   if (optimisticItems.length === 0) {
     return (
@@ -179,9 +224,12 @@ export function CampaignInfluencersList({
                   className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/40"
                 >
                   <td className="px-5 py-3.5">
-                    <p className="text-[12px] font-medium text-foreground">
-                      @{getInfluencerLabel(item.influencer)}
-                    </p>
+                    <div className="flex items-center gap-2.5">
+                      <AvatarCell row={item} workspaceId={workspaceId} />
+                      <p className="text-[12px] font-medium text-foreground">
+                        @{getInfluencerLabel(item.influencer)}
+                      </p>
+                    </div>
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex gap-1">
@@ -207,7 +255,7 @@ export function CampaignInfluencersList({
                       </Badge>
                       {item.monitoring_status === 'active' &&
                         (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0 && (
-                          <span title="No posts found — verify the username is correct">
+                          <span title="No matching posts yet — check captions for tracking keywords">
                             <AlertCircle size={13} className="flex-shrink-0 text-warning" />
                           </span>
                         )}
@@ -255,7 +303,7 @@ export function CampaignInfluencersList({
                             <MoreHorizontal size={14} />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" side="top">
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={() =>

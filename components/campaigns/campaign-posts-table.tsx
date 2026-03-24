@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Inbox, ImageOff } from 'lucide-react'
+import { Inbox, ImageOff, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, getInfluencerLabel } from '@/lib/utils'
@@ -15,6 +15,7 @@ interface PostRow {
   platform: Platform
   posted_at: string
   download_status: DownloadStatus
+  drive_file_id: string | null
   collab_status: CollabStatus
   influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
   metrics: {
@@ -34,19 +35,13 @@ interface CampaignPostsTableProps {
   trackingConfigs?: CampaignTrackingConfig[]
   showCampaignColumn?: boolean
   campaignName?: string
+  workspaceId?: string
 }
 
 const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
   instagram: 'instagram',
   tiktok: 'tiktok',
   youtube: 'youtube',
-}
-
-const downloadVariant: Record<DownloadStatus, 'muted' | 'success' | 'warning' | 'destructive'> = {
-  pending: 'muted',
-  downloaded: 'success',
-  blocked: 'warning',
-  failed: 'destructive',
 }
 
 const collabVariant: Record<
@@ -58,7 +53,7 @@ const collabVariant: Record<
   not_added: 'destructive',
 }
 
-export function CampaignPostsTable({ posts, trackingConfigs = [] }: CampaignPostsTableProps) {
+export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId }: CampaignPostsTableProps) {
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null)
 
   if (posts.length === 0) {
@@ -103,7 +98,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [] }: CampaignPost
                 EMV
               </th>
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
-                Download
+                Drive
               </th>
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Collab
@@ -166,9 +161,20 @@ export function CampaignPostsTable({ posts, trackingConfigs = [] }: CampaignPost
                 </td>
 
                 <td className="px-5 py-3.5">
-                  <Badge variant={downloadVariant[post.download_status]}>
-                    {post.download_status}
-                  </Badge>
+                  {post.drive_file_id ? (
+                    <a
+                      href={`https://drive.google.com/file/d/${post.drive_file_id}/view`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
+                    >
+                      View in Drive
+                      <ExternalLink size={11} />
+                    </a>
+                  ) : (
+                    <span className="text-[12px] text-foreground-muted">—</span>
+                  )}
                 </td>
 
                 <td className="px-5 py-3.5">
@@ -190,6 +196,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [] }: CampaignPost
         post={selectedPost}
         onClose={() => setSelectedPost(null)}
         trackingConfigs={trackingConfigs}
+        workspaceId={workspaceId}
       />
     </>
   )

@@ -1,12 +1,34 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/utils'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
+
+function WorkspaceLogo({
+  name, logoUrl, className, fallbackClassName, textClassName,
+}: {
+  name: string
+  logoUrl: string
+  className: string
+  fallbackClassName: string
+  textClassName: string
+}) {
+  const [failed, setFailed] = useState(false)
+  if (failed) {
+    return (
+      <div className={cn('flex flex-shrink-0 items-center justify-center font-bold', fallbackClassName, textClassName)}>
+        {getInitials(name)}
+      </div>
+    )
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={logoUrl} alt={name} className={className} onError={() => setFailed(true)} />
+  )
+}
 
 const ROLE_LABELS: Record<WorkspaceRole, string> = {
   owner: 'Owner',
@@ -75,15 +97,12 @@ export function WorkspaceSwitcher({
       >
         {/* Workspace avatar — square with rounded corners (Shopify-style) */}
         {currentWorkspace.logo_url ? (
-          <Image
-            src={currentWorkspace.logo_url}
-            alt={currentWorkspace.name}
-            width={align === 'left' ? 36 : 28}
-            height={align === 'left' ? 36 : 28}
-            className={cn(
-              'flex-shrink-0 rounded-lg object-cover',
-              align === 'left' ? 'h-9 w-9 rounded-xl' : 'h-7 w-7'
-            )}
+          <WorkspaceLogo
+            name={currentWorkspace.name}
+            logoUrl={currentWorkspace.logo_url}
+            className={cn('flex-shrink-0 rounded-lg object-cover', align === 'left' ? 'h-9 w-9 rounded-xl' : 'h-7 w-7')}
+            fallbackClassName={align === 'left' ? 'h-9 w-9 rounded-xl bg-white/10 border border-white/15 text-white/70' : 'h-7 w-7 rounded-lg bg-background-muted border border-border text-foreground-lighter'}
+            textClassName={align === 'left' ? 'text-[10px]' : 'text-[9px]'}
           />
         ) : (
           <div className={cn(
@@ -146,12 +165,12 @@ export function WorkspaceSwitcher({
                 className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
               >
                 {ws.logo_url ? (
-                  <Image
-                    src={ws.logo_url}
-                    alt={ws.name}
-                    width={20}
-                    height={20}
+                  <WorkspaceLogo
+                    name={ws.name}
+                    logoUrl={ws.logo_url}
                     className="h-5 w-5 flex-shrink-0 rounded-md object-cover"
+                    fallbackClassName="h-5 w-5 rounded-md bg-background-muted border border-border text-foreground-lighter"
+                    textClassName="text-[8px]"
                   />
                 ) : (
                   <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-background-muted border border-border text-[8px] font-bold text-foreground-lighter">

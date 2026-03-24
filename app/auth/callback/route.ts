@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
             ])
 
             if (!invite && !agencyRequest && !brandRequest) {
+              await serviceClient.auth.admin.deleteUser(user.id)
               await supabase.auth.signOut()
               return redirectTo('/request-access?error=invite_only')
             }

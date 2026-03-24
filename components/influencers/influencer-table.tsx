@@ -16,6 +16,7 @@ interface InfluencerRow {
   ig_handle: string | null
   tiktok_handle: string | null
   youtube_handle: string | null
+  profile_pic_url: string | null
   campaign_count: number
 }
 
@@ -145,9 +146,18 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
                 >
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-muted text-[11px] font-bold text-brand">
-                        {getInitials(getInfluencerLabel(inf))}
-                      </div>
+                      {inf.profile_pic_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={inf.profile_pic_url}
+                          alt=""
+                          className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-muted text-[11px] font-bold text-brand">
+                          {getInitials(getInfluencerLabel(inf))}
+                        </div>
+                      )}
                       <p className="text-[12px] font-medium text-foreground">
                         @{getInfluencerLabel(inf)}
                       </p>

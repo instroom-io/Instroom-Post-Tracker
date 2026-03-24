@@ -67,9 +67,10 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     supabase
       .from('campaign_influencers')
       .select(
-        'id, usage_rights, monitoring_status, product_sent_at, influencer:influencers(id, ig_handle, tiktok_handle, youtube_handle)'
+        'id, usage_rights, monitoring_status, product_sent_at, influencer:influencers(id, ig_handle, tiktok_handle, youtube_handle, profile_pic_url)'
       )
-      .eq('campaign_id', campaignId),
+      .eq('campaign_id', campaignId)
+      .neq('monitoring_status', 'removed'),
     supabase
       .from('posts')
       .select(
@@ -184,6 +185,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
       ig_handle: string | null
       tiktok_handle: string | null
       youtube_handle: string | null
+      profile_pic_url: string | null
     },
   }))
 

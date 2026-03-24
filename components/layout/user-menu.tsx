@@ -12,9 +12,10 @@ import { cn } from '@/lib/utils'
 interface UserMenuProps {
   user: User
   compact?: boolean
+  settingsHref?: string
 }
 
-export function UserMenu({ user, compact }: UserMenuProps) {
+export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -113,7 +114,7 @@ export function UserMenu({ user, compact }: UserMenuProps) {
 
           <div className="p-1">
             <a
-              href={`/${workspaceSlug}/settings`}
+              href={settingsHref ?? `/${workspaceSlug}/settings`}
               role="menuitem"
               onClick={() => close()}
               className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"

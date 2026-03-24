@@ -18,7 +18,7 @@ import {
   validateInfluencerHandles,
   type HandleValidationResult,
 } from '@/lib/actions/influencers'
-import { getInfluencerLabel } from '@/lib/utils'
+import { getInfluencerLabel, getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
 
@@ -44,6 +44,26 @@ const ALL_BATCH_PLATFORMS: { key: BatchPlatform; label: string }[] = [
   { key: 'instagram', label: 'Instagram' },
   { key: 'youtube', label: 'YouTube' },
 ]
+
+function InfluencerAvatar({ handle, profilePicUrl }: { handle: string; profilePicUrl: string | null }) {
+  const [failed, setFailed] = useState(false)
+  if (profilePicUrl && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={profilePicUrl}
+        alt=""
+        className="h-6 w-6 flex-shrink-0 rounded-full object-cover"
+        onError={() => setFailed(true)}
+      />
+    )
+  }
+  return (
+    <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-muted text-[9px] font-bold text-brand">
+      {getInitials(handle)}
+    </div>
+  )
+}
 
 function parseHandles(text: string): string[] {
   return text
@@ -376,7 +396,8 @@ export function AddInfluencerToCampaignDialog({
               <DialogBody className="space-y-3">
                 {/* Results table */}
                 <div className="overflow-hidden rounded-lg border border-border">
-                  <div className="grid grid-cols-[16px_1fr_auto] gap-3 border-b border-border bg-background-muted px-3 py-2">
+                  <div className="grid grid-cols-[16px_auto_1fr_auto] gap-3 border-b border-border bg-background-muted px-3 py-2">
+                    <span />
                     <span />
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Handle</span>
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Status</span>
@@ -392,7 +413,7 @@ export function AddInfluencerToCampaignDialog({
                           onClick={() => !isNotFound && toggleHandle(r.handle)}
                           disabled={isNotFound}
                           className={cn(
-                            'grid w-full grid-cols-[16px_1fr_auto] gap-3 px-3 py-2.5 text-left transition-colors',
+                            'grid w-full grid-cols-[16px_auto_1fr_auto] gap-3 px-3 py-2.5 text-left transition-colors',
                             isNotFound
                               ? 'cursor-default opacity-50'
                               : 'hover:bg-background-muted cursor-pointer',
@@ -413,6 +434,8 @@ export function AddInfluencerToCampaignDialog({
                               </svg>
                             )}
                           </div>
+                          {/* Avatar */}
+                          <InfluencerAvatar handle={r.handle} profilePicUrl={r.profile_pic_url} />
                           {/* Handle */}
                           <span className="font-mono text-[12px] text-foreground">
                             <span className="text-foreground-muted">@</span>{r.handle}

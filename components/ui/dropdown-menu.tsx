@@ -93,6 +93,7 @@ type DropdownAlign = 'start' | 'end' | 'center'
 interface DropdownMenuContentProps {
   children: ReactNode
   align?: DropdownAlign
+  side?: 'top' | 'bottom'
   className?: string
 }
 
@@ -105,21 +106,24 @@ const alignClasses: Record<DropdownAlign, string> = {
 export function DropdownMenuContent({
   children,
   align = 'start',
+  side = 'bottom',
   className,
 }: DropdownMenuContentProps) {
   const { open } = useDropdownContext()
+  const yInit = side === 'top' ? 4 : -4
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
           role="menu"
-          initial={{ opacity: 0, y: -4, scale: 0.97 }}
+          initial={{ opacity: 0, y: yInit, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -4, scale: 0.97 }}
+          exit={{ opacity: 0, y: yInit, scale: 0.97 }}
           transition={{ duration: 0.1 }}
           className={cn(
-            'absolute top-full z-50 mt-1 min-w-[160px] rounded-xl border border-border bg-background-surface shadow-md',
+            'absolute z-50 min-w-[160px] rounded-xl border border-border bg-background-surface shadow-md',
+            side === 'top' ? 'bottom-full mb-1' : 'top-full mt-1',
             alignClasses[align],
             className
           )}

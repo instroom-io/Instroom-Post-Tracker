@@ -21,14 +21,25 @@ export default async function AgencyDashboardPage({ params }: PageProps) {
     { data: workspaces, count: brandCount },
     { data: pendingRequests },
   ] = await Promise.all([
-    supabase.from('workspaces').select('id, name, slug, created_at', { count: 'exact' }).eq('agency_id', agency.id),
+    supabase.from('workspaces').select('id, name, slug, logo_url, created_at', { count: 'exact' }).eq('agency_id', agency.id),
     supabase.from('brand_requests').select('id, brand_name, contact_email, created_at').eq('agency_id', agency.id).eq('status', 'pending').limit(5),
   ])
 
   const workspaceIds = workspaces?.map((w) => w.id) ?? []
-  const { count: postCount } = workspaceIds.length > 0
-    ? await supabase.from('posts').select('*', { count: 'exact', head: true }).in('workspace_id', workspaceIds)
-    : { count: 0 }
+  const [{ count: postCount }, { data: brandRequestUrls }] = await Promise.all([
+    workspaceIds.length > 0
+      ? supabase.from('posts').select('*', { count: 'exact', head: true }).in('workspace_id', workspaceIds)
+      : Promise.resolve({ count: 0 }),
+    workspaceIds.length > 0
+      ? supabase.from('brand_requests').select('workspace_id, website_url').in('workspace_id', workspaceIds)
+      : Promise.resolve({ data: [] }),
+  ])
+
+  const websiteByWorkspace: Record<string, string> = Object.fromEntries(
+    (brandRequestUrls ?? [])
+      .filter((r) => r.workspace_id && r.website_url)
+      .map((r) => [r.workspace_id!, r.website_url])
+  )
 
   return (
     <div className="flex flex-col gap-8">
@@ -79,12 +90,26 @@ export default async function AgencyDashboardPage({ params }: PageProps) {
           <p className="text-[13px] text-foreground-lighter">No brand workspaces yet. Approve a brand request to add one.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {workspaces!.slice(0, 5).map((w) => (
-              <a key={w.id} href={`/${w.slug}/overview`} className="flex items-center justify-between rounded-lg border border-border px-4 py-2 hover:border-foreground/20 transition-colors">
-                <p className="text-[13px] font-medium text-foreground">{w.name}</p>
-                <p className="text-[11px] text-foreground-lighter">{w.slug}</p>
-              </a>
-            ))}
+            {workspaces!.slice(0, 5).map((w) => {
+              let domain: string | null = null
+              try {
+                const raw = websiteByWorkspace[w.id]
+                if (raw) domain = new URL(raw).hostname.replace(/^www\./, '')
+              } catch { /* invalid URL */ }
+              return (
+                <a key={w.id} href={`/${w.slug}/overview`} className="flex items-center gap-3 rounded-lg border border-border px-4 py-2 hover:border-foreground/20 transition-colors">
+                  {w.logo_url ? (
+                    <img src={w.logo_url} alt={w.name} className="h-7 w-7 flex-shrink-0 rounded-md object-cover" />
+                  ) : (
+                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-border bg-background-subtle text-[11px] font-semibold uppercase text-foreground-muted">
+                      {w.name.slice(0, 2)}
+                    </div>
+                  )}
+                  <p className="flex-1 text-[13px] font-medium text-foreground">{w.name}</p>
+                  {domain && <p className="text-[11px] text-foreground-lighter">{domain}</p>}
+                </a>
+              )
+            })}
           </div>
         )}
       </div>

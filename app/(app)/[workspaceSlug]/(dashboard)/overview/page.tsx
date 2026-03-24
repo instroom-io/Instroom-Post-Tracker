@@ -73,6 +73,7 @@ export default async function OverviewPage({ params }: PageProps) {
             .eq('status', 'active')
         ).data?.map((c) => c.id) ?? []
       )
+      .neq('monitoring_status', 'removed')
       .order('added_at', { ascending: false })
       .limit(20),
   ])

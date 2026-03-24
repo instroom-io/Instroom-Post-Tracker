@@ -11,6 +11,7 @@ type Tab = 'brand' | 'agency'
 
 interface Props {
   agencies: Pick<Agency, 'id' | 'name'>[]
+  inviteOnly?: boolean
 }
 
 const inputClass =
@@ -304,11 +305,18 @@ function AgencyForm() {
   )
 }
 
-export function RequestAccessTabs({ agencies }: Props) {
+export function RequestAccessTabs({ agencies, inviteOnly }: Props) {
   const [tab, setTab] = useState<Tab>('brand')
 
   return (
     <div className="flex flex-col gap-6">
+      {inviteOnly && (
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-[13px] text-destructive">
+          {tab === 'brand'
+            ? 'Sign-up is by invitation only. Submit a request below and your agency will review it.'
+            : 'Submit an agency request below and the Instroom team will review it.'}
+        </div>
+      )}
       {/* Toggle */}
       <div className="flex rounded-lg border border-border bg-background p-1 gap-1">
         <button

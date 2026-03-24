@@ -9,7 +9,7 @@ export type AgencyRequestStatus = 'pending' | 'approved' | 'rejected'
 
 export type CampaignStatus = 'draft' | 'active' | 'ended'
 
-export type MonitoringStatus = 'pending' | 'active' | 'paused'
+export type MonitoringStatus = 'pending' | 'active' | 'paused' | 'removed'
 
 export type DownloadStatus = 'pending' | 'downloaded' | 'blocked' | 'failed'
 

@@ -12,7 +12,6 @@ export default function NoAccessPage() {
             alt="Instroom Post Tracker"
             width={180}
             height={40}
-            className="brightness-0 dark:invert"
             priority
           />
         </div>
@@ -30,10 +29,32 @@ export default function NoAccessPage() {
             No workspace access
           </h1>
           <p className="mt-2 text-[13px] text-foreground-lighter leading-relaxed">
-            Your account isn&apos;t linked to any workspace yet. If you&apos;re a brand, please use the onboarding link provided by your agency.
+            Your account isn&apos;t linked to any workspace yet.
           </p>
 
-          <form action={signOut} className="mt-6">
+          <div className="mt-5 flex flex-col gap-3 text-left">
+            <div className="rounded-lg border border-border bg-background p-4">
+              <p className="text-[12px] font-semibold text-foreground">Expecting an onboarding link?</p>
+              <p className="mt-1 text-[12px] text-foreground-lighter leading-relaxed">
+                Check your email for a confirmation link sent by your agency. Follow that link to activate your brand portal.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-background p-4">
+              <p className="text-[12px] font-semibold text-foreground">New to Instroom?</p>
+              <p className="mt-1 text-[12px] text-foreground-lighter leading-relaxed">
+                Submit a request — for brands or agencies — and we&apos;ll review it and get you set up.
+              </p>
+              <Link
+                href="/request-access"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-[13px] font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Request Access →
+              </Link>
+            </div>
+          </div>
+
+          <form action={signOut} className="mt-4">
             <button
               type="submit"
               className="w-full rounded-lg bg-background-subtle px-4 py-2 text-[13px] font-medium text-foreground hover:bg-background-subtle/80 transition-colors"
@@ -44,7 +65,6 @@ export default function NoAccessPage() {
         </div>
 
         <p className="mt-4 text-[12px] text-foreground-muted">
-          Already have an invite?{' '}
           <Link href="/login" className="text-foreground-lighter underline underline-offset-2">
             Sign in with a different account
           </Link>

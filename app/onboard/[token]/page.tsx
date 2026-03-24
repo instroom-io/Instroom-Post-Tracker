@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { signOut } from '@/lib/actions/auth'
 import { ConfirmButton } from './confirm-button'
 
 interface PageProps {
@@ -16,7 +17,7 @@ export default async function OnboardPage({ params }: PageProps) {
   // ── Dual-lookup: new request-approval flow first ──────────────────────────
   const { data: brandRequest } = await serviceClient
     .from('brand_requests')
-    .select('id, brand_name, contact_name, status, onboard_token_expires_at, onboard_accepted_at')
+    .select('id, brand_name, contact_name, contact_email, status, onboard_token_expires_at, onboard_accepted_at')
     .eq('onboard_token', token)
     .single()
 
@@ -66,6 +67,25 @@ export default async function OnboardPage({ params }: PageProps) {
               Already have an account? Sign in
             </Link>
           </div>
+        ) : user.email?.toLowerCase() !== brandRequest.contact_email.toLowerCase() ? (
+          <div className="mt-6 flex flex-col gap-3">
+            <div className="rounded-lg bg-background-subtle px-4 py-3 text-left">
+              <p className="text-[12px] font-semibold text-foreground">Wrong account</p>
+              <p className="mt-1 text-[12px] text-foreground-lighter leading-relaxed">
+                You&apos;re signed in as <span className="font-medium text-foreground">{user.email}</span>.
+                This link is for <span className="font-medium text-foreground">{brandRequest.contact_email}</span>.
+                Sign out and sign in with the correct account to confirm.
+              </p>
+            </div>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="w-full rounded-lg border border-border px-4 py-2.5 text-[13px] font-medium text-foreground-lighter transition-colors hover:text-foreground"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         ) : (
           <div className="mt-6">
             <ConfirmButton token={token} />
@@ -91,7 +111,6 @@ function OnboardLayout({ children }: { children: React.ReactNode }) {
             alt="Instroom Post Tracker"
             width={180}
             height={40}
-            className="brightness-0 dark:invert"
             priority
           />
         </div>
@@ -131,7 +150,6 @@ function OnboardError({ message }: { message: string }) {
             alt="Instroom Post Tracker"
             width={180}
             height={40}
-            className="brightness-0 dark:invert"
             priority
           />
         </div>

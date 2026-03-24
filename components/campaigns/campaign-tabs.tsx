@@ -18,6 +18,7 @@ interface PostRow {
   platform: Platform
   posted_at: string
   download_status: DownloadStatus
+  drive_file_id: string | null
   collab_status: CollabStatus
   influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
   metrics: {
@@ -42,6 +43,7 @@ interface InfluencerRow {
     ig_handle: string | null
     tiktok_handle: string | null
     youtube_handle: string | null
+    profile_pic_url: string | null
   }
 }
 
@@ -221,7 +223,7 @@ export function CampaignTabs({
               <h2 className="font-display text-[15px] font-bold text-foreground">Posts</h2>
               <p className="text-[11px] text-foreground-lighter">{posts.length} detected</p>
             </div>
-            <CampaignPostsGallery posts={posts} trackingConfigs={trackingConfigs} />
+            <CampaignPostsGallery posts={posts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} />
           </div>
         )}
 
@@ -247,7 +249,7 @@ export function CampaignTabs({
                 </p>
               </div>
             ) : (
-              <CampaignPostsTable posts={downloadedPosts} trackingConfigs={trackingConfigs} />
+              <CampaignPostsTable posts={downloadedPosts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} />
             )}
           </div>
         )}

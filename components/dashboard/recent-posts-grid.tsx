@@ -48,7 +48,11 @@ export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
             {post.thumbnail_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={post.thumbnail_url}
+                src={
+                  post.platform === 'instagram'
+                    ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url!)}`
+                    : post.thumbnail_url!
+                }
                 alt={`Post by @${post.influencer ? getInfluencerLabel(post.influencer) : 'influencer'} on ${post.platform}, ${formatRelativeDate(post.posted_at)}`}
                 className="h-full w-full object-cover"
               />

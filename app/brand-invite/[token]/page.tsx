@@ -41,7 +41,6 @@ export default async function BrandInvitePage({ params }: PageProps) {
             alt="Instroom Post Tracker"
             width={180}
             height={40}
-            className="brightness-0 dark:invert"
             priority
           />
         </div>
@@ -87,7 +86,6 @@ function InviteError({ message }: { message: string }) {
             alt="Instroom Post Tracker"
             width={180}
             height={40}
-            className="brightness-0 dark:invert"
             priority
           />
         </div>
