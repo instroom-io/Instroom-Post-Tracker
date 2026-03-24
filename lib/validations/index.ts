@@ -80,14 +80,14 @@ export const createCampaignSchema = z.object({
     .array(z.enum(['instagram', 'tiktok', 'youtube']))
     .min(1, 'Select at least one platform'),
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format').optional(),
   tracking_configs: z.array(z.object({
     platform: z.enum(['instagram', 'tiktok', 'youtube']),
     hashtags: z.array(z.string().max(100)).default([]),
     mentions: z.array(z.string().max(100)).default([]),
   })).optional(),
 }).refine(
-  (data) => new Date(data.end_date) >= new Date(data.start_date),
+  (data) => !data.end_date || new Date(data.end_date) >= new Date(data.start_date),
   { message: 'End date must be on or after start date', path: ['end_date'] }
 )
 
