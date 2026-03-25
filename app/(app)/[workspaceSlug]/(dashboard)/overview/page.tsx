@@ -8,6 +8,7 @@ import { CampaignsTable } from '@/components/dashboard/campaigns-table'
 import { RecentPostsGrid } from '@/components/dashboard/recent-posts-grid'
 import { UsageRightsPanel } from '@/components/dashboard/usage-rights-panel'
 import { OverviewBottomSkeleton } from '@/components/dashboard/overview-bottom-skeleton'
+import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
 import type { WorkspaceRole } from '@/lib/types'
 
 interface PageProps {
@@ -177,18 +178,22 @@ export default async function OverviewPage({ params }: PageProps) {
 
       <div className="space-y-5 p-5">
         {/* Stat cards stream in first */}
-        <Suspense fallback={<StatCardsSkeleton />}>
-          <StatCards workspaceId={workspace.id} />
-        </Suspense>
+        <SectionErrorBoundary>
+          <Suspense fallback={<StatCardsSkeleton />}>
+            <StatCards workspaceId={workspace.id} />
+          </Suspense>
+        </SectionErrorBoundary>
 
         {/* Bottom grid streams in independently */}
-        <Suspense fallback={<OverviewBottomSkeleton />}>
-          <OverviewBottom
-            workspaceId={workspace.id}
-            workspaceSlug={workspaceSlug}
-            canEdit={canEdit}
-          />
-        </Suspense>
+        <SectionErrorBoundary>
+          <Suspense fallback={<OverviewBottomSkeleton />}>
+            <OverviewBottom
+              workspaceId={workspace.id}
+              workspaceSlug={workspaceSlug}
+              canEdit={canEdit}
+            />
+          </Suspense>
+        </SectionErrorBoundary>
       </div>
     </div>
   )
