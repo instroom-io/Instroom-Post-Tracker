@@ -46,7 +46,8 @@ export default async function CampaignsPage({ params }: PageProps) {
       .from('campaigns')
       .select('id, name, status, start_date, end_date')
       .eq('workspace_id', workspace.id)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(100),
     supabase
       .from('posts')
       .select('campaign_id')

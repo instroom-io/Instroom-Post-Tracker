@@ -53,12 +53,14 @@ export default async function AnalyticsPage({ params }: PageProps) {
           )
         `
         )
-        .eq('workspace_id', workspace.id),
+        .eq('workspace_id', workspace.id)
+        .limit(500),
       supabase
         .from('campaigns')
         .select('id, name')
         .eq('workspace_id', workspace.id)
-        .order('name'),
+        .order('name')
+        .limit(100),
       supabase
         .from('emv_config')
         .select('id, workspace_id, platform, cpm_rate, updated_at')

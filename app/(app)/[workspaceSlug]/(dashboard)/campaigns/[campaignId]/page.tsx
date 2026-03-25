@@ -77,11 +77,13 @@ export default async function CampaignDetailPage({ params }: PageProps) {
         'id, influencer_id, thumbnail_url, platform, posted_at, download_status, drive_file_id, collab_status, caption, post_url, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), metrics:post_metrics(views, likes, comments, shares, saves, follower_count, engagement_rate, emv)'
       )
       .eq('campaign_id', campaignId)
-      .order('posted_at', { ascending: false }),
+      .order('posted_at', { ascending: false })
+      .limit(300),
     supabase
       .from('influencers')
       .select('id, ig_handle, tiktok_handle, youtube_handle')
-      .eq('workspace_id', workspace.id),
+      .eq('workspace_id', workspace.id)
+      .limit(200),
   ])
 
   if (!campaign) redirect(`/${workspaceSlug}/campaigns`)
