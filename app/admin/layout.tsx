@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import Image from 'next/image'
+import Link from 'next/link'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -22,7 +24,11 @@ export default async function AdminLayout({ children }: LayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex h-14 items-center border-b border-border px-6 gap-6">
-        <span className="text-[13px] font-bold text-foreground">Instroom Admin</span>
+        <div className="flex items-center gap-3">
+          <Link href="/"><Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} priority /></Link>
+          <span className="text-[12px] text-foreground-muted">/</span>
+          <span className="text-[13px] font-semibold text-foreground">Admin</span>
+        </div>
         <nav className="flex items-center gap-4">
           <a href="/admin" className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Overview</a>
           <a href="/admin/agencies" className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Agencies</a>
