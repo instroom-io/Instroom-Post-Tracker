@@ -7,9 +7,8 @@ import { PlatformBreakdown } from '@/components/analytics/platform-breakdown'
 import { EmvChart } from '@/components/analytics/emv-chart'
 import { ErBenchmarkChart } from '@/components/analytics/er-benchmark-chart'
 import { InfluencerLeaderboard } from '@/components/analytics/influencer-leaderboard'
-import { EmvConfigForm } from '@/components/analytics/emv-config-form'
 import { formatEMV, formatNumber, formatPercent, getInfluencerLabel } from '@/lib/utils'
-import type { Platform, EmvConfig } from '@/lib/types'
+import type { Platform } from '@/lib/types'
 
 export interface PostMetricRow {
   views: number
@@ -36,18 +35,12 @@ interface Campaign {
 interface AnalyticsClientProps {
   metrics: PostMetricRow[]
   campaigns: Campaign[]
-  emvConfigs: EmvConfig[]
-  workspaceId: string
-  canEdit: boolean
   defaultFilters: AnalyticsFilters
 }
 
 export function AnalyticsClient({
   metrics,
   campaigns,
-  emvConfigs,
-  workspaceId,
-  canEdit,
   defaultFilters,
 }: AnalyticsClientProps) {
   const [filters, setFilters] = useState<AnalyticsFilters>(defaultFilters)
@@ -234,19 +227,6 @@ export function AnalyticsClient({
         <InfluencerLeaderboard rows={leaderboardRows} />
       </div>
 
-      <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
-        <p className="mb-1 text-[13px] font-display font-bold text-foreground">
-          EMV Configuration
-        </p>
-        <p className="mb-4 text-[12px] text-foreground-lighter">
-          CPM rates used to calculate Estimated Media Value. Changes apply to future posts only.
-        </p>
-        <EmvConfigForm
-          workspaceId={workspaceId}
-          configs={emvConfigs}
-          canEdit={canEdit}
-        />
-      </div>
     </div>
   )
 }
