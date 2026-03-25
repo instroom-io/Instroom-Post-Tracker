@@ -4,9 +4,56 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { sendEmail, escapeHtml } from '@/lib/email'
-import { agencyRequestSchema } from '@/lib/validations'
+import { agencyRequestSchema, createWorkspaceSchema } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
 import type { Agency, AgencyRequest } from '@/lib/types'
+
+/**
+ * Create a workspace for a brand, linked to an agency.
+ * Agency owner only.
+ */
+export async function createAgencyWorkspace(
+  agencyId: string,
+  name: string
+): Promise<{ error: string } | void> {
+  const parsed = createWorkspaceSchema.safeParse({ name })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // Verify caller owns this agency
+  const { data: agency } = await supabase
+    .from('agencies')
+    .select('id')
+    .eq('id', agencyId)
+    .eq('owner_id', user.id)
+    .single()
+  if (!agency) return { error: 'Unauthorized.' }
+
+  const serviceClient = createServiceClient()
+
+  let slug = toSlug(parsed.data.name)
+  const { data: existing } = await serviceClient
+    .from('workspaces').select('slug').eq('slug', slug).maybeSingle()
+  if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`
+
+  const { data: workspace, error: wsError } = await serviceClient
+    .from('workspaces')
+    .insert({ name: parsed.data.name, slug, agency_id: agencyId })
+    .select('id, slug')
+    .single()
+  if (wsError || !workspace) return { error: 'Failed to create workspace.' }
+
+  await serviceClient
+    .from('workspace_members')
+    .insert({ workspace_id: workspace.id, user_id: user.id, role: 'owner' })
+
+  await serviceClient.rpc('seed_workspace_defaults', { p_workspace_id: workspace.id })
+
+  revalidatePath('/', 'layout')
+}
 
 /**
  * Submit an agency onboarding request (public — no auth required).
