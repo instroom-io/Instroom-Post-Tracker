@@ -80,6 +80,21 @@ export function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`
 }
 
+// ─── Email Utilities ──────────────────────────────────────────────────────────
+
+const PERSONAL_EMAIL_DOMAINS = new Set([
+  'gmail.com', 'yahoo.com', 'yahoo.co.uk', 'yahoo.com.ph',
+  'hotmail.com', 'hotmail.co.uk', 'outlook.com', 'outlook.ph',
+  'live.com', 'icloud.com', 'me.com', 'mac.com',
+  'aol.com', 'protonmail.com', 'proton.me',
+  'gmx.com', 'gmx.net', 'yandex.com', 'mail.com',
+])
+
+export function isPersonalEmail(email: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase()
+  return domain ? PERSONAL_EMAIL_DOMAINS.has(domain) : false
+}
+
 // ─── String Utilities ─────────────────────────────────────────────────────────
 
 export function toSlug(name: string): string {

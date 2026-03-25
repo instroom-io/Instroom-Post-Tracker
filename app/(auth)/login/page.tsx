@@ -4,14 +4,19 @@ import { ArrowLeft } from 'lucide-react'
 import { LoginForm } from './login-form'
 
 interface PageProps {
-  searchParams: Promise<{ redirectTo?: string }>
+  searchParams: Promise<{ redirectTo?: string; error?: string }>
 }
 
 export default async function LoginPage({ searchParams }: PageProps) {
-  const { redirectTo } = await searchParams
+  const { redirectTo, error } = await searchParams
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
+        {error === 'work_email_required' && (
+          <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[12px] text-destructive">
+            Please use a work email address. Personal email providers (Gmail, Yahoo, etc.) are not allowed.
+          </div>
+        )}
         <div className="mb-8 text-center">
           <Link href="/" className="mx-auto mb-4 flex justify-center opacity-100 transition-opacity hover:opacity-75">
             <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={180} height={40} priority />

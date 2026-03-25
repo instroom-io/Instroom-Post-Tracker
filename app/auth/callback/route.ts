@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { isPersonalEmail } from '@/lib/utils'
 import type { EmailOtpType } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
@@ -36,6 +37,13 @@ export async function GET(request: NextRequest) {
           const adminEmail = process.env.ADMIN_EMAIL
           const email = user.email!
           const isAdmin = adminEmail && email.toLowerCase() === adminEmail.toLowerCase()
+
+          // Block personal email domains (except admin)
+          if (!isAdmin && isPersonalEmail(email)) {
+            await createServiceClient().auth.admin.deleteUser(user.id)
+            await supabase.auth.signOut()
+            return redirectTo('/login?error=work_email_required')
+          }
 
           if (isAdmin) {
             await createServiceClient()

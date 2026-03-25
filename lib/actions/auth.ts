@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { signInSchema, signUpSchema } from '@/lib/validations'
+import { isPersonalEmail } from '@/lib/utils'
 
 export async function signIn(
   _prevState: unknown,
@@ -46,9 +47,15 @@ export async function signUp(
     return { error: parsed.error.errors[0].message }
   }
 
-  // Invite-only gate: only admin email or users with a valid access path can sign up
+  // Block personal email domains (except admin)
   const adminEmail = process.env.ADMIN_EMAIL
-  if (!adminEmail || parsed.data.email.toLowerCase() !== adminEmail.toLowerCase()) {
+  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
+  if (!isAdmin && isPersonalEmail(parsed.data.email)) {
+    return { error: 'Please use a work email address to sign up.' }
+  }
+
+  // Invite-only gate: only admin email or users with a valid access path can sign up
+  if (!isAdmin) {
     const serviceClient = createServiceClient()
     const email = parsed.data.email
 
