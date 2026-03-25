@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
           if (!isAdmin) {
             const serviceClient = createServiceClient()
 
-            const [{ data: invite }, { data: agencyRequest }, { data: brandRequest }] = await Promise.all([
+            const [{ data: invite }, { data: agencyRequest }] = await Promise.all([
               serviceClient.from('invitations').select('id')
                 .eq('email', email).is('accepted_at', null)
                 .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
@@ -48,12 +48,9 @@ export async function GET(request: NextRequest) {
               serviceClient.from('agency_requests').select('id')
                 .eq('contact_email', email).in('status', ['pending', 'approved'])
                 .maybeSingle(),
-              serviceClient.from('brand_requests').select('id')
-                .eq('contact_email', email).in('status', ['invited', 'approved'])
-                .maybeSingle(),
             ])
 
-            if (!invite && !agencyRequest && !brandRequest) {
+            if (!invite && !agencyRequest) {
               await serviceClient.auth.admin.deleteUser(user.id)
               await supabase.auth.signOut()
               return redirectTo('/request-access?error=invite_only')

@@ -39,7 +39,7 @@ export async function signUp(
   const parsed = signUpSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
-    full_name: formData.get('full_name'),
+    full_name: formData.get('full_name') ?? undefined,
   })
 
   if (!parsed.success) {
@@ -69,15 +69,7 @@ export async function signUp(
       .in('status', ['pending', 'approved'])
       .maybeSingle()
 
-    // Check 3: invited or approved brand request (agency-initiated invite OR request-approval flow)
-    const { data: brandRequest } = await serviceClient
-      .from('brand_requests')
-      .select('id')
-      .eq('contact_email', email)
-      .in('status', ['invited', 'approved'])
-      .maybeSingle()
-
-    if (!invite && !agencyRequest && !brandRequest) {
+    if (!invite && !agencyRequest) {
       return { error: 'Sign-up is by invitation only. Please use the invite link sent to your email.' }
     }
   }

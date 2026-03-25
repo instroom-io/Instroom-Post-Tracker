@@ -36,7 +36,6 @@ export async function createClient() {
  * ONLY allowed in:
  *   - app/api/webhooks/ensemble/route.ts
  *   - lib/actions/workspace.ts (createWorkspace, acceptInvitation)
- *   - lib/actions/brand-requests.ts (submitBrandRequest, approveBrandRequest, rejectBrandRequest)
  *   - app/api/cron/download-worker/route.ts
  *   - app/api/cron/metrics-worker/route.ts
  * NEVER use in components that render UI.
