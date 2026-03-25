@@ -15,21 +15,23 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { createAgencyWorkspace } from '@/lib/actions/agencies'
+import { inviteBrand } from '@/lib/actions/agencies'
 
-interface CreateWorkspaceDialogProps {
+interface InviteBrandDialogProps {
   agencyId: string
 }
 
-export function CreateWorkspaceDialog({ agencyId }: CreateWorkspaceDialogProps) {
+export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
 
   function handleClose() {
     setOpen(false)
     setName('')
+    setEmail('')
     setError(null)
   }
 
@@ -37,12 +39,12 @@ export function CreateWorkspaceDialog({ agencyId }: CreateWorkspaceDialogProps) 
     e.preventDefault()
     setError(null)
     startTransition(async () => {
-      const result = await createAgencyWorkspace(agencyId, name)
+      const result = await inviteBrand(agencyId, name, email)
       if (result?.error) {
         setError(result.error)
         return
       }
-      toast.success('Workspace created')
+      toast.success('Invite sent')
       handleClose()
     })
   }
@@ -52,25 +54,34 @@ export function CreateWorkspaceDialog({ agencyId }: CreateWorkspaceDialogProps) 
       <DialogTrigger>
         <Button variant="primary" size="sm">
           <Plus size={13} />
-          New workspace
+          Invite brand
         </Button>
       </DialogTrigger>
 
       <DialogContent size="md">
         <DialogHeader>
-          <DialogTitle>Create workspace</DialogTitle>
+          <DialogTitle>Invite brand</DialogTitle>
           <DialogDescription>
-            Add a new brand workspace for your agency.
+            A workspace will be created and an invite link sent to the brand contact.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <DialogBody className="space-y-4">
             <Input
-              label="Workspace name"
+              label="Brand name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nike Summer Campaign"
+              placeholder="Nike"
+              required
+              error={undefined}
+            />
+            <Input
+              label="Contact email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="brand@nike.com"
               required
               error={undefined}
             />
@@ -84,7 +95,7 @@ export function CreateWorkspaceDialog({ agencyId }: CreateWorkspaceDialogProps) 
               Cancel
             </Button>
             <Button type="submit" variant="primary" size="md" loading={isPending}>
-              Create workspace
+              Send invite
             </Button>
           </DialogFooter>
         </form>

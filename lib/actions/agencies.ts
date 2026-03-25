@@ -4,20 +4,24 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { sendEmail, escapeHtml } from '@/lib/email'
-import { agencyRequestSchema, createWorkspaceSchema } from '@/lib/validations'
+import { agencyRequestSchema, createWorkspaceSchema, inviteMemberSchema } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
 import type { Agency, AgencyRequest } from '@/lib/types'
 
 /**
- * Create a workspace for a brand, linked to an agency.
+ * Create a brand workspace and send an invite to the brand contact — in one step.
  * Agency owner only.
  */
-export async function createAgencyWorkspace(
+export async function inviteBrand(
   agencyId: string,
-  name: string
+  name: string,
+  email: string
 ): Promise<{ error: string } | void> {
-  const parsed = createWorkspaceSchema.safeParse({ name })
-  if (!parsed.success) return { error: parsed.error.errors[0].message }
+  const nameParsed = createWorkspaceSchema.safeParse({ name })
+  if (!nameParsed.success) return { error: nameParsed.error.errors[0].message }
+
+  const emailParsed = inviteMemberSchema.shape.email.safeParse(email)
+  if (!emailParsed.success) return { error: emailParsed.error.errors[0].message }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -34,23 +38,49 @@ export async function createAgencyWorkspace(
 
   const serviceClient = createServiceClient()
 
-  let slug = toSlug(parsed.data.name)
+  // Create workspace with agency_id
+  let slug = toSlug(nameParsed.data.name)
   const { data: existing } = await serviceClient
     .from('workspaces').select('slug').eq('slug', slug).maybeSingle()
   if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`
 
   const { data: workspace, error: wsError } = await serviceClient
     .from('workspaces')
-    .insert({ name: parsed.data.name, slug, agency_id: agencyId })
-    .select('id, slug')
+    .insert({ name: nameParsed.data.name, slug, agency_id: agencyId })
+    .select('id, slug, name')
     .single()
   if (wsError || !workspace) return { error: 'Failed to create workspace.' }
 
+  // Agency owner becomes workspace owner
   await serviceClient
     .from('workspace_members')
     .insert({ workspace_id: workspace.id, user_id: user.id, role: 'owner' })
 
   await serviceClient.rpc('seed_workspace_defaults', { p_workspace_id: workspace.id })
+
+  // Create invite for brand contact
+  const { data: invitation, error: inviteError } = await serviceClient
+    .from('invitations')
+    .insert({ workspace_id: workspace.id, email: emailParsed.data, role: 'editor' })
+    .select('token')
+    .single()
+
+  if (inviteError || !invitation) return { error: 'Workspace created but failed to send invite.' }
+
+  // Send invite email
+  try {
+    await sendEmail({
+      to: emailParsed.data,
+      subject: `You've been invited to ${escapeHtml(workspace.name)} on Instroom Post Tracker`,
+      html: `
+        <p>You've been invited to access <strong>${escapeHtml(workspace.name)}</strong> on Instroom Post Tracker.</p>
+        <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}">Accept invitation →</a></p>
+        <p>This link expires in 7 days.</p>
+      `,
+    })
+  } catch (err) {
+    console.error('[email] Failed to send brand invite email:', err)
+  }
 
   revalidatePath('/', 'layout')
 }

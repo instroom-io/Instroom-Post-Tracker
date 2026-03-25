@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { CreateWorkspaceDialog } from '@/components/agency/create-workspace-dialog'
+import { InviteBrandDialog } from '@/components/agency/invite-brand-dialog'
 
 interface PageProps {
   params: Promise<{ agencySlug: string }>
@@ -52,7 +52,7 @@ export default async function AgencyDashboardPage({ params }: PageProps) {
       <div className="rounded-xl border border-border bg-background-surface p-5">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[14px] font-semibold text-foreground">Workspaces</h2>
-          <CreateWorkspaceDialog agencyId={agency.id} />
+          <InviteBrandDialog agencyId={agency.id} />
         </div>
         {(workspaces ?? []).length === 0 ? (
           <p className="text-[13px] text-foreground-lighter">No workspaces yet.</p>
