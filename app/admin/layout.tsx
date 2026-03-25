@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
+import { AdminNav } from '@/components/admin/admin-nav'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -29,10 +30,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
           <span className="text-[12px] text-foreground-muted">/</span>
           <span className="text-[13px] font-semibold text-foreground">Admin</span>
         </div>
-        <nav className="flex items-center gap-4">
-          <a href="/admin" className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Overview</a>
-          <a href="/admin/agencies" className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Agencies</a>
-        </nav>
+        <AdminNav />
       </div>
       <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
     </div>
