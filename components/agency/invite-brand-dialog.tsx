@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus } from 'lucide-react'
-import { toast } from 'sonner'
+import { Plus, Copy, Check } from 'lucide-react'
 import {
   Dialog,
   DialogTrigger,
@@ -27,12 +26,23 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
   const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   function handleClose() {
     setOpen(false)
     setName('')
     setEmail('')
     setError(null)
+    setInviteLink(null)
+    setCopied(false)
+  }
+
+  function handleCopy() {
+    if (!inviteLink) return
+    navigator.clipboard.writeText(inviteLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -40,12 +50,11 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
     setError(null)
     startTransition(async () => {
       const result = await inviteBrand(agencyId, name, email)
-      if (result?.error) {
+      if ('error' in result) {
         setError(result.error)
         return
       }
-      toast.success('Invite sent')
-      handleClose()
+      setInviteLink(`${window.location.origin}/brand-invite/${result.token}`)
     })
   }
 
@@ -59,46 +68,81 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
       </DialogTrigger>
 
       <DialogContent size="md">
-        <DialogHeader>
-          <DialogTitle>Invite brand</DialogTitle>
-          <DialogDescription>
-            A workspace will be created and an invite link sent to the brand contact.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit}>
-          <DialogBody className="space-y-4">
-            <Input
-              label="Brand name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nike"
-              required
-              error={undefined}
-            />
-            <Input
-              label="Contact email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="brand@nike.com"
-              required
-              error={undefined}
-            />
-            {error && (
-              <p className="text-[11px] text-destructive">{error}</p>
-            )}
-          </DialogBody>
-
-          <DialogFooter>
-            <Button type="button" variant="secondary" size="md" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" size="md" loading={isPending}>
-              Send invite
-            </Button>
-          </DialogFooter>
-        </form>
+        {inviteLink ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Invite created</DialogTitle>
+              <DialogDescription>
+                An email was sent to the brand. You can also share this link directly.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogBody className="space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  readOnly
+                  value={inviteLink}
+                  className="flex-1 rounded-lg border border-border bg-background-muted px-3 py-2 text-[12px] text-foreground-lighter font-mono truncate"
+                />
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-border bg-background-surface transition-colors hover:bg-background-muted"
+                >
+                  {copied ? <Check size={14} className="text-brand" /> : <Copy size={14} className="text-foreground-muted" />}
+                </button>
+              </div>
+              <p className="text-[11px] text-foreground-muted">
+                The brand fills out this form to submit their logo and website — no account needed.
+              </p>
+            </DialogBody>
+            <DialogFooter>
+              <Button variant="primary" size="md" onClick={handleClose}>
+                Done
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Invite brand</DialogTitle>
+              <DialogDescription>
+                An invite link will be created and emailed to the brand contact.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit}>
+              <DialogBody className="space-y-4">
+                <Input
+                  label="Brand name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nike"
+                  required
+                  error={undefined}
+                />
+                <Input
+                  label="Contact email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="brand@nike.com"
+                  required
+                  error={undefined}
+                />
+                {error && (
+                  <p className="text-[11px] text-destructive">{error}</p>
+                )}
+              </DialogBody>
+              <DialogFooter>
+                <Button type="button" variant="secondary" size="md" onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary" size="md" loading={isPending}>
+                  Send invite
+                </Button>
+              </DialogFooter>
+            </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   )

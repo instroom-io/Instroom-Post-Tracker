@@ -18,7 +18,7 @@ export async function inviteBrand(
   agencyId: string,
   name: string,
   email: string
-): Promise<{ error: string } | void> {
+): Promise<{ error: string } | { token: string }> {
   const nameParsed = createWorkspaceSchema.safeParse({ name })
   if (!nameParsed.success) return { error: nameParsed.error.errors[0].message }
 
@@ -69,6 +69,7 @@ export async function inviteBrand(
   }
 
   revalidatePath('/', 'layout')
+  return { token: invite.token }
 }
 
 /**
