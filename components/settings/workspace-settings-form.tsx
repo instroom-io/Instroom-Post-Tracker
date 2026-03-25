@@ -15,7 +15,6 @@ interface WorkspaceSettingsFormProps {
 export function WorkspaceSettingsForm({ workspace, canEdit }: WorkspaceSettingsFormProps) {
   const [name, setName] = useState(workspace.name)
   const [logoUrl, setLogoUrl] = useState(workspace.logo_url ?? '')
-  const [driveFolderId, setDriveFolderId] = useState(workspace.drive_folder_id ?? '')
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -25,7 +24,6 @@ export function WorkspaceSettingsForm({ workspace, canEdit }: WorkspaceSettingsF
       const result = await updateWorkspace(workspace.id, {
         name,
         logo_url: logoUrl || undefined,
-        drive_folder_id: driveFolderId || undefined,
       })
       if (result?.error) {
         setError(result.error)
@@ -52,26 +50,7 @@ export function WorkspaceSettingsForm({ workspace, canEdit }: WorkspaceSettingsF
         placeholder="https://..."
         hint="Paste a public image URL for your logo"
       />
-      <div className="space-y-2">
-        <Input
-          label="Google Drive folder"
-          value={driveFolderId}
-          onChange={(e) => setDriveFolderId(e.target.value)}
-          disabled={!canEdit || isPending}
-          placeholder="https://drive.google.com/drive/folders/..."
-        />
-        <div className="text-[11px] text-foreground-muted space-y-1 leading-relaxed">
-          <p>Downloaded posts will be uploaded to this folder. To set it up:</p>
-          <ol className="list-decimal list-inside space-y-0.5 pl-1">
-            <li>Create a folder in Google Drive</li>
-            <li>Share it with <span className="font-mono text-foreground select-all">drive-uploader@instroom-post-tracker-drive.iam.gserviceaccount.com</span> as <strong>Editor</strong></li>
-            <li>Open the folder in your browser and copy the URL</li>
-            <li>Paste the URL (or just the folder ID) above and save</li>
-          </ol>
-        </div>
-      </div>
-
-      {error && (
+{error && (
         <p className="text-[11px] text-destructive">{error}</p>
       )}
 

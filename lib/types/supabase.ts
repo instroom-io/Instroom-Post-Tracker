@@ -683,6 +683,7 @@ export type Database = {
           role: Database["public"]["Enums"]["workspace_role"]
           user_id: string
           workspace_id: string
+          drive_folder_id: string | null
         }
         Insert: {
           id?: string
@@ -691,6 +692,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["workspace_role"]
           user_id: string
           workspace_id: string
+          drive_folder_id?: string | null
         }
         Update: {
           id?: string
@@ -699,6 +701,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["workspace_role"]
           user_id?: string
           workspace_id?: string
+          drive_folder_id?: string | null
         }
         Relationships: [
           {

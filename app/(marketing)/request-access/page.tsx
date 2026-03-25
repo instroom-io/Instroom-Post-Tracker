@@ -1,4 +1,3 @@
-import { getActiveAgenciesPublic } from '@/lib/actions/agencies'
 import { RequestAccessTabs } from './request-access-tabs'
 
 export const metadata = {
@@ -6,16 +5,7 @@ export const metadata = {
   description: 'Submit your details to connect with Instroom.',
 }
 
-interface PageProps {
-  searchParams: Promise<{ error?: string }>
-}
-
-export default async function RequestAccessPage({ searchParams }: PageProps) {
-  const [agencies, { error }] = await Promise.all([
-    getActiveAgenciesPublic(),
-    searchParams,
-  ])
-
+export default function RequestAccessPage() {
   return (
     <div className="mx-auto max-w-lg px-6 py-16">
       <div className="mb-8 text-center">
@@ -27,7 +17,7 @@ export default async function RequestAccessPage({ searchParams }: PageProps) {
         </p>
       </div>
       <div className="rounded-2xl border border-border bg-background-surface p-8 shadow-sm">
-        <RequestAccessTabs agencies={agencies} inviteOnly={error === 'invite_only'} />
+        <RequestAccessTabs />
       </div>
     </div>
   )

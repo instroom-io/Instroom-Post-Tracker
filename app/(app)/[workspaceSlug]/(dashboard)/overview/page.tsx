@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/layout/page-header'
@@ -26,7 +27,15 @@ async function OverviewBottom({
 }) {
   const supabase = await createClient()
 
-  // Fetch campaigns, post counts, usage rights, recent posts in parallel
+  // Resolve active campaign IDs first (needed by campaign_influencers query)
+  const { data: activeCampaigns } = await supabase
+    .from('campaigns')
+    .select('id')
+    .eq('workspace_id', workspaceId)
+    .eq('status', 'active')
+  const activeCampaignIds = activeCampaigns?.map((c) => c.id) ?? []
+
+  // Fetch campaigns, usage rights, recent posts in parallel
   const [{ data: campaigns }, { data: usageRightsItems }, { data: recentPosts }] =
     await Promise.all([
       supabase
@@ -40,16 +49,7 @@ async function OverviewBottom({
         .select(
           'id, usage_rights, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), campaign:campaigns(name)'
         )
-        .in(
-          'campaign_id',
-          (
-            await supabase
-              .from('campaigns')
-              .select('id')
-              .eq('workspace_id', workspaceId)
-              .eq('status', 'active')
-          ).data?.map((c) => c.id) ?? []
-        )
+        .in('campaign_id', activeCampaignIds)
         .neq('monitoring_status', 'removed')
         .order('added_at', { ascending: false })
         .limit(20),
@@ -71,6 +71,7 @@ async function OverviewBottom({
       .from('posts')
       .select('campaign_id')
       .in('campaign_id', campaignIds)
+      .limit(500)
 
     ;(postCounts ?? []).forEach((p) => {
       postCountMap[p.campaign_id] = (postCountMap[p.campaign_id] ?? 0) + 1
@@ -89,9 +90,9 @@ async function OverviewBottom({
         <div className="rounded-xl border border-border bg-background-surface shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
             <h2 className="font-display text-[15px] font-bold text-foreground">Campaigns</h2>
-            <a href={`/${workspaceSlug}/campaigns`} className="text-[12px] text-brand hover:underline">
+            <Link href={`/${workspaceSlug}/campaigns`} className="text-[12px] text-brand hover:underline">
               View all
-            </a>
+            </Link>
           </div>
           <CampaignsTable campaigns={enrichedCampaigns} workspaceSlug={workspaceSlug} />
         </div>
@@ -121,9 +122,9 @@ async function OverviewBottom({
       <div className="rounded-xl border border-border bg-background-surface shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
           <h2 className="font-display text-[15px] font-bold text-foreground">Recent posts</h2>
-          <a href={`/${workspaceSlug}/campaigns`} className="text-[12px] text-brand hover:underline">
+          <Link href={`/${workspaceSlug}/campaigns`} className="text-[12px] text-brand hover:underline">
             View all
-          </a>
+          </Link>
         </div>
         <div className="p-5">
           <RecentPostsGrid

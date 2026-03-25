@@ -16,16 +16,20 @@ export async function triggerPostDownload(
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // 2. Role check
+  // 2. Role check + fetch personal Drive folder
   const { data: member } = await supabase
     .from('workspace_members')
-    .select('role')
+    .select('role, drive_folder_id')
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
     .single()
 
   if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
+  }
+
+  if (!member.drive_folder_id) {
+    return { error: 'Set your personal Drive folder in Settings → Members before downloading.' }
   }
 
   // 3. Validate post belongs to workspace and is eligible for download
@@ -41,10 +45,10 @@ export async function triggerPostDownload(
     return { error: 'Post is not available for download.' }
   }
 
-  // 4. Process download (service client needed for Drive + EnsembleData)
+  // 4. Process download to member's personal Drive folder
   try {
     const serviceClient = createServiceClient()
-    const result = await processPostDownload(serviceClient, postId)
+    const result = await processPostDownload(serviceClient, postId, member.drive_folder_id)
 
     revalidatePath('/', 'layout')
     return { driveUrl: `https://drive.google.com/file/d/${result.driveFileId}/view` }

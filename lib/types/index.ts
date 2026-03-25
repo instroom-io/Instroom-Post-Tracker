@@ -2,7 +2,7 @@
 
 export type Platform = 'instagram' | 'tiktok' | 'youtube'
 
-export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer' | 'brand'
+export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer'
 
 export type AgencyStatus = 'pending' | 'active' | 'suspended'
 export type AgencyRequestStatus = 'pending' | 'approved' | 'rejected'
@@ -19,47 +19,7 @@ export type JobType = 'download' | 'metrics_fetch'
 
 export type JobStatus = 'pending' | 'processing' | 'done' | 'failed'
 
-export type BrandStatus = 'pending' | 'active'
-
-export type BrandRequestStatus = 'pending' | 'approved' | 'rejected' | 'invited'
-
-export type DriveConnectionType = 'agency' | 'brand'
-
-export interface Brand {
-  id: string
-  agency_id: string
-  name: string
-  slug: string
-  status: BrandStatus
-  created_at: string
-}
-
-export interface BrandInvitation {
-  id: string
-  brand_id: string
-  token: string
-  expires_at: string
-  accepted_at: string | null
-  created_at: string
-}
-
-export interface BrandRequest {
-  id: string
-  agency_id: string | null
-  brand_name: string
-  website_url: string
-  contact_name: string
-  contact_email: string
-  description: string | null
-  logo_url: string | null
-  status: BrandRequestStatus
-  workspace_id: string | null
-  reviewed_by: string | null
-  reviewed_at: string | null
-  invite_token: string | null
-  invite_token_expires_at: string | null
-  created_at: string
-}
+export type DriveConnectionType = 'agency'
 
 export interface Agency {
   id: string
@@ -100,7 +60,7 @@ export interface Workspace {
   slug: string
   logo_url: string | null
   agency_id: string | null
-  drive_folder_id: string | null
+  drive_folder_id?: string | null
   drive_connection_type: DriveConnectionType | null
   drive_oauth_token: string | null
   created_at: string

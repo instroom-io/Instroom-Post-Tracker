@@ -1,10 +1,12 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { PageHeader } from '@/components/layout/page-header'
 import { AnalyticsClient } from '@/components/analytics/analytics-client'
 import { EmvConfigForm } from '@/components/analytics/emv-config-form'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
+import { AnalyticsBodySkeleton } from '@/components/dashboard/analytics-body-skeleton'
+import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
 import type { Platform } from '@/lib/types'
 import type { AnalyticsFilters } from '@/components/analytics/analytics-filter-bar'
 
@@ -20,73 +22,6 @@ function getDefaultDates() {
     from: from.toISOString().split('T')[0],
     to: to.toISOString().split('T')[0],
   }
-}
-
-// ─── Skeleton components ──────────────────────────────────────────────────────
-
-function AnalyticsBodySkeleton() {
-  return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap gap-3">
-        <div className="h-9 w-36 animate-pulse rounded-lg bg-background-muted" />
-        <div className="h-9 w-44 animate-pulse rounded-lg bg-background-muted" />
-        <div className="h-9 w-36 animate-pulse rounded-lg bg-background-muted" />
-        <div className="h-9 w-32 animate-pulse rounded-lg bg-background-muted" />
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-background-surface p-4">
-            <div className="h-3 w-16 animate-pulse rounded bg-background-muted" />
-            <div className="mt-2 h-7 w-20 animate-pulse rounded bg-background-muted" />
-          </div>
-        ))}
-      </div>
-      <div className="grid gap-5 lg:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-background-surface p-5">
-            <div className="mb-4 h-4 w-28 animate-pulse rounded bg-background-muted" />
-            <div className="h-48 animate-pulse rounded-lg bg-background-muted" />
-          </div>
-        ))}
-      </div>
-      <div className="rounded-xl border border-border bg-background-surface">
-        <div className="border-b border-border px-5 py-3.5">
-          <div className="h-4 w-40 animate-pulse rounded bg-background-muted" />
-        </div>
-        <div className="divide-y divide-border/50">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 px-5 py-3">
-              <div className="h-3 w-4 animate-pulse rounded bg-background-muted" />
-              <div className="h-3 w-28 animate-pulse rounded bg-background-muted" />
-              <div className="ml-auto flex gap-4">
-                <div className="h-3 w-14 animate-pulse rounded bg-background-muted" />
-                <div className="h-3 w-14 animate-pulse rounded bg-background-muted" />
-                <div className="h-3 w-14 animate-pulse rounded bg-background-muted" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function EmvConfigSkeleton() {
-  return (
-    <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-      <div className="border-b border-border px-5 py-3.5">
-        <div className="h-4 w-32 animate-pulse rounded bg-background-muted" />
-      </div>
-      <div className="space-y-3 p-5">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="h-3 w-20 animate-pulse rounded bg-background-muted" />
-            <div className="h-9 w-28 animate-pulse rounded-lg bg-background-muted" />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
 }
 
 // ─── Streaming server components ──────────────────────────────────────────────
@@ -187,17 +122,13 @@ export default async function AnalyticsPage({ params }: PageProps) {
   const { workspaceSlug } = await params
   const supabase = await createClient()
 
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('id')
-    .eq('slug', workspaceSlug)
-    .single()
+  const [{ data: workspace }, { data: { user } }] = await Promise.all([
+    supabase.from('workspaces').select('id').eq('slug', workspaceSlug).single(),
+    supabase.auth.getUser(),
+  ])
 
   if (!workspace) notFound()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   const [{ data: campaigns }, { data: member }] = await Promise.all([
     supabase
@@ -210,7 +141,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
       .from('workspace_members')
       .select('role')
       .eq('workspace_id', workspace.id)
-      .eq('user_id', user!.id)
+      .eq('user_id', user.id)
       .single(),
   ])
 
@@ -233,7 +164,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
         </SectionErrorBoundary>
 
         <SectionErrorBoundary>
-          <Suspense fallback={<EmvConfigSkeleton />}>
+          <Suspense fallback={<EmvSectionSkeleton />}>
             <AnalyticsEmvSection workspaceId={workspace.id} canEdit={canEdit} />
           </Suspense>
         </SectionErrorBoundary>

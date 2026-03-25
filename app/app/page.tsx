@@ -34,13 +34,6 @@ export default async function AppPage() {
     .order('joined_at', { ascending: false })
 
   if (memberships && memberships.length > 0) {
-    const brandMembership = memberships.find((m) => m.role === 'brand')
-    if (brandMembership) {
-      const workspace = brandMembership.workspaces as unknown as { slug: string } | null
-      if (workspace?.slug) redirect(`/${workspace.slug}/portal`)
-    }
-
-    // Regular team member → most recent workspace
     const workspace = memberships[0].workspaces as unknown as { slug: string } | null
     if (workspace?.slug) redirect(`/${workspace.slug}/overview`)
   }

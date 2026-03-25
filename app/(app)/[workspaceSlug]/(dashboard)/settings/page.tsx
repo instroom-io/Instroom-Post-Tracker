@@ -1,57 +1,18 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { PageHeader } from '@/components/layout/page-header'
 import { WorkspaceSettingsForm } from '@/components/settings/workspace-settings-form'
 import { MemberTable } from '@/components/settings/member-table'
 import { InviteMemberDialog } from '@/components/settings/invite-member-dialog'
 import { EmvSettingsPanel } from '@/components/settings/emv-settings-panel'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
+import { MembersSkeleton } from '@/components/dashboard/members-skeleton'
+import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
 import type { WorkspaceRole } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
-}
-
-// ─── Skeleton components ──────────────────────────────────────────────────────
-
-function MembersSkeleton() {
-  return (
-    <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-        <div className="h-4 w-20 animate-pulse rounded bg-background-muted" />
-        <div className="h-8 w-28 animate-pulse rounded-lg bg-background-muted" />
-      </div>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 border-b border-border/50 px-5 py-3 last:border-0">
-          <div className="h-8 w-8 animate-pulse rounded-full bg-background-muted shrink-0" />
-          <div className="flex flex-col gap-1.5 flex-1">
-            <div className="h-3 w-32 animate-pulse rounded bg-background-muted" />
-            <div className="h-2.5 w-40 animate-pulse rounded bg-background-muted" />
-          </div>
-          <div className="h-5 w-16 animate-pulse rounded-full bg-background-muted ml-auto" />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function EmvSkeleton() {
-  return (
-    <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-      <div className="border-b border-border px-5 py-3.5">
-        <div className="h-4 w-32 animate-pulse rounded bg-background-muted" />
-      </div>
-      <div className="space-y-3 p-5">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="h-3 w-20 animate-pulse rounded bg-background-muted" />
-            <div className="h-9 w-28 animate-pulse rounded-lg bg-background-muted" />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
 }
 
 // ─── Streaming server components ──────────────────────────────────────────────
@@ -70,7 +31,7 @@ async function MembersSection({
   const supabase = await createClient()
   const { data: members } = await supabase
     .from('workspace_members')
-    .select('id, user_id, role, user:users!workspace_members_user_id_fkey(full_name, email)')
+    .select('id, user_id, role, drive_folder_id, user:users!workspace_members_user_id_fkey(full_name, email, avatar_url)')
     .eq('workspace_id', workspaceId)
     .order('joined_at')
 
@@ -78,6 +39,7 @@ async function MembersSection({
     id: m.id,
     user_id: m.user_id,
     role: m.role,
+    drive_folder_id: m.drive_folder_id,
     user: Array.isArray(m.user) ? (m.user[0] ?? null) : m.user,
   }))
 
@@ -130,23 +92,23 @@ export default async function SettingsPage({ params }: PageProps) {
   const { workspaceSlug } = await params
   const supabase = await createClient()
 
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('id, name, slug, logo_url, agency_id, drive_folder_id, drive_connection_type, drive_oauth_token, created_at')
-    .eq('slug', workspaceSlug)
-    .single()
+  const [{ data: workspace }, { data: { user } }] = await Promise.all([
+    supabase
+      .from('workspaces')
+      .select('id, name, slug, logo_url, agency_id, drive_connection_type, drive_oauth_token, created_at')
+      .eq('slug', workspaceSlug)
+      .single(),
+    supabase.auth.getUser(),
+  ])
 
   if (!workspace) notFound()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   const { data: currentMember } = await supabase
     .from('workspace_members')
     .select('role')
     .eq('workspace_id', workspace.id)
-    .eq('user_id', user!.id)
+    .eq('user_id', user.id)
     .single()
 
   const currentRole = (currentMember?.role ?? 'viewer') as WorkspaceRole
@@ -174,7 +136,7 @@ export default async function SettingsPage({ params }: PageProps) {
               workspaceId={workspace.id}
               currentRole={currentRole}
               canEdit={canEdit}
-              userId={user!.id}
+              userId={user.id}
             />
           </Suspense>
         </SectionErrorBoundary>
@@ -182,7 +144,7 @@ export default async function SettingsPage({ params }: PageProps) {
         {/* EMV Config — streams in independently, admin+ only */}
         {canEdit && (
           <SectionErrorBoundary>
-            <Suspense fallback={<EmvSkeleton />}>
+            <Suspense fallback={<EmvSectionSkeleton />}>
               <EmvSection workspaceId={workspace.id} canEdit={canEdit} />
             </Suspense>
           </SectionErrorBoundary>

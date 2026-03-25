@@ -51,12 +51,13 @@ export interface DownloadResult {
 
 /**
  * Download a single post's media and upload it to Google Drive.
- * Updates the post record on success.
+ * Uses memberDriveFolderId as the upload destination.
  * Throws on failure — caller is responsible for error handling.
  */
 export async function processPostDownload(
   supabase: ReturnType<typeof createServiceClient>,
-  postId: string
+  postId: string,
+  memberDriveFolderId?: string | null
 ): Promise<DownloadResult> {
   const { data: post, error: postError } = await supabase
     .from('posts')
@@ -66,9 +67,10 @@ export async function processPostDownload(
       platform_post_id,
       platform,
       post_url,
+      workspace_id,
       campaign:campaigns(name),
       influencer:influencers(ig_handle, tiktok_handle, youtube_handle),
-      workspace:workspaces(name, drive_folder_id)
+      workspace:workspaces(name)
     `
     )
     .eq('id', postId)
@@ -80,7 +82,21 @@ export async function processPostDownload(
 
   const campaign = post.campaign as unknown as { name: string } | null
   const influencer = post.influencer as unknown as { ig_handle: string | null; tiktok_handle: string | null; youtube_handle: string | null } | null
-  const workspace = post.workspace as unknown as { name: string; drive_folder_id: string | null } | null
+  const workspace = post.workspace as unknown as { name: string } | null
+
+  // Resolve Drive folder: use member's personal folder, or look up workspace owner's folder
+  let rootFolderId: string | undefined = memberDriveFolderId ?? undefined
+
+  if (!rootFolderId) {
+    const { data: ownerMember } = await supabase
+      .from('workspace_members')
+      .select('drive_folder_id')
+      .eq('workspace_id', post.workspace_id)
+      .eq('role', 'owner')
+      .maybeSingle()
+
+    rootFolderId = ownerMember?.drive_folder_id ?? undefined
+  }
 
   const mediaUrl = await fetchFreshMediaUrl(post.platform, post.platform_post_id, post.post_url)
   if (!mediaUrl) {
@@ -107,7 +123,7 @@ export async function processPostDownload(
     fileBuffer,
     fileName: `post-${post.id}.${ext}`,
     folderPath,
-    rootFolderId: workspace?.drive_folder_id ?? undefined,
+    rootFolderId,
   })
 
   await supabase

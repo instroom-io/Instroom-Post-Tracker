@@ -35,7 +35,6 @@ const ROLE_LABELS: Record<WorkspaceRole, string> = {
   admin: 'Admin',
   editor: 'Editor',
   viewer: 'Viewer',
-  brand: 'Brand',
 }
 
 interface WorkspaceSwitcherProps {
