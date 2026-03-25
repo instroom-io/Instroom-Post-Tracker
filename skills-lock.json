@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "deployments-cicd": {
+      "source": "vercel-labs/vercel-plugin",
+      "sourceType": "github",
+      "computedHash": "3053c28660a2b66ce0d2e097af8f06ee1bd1b7663f2421f6837a83e58a8a517f"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "645b891da1edbae76ab79c7b088d4e73397464f8396edaf773c0e01971ce75d6"
+    }
+  }
+}
