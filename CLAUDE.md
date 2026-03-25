@@ -18,7 +18,7 @@ Instroom Post Tracker is a **multi-tenant B2B SaaS** for influencer marketing ag
 
 **3-Tier Hierarchy:** Instroom platform (super admin) → **Agencies** → brand **workspaces** → many **campaigns** → many **influencers + posts**.
 
-**Workspace creation:** Brands submit a request at `/request-access` selecting their agency. The agency approves → workspace is auto-created → brand receives onboarding email → brand confirms → gets read-only portal access at `/[slug]/portal`. The manual `/onboarding` page exists **for local development only** and must be disabled in production.
+**Workspace creation:** Agency invites a brand via the **Invite Brand** dialog → brand receives an emailed link (or the agency copies it manually) → brand completes a public form at `/brand-invite/[token]` (no auth required) → workspace is auto-created with the agency as owner. The manual `/onboarding` page exists **for local development only** and must be disabled in production.
 
 ---
 
@@ -85,9 +85,7 @@ import { createServiceClient } from '@/lib/supabase/server'   // admin, bypasses
 - `app/api/webhooks/ensemble/route.ts` — writes posts across workspace boundaries
 - `lib/actions/workspace.ts` — workspace creation (no membership row exists yet)
 - `lib/actions/workspace.ts` — invitation acceptance (invitee isn't a member yet)
-- `lib/actions/brands.ts` — brand onboarding acceptance (inserts `workspace_members(role='brand')` for a user who isn't a member yet)
-- `lib/actions/brand-requests.ts` — public form submission + approval (workspace creation crosses user boundaries)
-- `lib/actions/agencies.ts` — agency creation + request approval (no membership row exists yet for agency owner)
+- `lib/actions/agencies.ts` — agency creation, request approval, and brand invite acceptance (workspace creation crosses user boundaries)
 
 **Never use the service client in a component that renders UI. This is a data-isolation violation.**
 
@@ -202,17 +200,14 @@ instroom/
 │   │       │   ├── posts/page.tsx
 │   │       │   ├── analytics/page.tsx
 │   │       │   └── settings/page.tsx
-│   │       └── (portal)/                  ← Brand portal (role='brand' only)
-│   │           ├── layout.tsx             ← Portal auth boundary
-│   │           └── portal/page.tsx        ← Read-only brand view
 │   ├── api/
 │   │   ├── webhooks/ensemble/route.ts     ← POST, service client, HMAC-SHA256 verify
 │   │   └── cron/
 │   │       ├── download-worker/route.ts   ← Vercel Cron — every 5 min
 │   │       └── metrics-worker/route.ts   ← Vercel Cron — every 10 min
 │   ├── app/page.tsx                       ← Redirect: admin→/admin, agency→/agency/[slug]/dashboard,
-│   │                                         brand→/[slug]/portal, member→/[slug]/overview, else→/no-access
-│   ├── onboard/[token]/page.tsx           ← PRODUCTION: Brand onboarding acceptance (creates workspace_members row)
+│   │                                         member→/[slug]/overview, else→/no-access
+│   ├── brand-invite/[token]/page.tsx      ← Public brand onboard form (no auth required)
 │   ├── invite/[token]/page.tsx            ← Public invite acceptance (team members)
 │   └── onboarding/page.tsx               ← DEV ONLY: Manual workspace creation (disable in production)
 │
@@ -220,8 +215,7 @@ instroom/
 │   ├── ui/                               ← Atoms (Button, Badge, Input, Select, Dialog, Tooltip, TagInput…)
 │   ├── layout/                           ← AppShell, Sidebar, PageHeader, WorkspaceSwitcher, UserMenu
 │   ├── admin/                            ← Admin-specific components (agency list, request review)
-│   ├── agency/                           ← Agency shell components (agency sidebar, brand request table)
-│   ├── portal/                           ← Brand portal components: DriveStatusBanner, BrandPortalPosts
+│   ├── agency/                           ← Agency shell components (agency sidebar, invite-brand-dialog)
 │   ├── dashboard/                        ← StatCards, CampaignsTable, RecentPostsGrid, UsageRightsPanel
 │   ├── campaigns/                        ← CreateCampaignDialog, TrackingConfigPanel, CampaignInfluencersList, CampaignPostsTable
 │   ├── influencers/                      ← InfluencerTable, AddInfluencerDialog
@@ -236,9 +230,7 @@ instroom/
 │   │   └── client.ts                     ← createBrowserClient()
 │   ├── actions/                          ← Server Actions — one file per domain
 │   │   ├── auth.ts
-│   │   ├── agencies.ts                   ← submitAgencyRequest, approveAgencyRequest, rejectAgencyRequest, getAgencies, getActiveAgenciesPublic
-│   │   ├── brands.ts                     ← acceptBrandOnboarding (inserts workspace_members role=brand)
-│   │   ├── brand-requests.ts             ← submitBrandRequest, approveBrandRequest, rejectBrandRequest, getBrandRequests
+│   │   ├── agencies.ts                   ← submitAgencyRequest, approveAgencyRequest, rejectAgencyRequest, inviteBrand, acceptBrandInvite, getAgencies, getActiveAgenciesPublic
 │   │   ├── workspace.ts
 │   │   ├── campaigns.ts
 │   │   ├── influencers.ts

@@ -37,11 +37,21 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
 
   if (!membership) redirect('/app')
 
-  // 4. Fetch all user memberships for workspace switcher
-  const { data: allMemberships } = await supabase
-    .from('workspace_members')
-    .select('role, workspaces(id, name, slug, logo_url, drive_folder_id, drive_connection_type, drive_oauth_token, created_at)')
-    .eq('user_id', user.id)
+  // 4. Fetch all user memberships for workspace switcher + agency back-link (parallel)
+  const [{ data: allMemberships }, { data: agency }] = await Promise.all([
+    supabase
+      .from('workspace_members')
+      .select('role, workspaces(id, name, slug, logo_url, drive_folder_id, drive_connection_type, drive_oauth_token, created_at)')
+      .eq('user_id', user.id),
+    workspace.agency_id
+      ? supabase
+          .from('agencies')
+          .select('name, slug')
+          .eq('id', workspace.agency_id)
+          .eq('owner_id', user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
 
   return (
     <AppShell
@@ -50,6 +60,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
       currentRole={membership.role as WorkspaceRole}
       allMemberships={(allMemberships ?? []) as unknown as Array<{ role: WorkspaceRole; workspaces: Workspace }>}
       workspaceSlug={workspace.slug}
+      agency={agency ?? null}
     >
       {children}
     </AppShell>

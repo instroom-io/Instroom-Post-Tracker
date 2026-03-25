@@ -40,6 +40,7 @@ interface AppShellProps {
   currentRole: WorkspaceRole
   allMemberships: Array<{ role: WorkspaceRole; workspaces: Workspace }>
   workspaceSlug: string
+  agency?: { name: string; slug: string } | null
 }
 
 export function AppShell({
@@ -49,6 +50,7 @@ export function AppShell({
   currentRole,
   allMemberships,
   workspaceSlug,
+  agency,
 }: AppShellProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
@@ -98,7 +100,35 @@ export function AppShell({
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 pt-4">
+        <nav className="flex-1 overflow-y-auto px-2 pt-3">
+
+          {/* Agency back-link — only visible to agency owners */}
+          {agency && (
+            <div className="mb-2">
+              <Link
+                href={`/agency/${agency.slug}/dashboard`}
+                className={cn(
+                  'flex items-center rounded-lg px-2.5 py-[7px] text-[11px] text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground-light',
+                  collapsed ? 'justify-center gap-0' : 'gap-1.5'
+                )}
+              >
+                <ChevronLeft size={12} className="shrink-0" />
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className="overflow-hidden truncate whitespace-nowrap"
+                    >
+                      {agency.name}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Link>
+            </div>
+          )}
+
           <AnimatePresence>
             {!collapsed && (
               <motion.p

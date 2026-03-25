@@ -75,9 +75,6 @@ app/
 │       │   ├── posts/page.tsx
 │       │   ├── analytics/page.tsx
 │       │   └── settings/page.tsx
-│       └── (portal)/        ← Brand read-only portal (role='brand' only)
-│           ├── layout.tsx   ← Portal shell (no agency sidebar)
-│           └── portal/page.tsx
 │
 ├── api/
 │   ├── webhooks/ensemble/route.ts      ← External POST, HMAC only, service client
@@ -85,11 +82,11 @@ app/
 │       ├── download-worker/route.ts    ← GET, Vercel Cron Bearer token
 │       └── metrics-worker/route.ts    ← GET, Vercel Cron Bearer token
 │
-├── app/page.tsx             ← Redirect: platform admin → /admin, agency owner → /agency/[slug]/dashboard,
-│                               brand role → /[slug]/portal, member → /[slug]/overview, else → /no-access
-├── invite/[token]/page.tsx  ← Public — team member invite token validation + acceptance
-├── onboard/[token]/page.tsx ← PRODUCTION — brand onboarding acceptance (creates workspace_members row)
-└── onboarding/page.tsx      ← DEV ONLY — manual workspace creation (disable in production)
+├── app/page.tsx                  ← Redirect: platform admin → /admin, agency owner → /agency/[slug]/dashboard,
+│                                    member → /[slug]/overview, else → /no-access
+├── brand-invite/[token]/page.tsx ← Public — brand onboard form (no auth); calls acceptBrandInvite()
+├── invite/[token]/page.tsx       ← Public — team member invite token validation + acceptance
+└── onboarding/page.tsx           ← DEV ONLY — manual workspace creation (disable in production)
 ```
 
 ### Why this structure?
@@ -99,8 +96,7 @@ app/
 - `admin/` — platform admin routes; layout checks `is_platform_admin = true` on `public.users`
 - `agency/[agencySlug]/` — agency shell; layout validates the user is the agency `owner_id`
 - `(dashboard)/layout.tsx` — **single auth boundary** for all agency-staff workspace routes. Validates membership once; child pages never re-check auth
-- `(portal)/layout.tsx` — brand portal boundary; validates `role='brand'` in `workspace_members`
-- `onboard/[token]` — brand onboarding acceptance. Brand clicks emailed link → signs in → confirms → `workspace_members(role='brand')` inserted
+- `brand-invite/[token]` — public brand onboard form. Agency sends link → brand fills website + logo → `acceptBrandInvite()` creates workspace with agency as owner. No auth required.
 - `invite/[token]` — team member invitation acceptance. Workspace already exists; just adds the user to `workspace_members`
 - `onboarding` — **dev only**. Manual workspace creation for local development. Must not be accessible in production
 - No route needs to protect itself individually — layout handles it all
@@ -234,9 +230,7 @@ Write permissions by role:
 Only these places use `createServiceClient()` (bypasses all RLS):
 1. `app/api/cron/posts-worker/route.ts` — writes posts across workspace boundaries
 2. `lib/actions/workspace.ts` — workspace creation + team member invitation acceptance
-3. `lib/actions/brands.ts` — brand entry creation, token generation, brand onboarding acceptance
-4. `lib/actions/brand-requests.ts` — public form submission, approval (auto-creates workspace), rejection
-5. `lib/actions/agencies.ts` — agency creation + request approval (no agency membership row exists yet for agency owner)
+3. `lib/actions/agencies.ts` — agency creation, request approval, brand invite acceptance (workspace creation crosses user boundaries)
 
 ---
 
@@ -365,11 +359,11 @@ auth.users
   │
   ├── [agency owner_id] → agencies (slug, status)
   │     └── /agency/[agencySlug]/*
-  │           └── approves brand_requests (agency_id FK) → creates workspaces (agency_id FK)
-  │                 └── generates onboard_token → email → /onboard/[token]
-  │                       └── [on accept] → workspace_members (role='brand')
+  │           └── inviteBrand() → brand_invites (token, expires_at)
+  │                 └── /brand-invite/[token] → acceptBrandInvite() → workspaces (agency_id FK)
+  │                       └── workspace_members (role='owner', user=invited_by)
   │
-  └── workspace_members (role: owner | admin | editor | viewer | brand)
+  └── workspace_members (role: owner | admin | editor | viewer)
         └── workspaces (agency_id FK → agencies)
               ├── campaigns
               │     ├── campaign_tracking_configs  [unique: campaign_id + platform]

@@ -1,8 +1,8 @@
 # Database — Instroom
 
 > Migration file: `supabase/migrations/0001_initial_schema.sql`
-> Brand request flow migration: `supabase/migrations/0002_brand_requests.sql`
 > Multi-agency platform migration: `supabase/migrations/0011_multi_agency_platform.sql`
+> Brand invite flow migration: `supabase/migrations/0019_brand_invites.sql`
 >
 > **Apply migrations:** `npm run db:push`
 > **Regenerate TypeScript types:** `npm run db:generate`
@@ -18,9 +18,9 @@
 | `users` | Public user profiles (mirrors `auth.users`); `is_platform_admin` flag for Instroom admins |
 | `agencies` | Marketing agencies — each is a Tier 2 operator in the 3-tier platform |
 | `agency_requests` | Inbound agency registration requests reviewed by platform admin |
-| `brand_requests` | Inbound brand connection requests via `/request-access` (status: pending → approved / rejected) |
+| `brand_invites` | Brand workspace invites created by agency owners; token-based public form at `/brand-invite/[token]` |
 | `workspaces` | One per brand client — billing + isolation unit; `agency_id` FK links to owning agency |
-| `workspace_members` | User ↔ workspace with role (agency staff + brand users with `role='brand'`) |
+| `workspace_members` | User ↔ workspace with role (owner | admin | editor | viewer) |
 | `workspace_platform_handles` | Brand's own social accounts (for exclusion logic) |
 | `invitations` | Pending email invitations for agency team members (token-based) |
 | `campaigns` | Campaign definition with date window |
@@ -80,28 +80,24 @@ reviewed_at     timestamptz
 created_at      timestamptz default now()
 ```
 
-### `brand_requests`
+### `brand_invites`
 ```sql
-id                      uuid primary key default gen_random_uuid()
-brand_name              text not null
-website_url             text not null
-contact_name            text not null
-contact_email           text not null
-description             text
-agency_id               uuid references agencies                     -- which agency this brand chose
-status                  brand_request_status not null default 'pending'  -- enum: pending|approved|rejected
-workspace_id            uuid references workspaces                   -- set on approval
-onboard_token           text unique                                  -- 32-byte hex, set on approval
-onboard_token_expires_at timestamptz                                 -- token expiry
-onboard_accepted_at     timestamptz                                  -- when brand clicked Confirm
-reviewed_by             uuid references users                        -- agency user who approved/rejected
-reviewed_at             timestamptz
-created_at              timestamptz default now()
+id              uuid primary key default gen_random_uuid()
+agency_id       uuid not null references agencies on delete cascade
+workspace_name  text not null                                     -- brand name entered by agency
+email           text not null                                     -- brand contact email
+token           text not null unique default encode(gen_random_bytes(32), 'hex')
+invited_by      uuid not null references auth.users on delete cascade
+expires_at      timestamptz not null default (now() + interval '7 days')
+accepted_at     timestamptz                                       -- set when brand submits the form
+website_url     text                                              -- captured from brand's form submission
+workspace_id    uuid references workspaces on delete set null     -- set after workspace is created
+created_at      timestamptz not null default now()
 ```
 
-> `workspace_id` is null until the request is approved. On approval, the auto-created workspace ID is stored here for traceability.
-> `onboard_token` is generated on approval and emailed to the brand contact. Used at `/onboard/[token]`.
-> `reviewed_by` + `reviewed_at` provide a full audit trail of who approved or rejected each request.
+> Workspace is created at acceptance time (not invite-send time) inside `acceptBrandInvite()`.
+> Agency owner (`invited_by`) becomes the workspace owner when brand submits the form.
+> Link expires after 7 days; token is single-use (checked via `accepted_at`).
 
 ### `workspaces`
 ```sql
@@ -125,14 +121,13 @@ created_at            timestamptz default now()
 id            uuid primary key default gen_random_uuid()
 workspace_id  uuid not null references workspaces on delete cascade
 user_id       uuid not null references users on delete cascade
-role          workspace_role not null  -- enum: owner|admin|editor|viewer|brand
+role          workspace_role not null  -- enum: owner|admin|editor|viewer
 invited_by    uuid references users
 joined_at     timestamptz default now()
 unique (workspace_id, user_id)
 ```
 
 > `viewer` role is for agency staff with read-only access (e.g. account directors).
-> `brand` role is for brand users who accepted the onboarding link. They can only access `/[slug]/portal`, not the dashboard.
 
 ### `workspace_platform_handles`
 ```sql
@@ -284,12 +279,11 @@ error         text
 ## 3. Enums
 
 ```sql
-create type brand_request_status  as enum ('pending', 'approved', 'rejected');
 create type agency_status         as enum ('pending', 'active', 'suspended');
 create type agency_request_status as enum ('pending', 'approved', 'rejected');
 create type drive_connection_type as enum ('agency', 'brand');
 create type platform_type         as enum ('instagram', 'tiktok', 'youtube');
-create type workspace_role        as enum ('owner', 'admin', 'editor', 'viewer', 'brand');
+create type workspace_role        as enum ('owner', 'admin', 'editor', 'viewer');
 create type campaign_status       as enum ('draft', 'active', 'ended');
 create type monitoring_status     as enum ('pending', 'active', 'paused');
 create type download_status       as enum ('pending', 'downloaded', 'blocked', 'failed');
@@ -301,10 +295,6 @@ create type job_status            as enum ('pending', 'processing', 'done', 'fai
 > **Added in 0011_multi_agency_platform.sql:**
 > `agency_status` — for the `agencies` table.
 > `agency_request_status` — for the `agency_requests` table.
-> `workspace_role` gained `'brand'` value — for brand users who have read-only portal access.
-
-> **Removed enums (from previous design):**
-> `brand_status` (`pending` | `active`) — was used by the `brands` table, no longer needed.
 
 ---
 
@@ -358,18 +348,23 @@ returns setof uuid language sql security definer stable as $$
 $$;
 ```
 
-### `brand_requests` RLS
+### `brand_invites` RLS
 ```sql
--- Agency staff can view all pending/approved/rejected requests
-create policy "Agency can view brand requests"
-  on brand_requests for select
-  using (auth.uid() is not null);
+-- Agency owner can read their own invites
+create policy "Agency owner can view brand invites"
+  on brand_invites for select
+  using (
+    exists (
+      select 1 from agencies
+      where id = brand_invites.agency_id
+      and owner_id = auth.uid()
+    )
+  );
 
--- Anyone (unauthenticated) can submit a request — INSERT via service client only
--- No direct user INSERT policy — submitBrandRequest() uses service client
+-- Public token lookup (for /brand-invite/[token] page) — INSERT/UPDATE via service client only
 ```
 
-> `brand_requests` INSERT goes through `submitBrandRequest()` Server Action using the service client — no user auth required for submission, but we don't expose a direct RLS INSERT policy to anonymous users either.
+> All `brand_invites` writes go through service client in `inviteBrand()` and `acceptBrandInvite()`.
 
 ### Standard workspace tables (campaigns, influencers, posts, etc.)
 Same RLS pattern as before — `workspace_id in (select public.my_workspace_ids())`.
