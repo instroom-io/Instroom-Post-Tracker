@@ -34,16 +34,9 @@ export default function NoAccessPage() {
 
           <div className="mt-5 flex flex-col gap-3 text-left">
             <div className="rounded-lg border border-border bg-background p-4">
-              <p className="text-[12px] font-semibold text-foreground">Expecting an onboarding link?</p>
-              <p className="mt-1 text-[12px] text-foreground-lighter leading-relaxed">
-                Check your email for a confirmation link sent by your agency. Follow that link to activate your brand portal.
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-border bg-background p-4">
               <p className="text-[12px] font-semibold text-foreground">New to Instroom?</p>
               <p className="mt-1 text-[12px] text-foreground-lighter leading-relaxed">
-                Submit a request — for brands or agencies — and we&apos;ll review it and get you set up.
+                Apply as an agency and we&apos;ll review your request.
               </p>
               <Link
                 href="/request-access"

@@ -37,7 +37,12 @@ export async function GET(request: NextRequest) {
           const email = user.email!
           const isAdmin = adminEmail && email.toLowerCase() === adminEmail.toLowerCase()
 
-          if (!isAdmin) {
+          if (isAdmin) {
+            await createServiceClient()
+              .from('users')
+              .update({ is_platform_admin: true })
+              .eq('id', user.id)
+          } else {
             const serviceClient = createServiceClient()
 
             const [{ data: invite }, { data: agencyRequest }] = await Promise.all([
