@@ -12,7 +12,7 @@
     --background: 0 0% 97.5%;            /* #F9F9F9 — zinc canvas */
     --background-surface: 0 0% 100%;     /* #FFFFFF — cards, panels */
     --background-muted: 0 0% 95.5%;      /* #F4F4F4 — table hover, input fill */
-    --background-overlay: 240 6% 10%;    /* #18181B — zinc-950 sidebar (Linear-style) */
+    --background-overlay: 0 0% 96%;      /* #F5F5F5 — light sidebar surface */
 
     /* Foregrounds — neutral, no green cast */
     --foreground: 0 0% 9%;               /* #171717 — primary body text */

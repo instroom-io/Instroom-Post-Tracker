@@ -68,7 +68,7 @@ export function AppShell({
       {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
       <aside
         className={cn(
-          'relative flex flex-shrink-0 flex-col border-r border-white/8 bg-background-overlay transition-all duration-200 ease-in-out',
+          'relative flex flex-shrink-0 flex-col border-r border-border bg-background-overlay transition-all duration-200 ease-in-out',
           collapsed ? 'w-[56px]' : 'w-[220px]'
         )}
       >
@@ -87,7 +87,7 @@ export function AppShell({
         {/* Logo area */}
         <div
           className={cn(
-            'flex h-14 flex-shrink-0 items-center border-b border-white/10',
+            'flex h-14 flex-shrink-0 items-center border-b border-border',
             collapsed ? 'justify-center px-0' : 'px-4'
           )}
         >
@@ -105,7 +105,7 @@ export function AppShell({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-white/30"
+                className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-foreground-muted"
               >
                 Menu
               </motion.p>
@@ -123,13 +123,13 @@ export function AppShell({
                     'mb-0.5 flex items-center rounded-lg px-2.5 py-[7px] text-[12px] transition-colors',
                     collapsed ? 'justify-center gap-0' : 'gap-2.5',
                     isActive
-                      ? 'relative bg-white/[0.08] font-medium text-white before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-r-full before:bg-brand'
-                      : 'text-white/55 hover:bg-white/[0.08] hover:text-white/85'
+                      ? 'relative bg-background-muted font-medium text-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-r-full before:bg-brand'
+                      : 'text-foreground-lighter hover:bg-background-muted hover:text-foreground-light'
                   )}
                 >
                   <item.icon
                     size={14}
-                    className={cn(isActive ? 'text-white' : 'text-white/50')}
+                    className={cn(isActive ? 'text-foreground' : 'text-foreground-lighter')}
                   />
                   <AnimatePresence>
                     {!collapsed && (
@@ -157,7 +157,7 @@ export function AppShell({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="border-t border-white/10 p-2.5"
+              className="border-t border-border p-2.5"
             >
               <UserMenu user={user} />
             </motion.div>

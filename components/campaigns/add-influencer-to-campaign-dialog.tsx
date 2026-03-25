@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { UserPlus, ArrowLeft, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
+import { useState, useTransition, useRef } from 'react'
+import { UserPlus, ArrowLeft, CheckCircle2, AlertTriangle, XCircle, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -100,6 +100,25 @@ export function AddInfluencerToCampaignDialog({
 
   // Shared
   const [productSentAt, setProductSentAt] = useState<string>('')
+
+  // CSV upload
+  const csvFileRef = useRef<HTMLInputElement>(null)
+
+  function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string
+      const handles = text
+        .split(/[\r\n,]+/)
+        .map((h) => h.trim().replace(/^@/, ''))
+        .filter((h) => h.length > 0 && h.length <= 100)
+      setBatchText(handles.join('\n'))
+    }
+    reader.readAsText(file)
+    if (csvFileRef.current) csvFileRef.current.value = ''
+  }
 
   // Only show influencers who have a handle on at least one campaign platform
   const platformFilteredInfluencers = availableInfluencers.filter((inf) =>
@@ -358,6 +377,20 @@ export function AddInfluencerToCampaignDialog({
 
                 {/* Textarea */}
                 <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-foreground-light">Handles</span>
+                    <label className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-[11px] text-foreground-lighter hover:bg-background-muted transition-colors">
+                      <Upload size={11} />
+                      Upload CSV
+                      <input
+                        type="file"
+                        accept=".csv,.txt"
+                        className="hidden"
+                        ref={csvFileRef}
+                        onChange={handleCsvUpload}
+                      />
+                    </label>
+                  </div>
                   <textarea
                     value={batchText}
                     onChange={(e) => setBatchText(e.target.value)}

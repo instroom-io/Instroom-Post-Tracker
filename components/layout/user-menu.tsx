@@ -83,16 +83,16 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label={`User menu for ${displayName}`}
-          className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+          className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
         >
           {avatarUrl ? (
             <Image src={avatarUrl} alt={displayName} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
           ) : (
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 border border-white/15 text-[10px] font-bold text-white/80">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-background-muted border border-border text-[10px] font-bold text-foreground-light">
               {initials}
             </div>
           )}
-          <span className="text-[12px] font-medium text-white/60">{displayName}</span>
+          <span className="text-[12px] font-medium text-foreground-lighter">{displayName}</span>
         </button>
       )}
 

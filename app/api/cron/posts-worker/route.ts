@@ -537,9 +537,26 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Chain: trigger metrics-worker after all scraping is done, draining the full queue
+  let metricsProcessed = 0
+  let metricsTotal = 0
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  const cronSecret = process.env.CRON_SECRET
+  if (appUrl && cronSecret) {
+    do {
+      const res = await fetch(`${appUrl}/api/cron/metrics-worker`, {
+        headers: { Authorization: `Bearer ${cronSecret}` },
+      })
+      const data = await res.json() as { processed?: number }
+      metricsProcessed = data.processed ?? 0
+      metricsTotal += metricsProcessed
+    } while (metricsProcessed > 0)
+  }
+
   return NextResponse.json({
     scraped: totalScraped,
     newPosts: totalNewPosts,
+    metricsProcessed: metricsTotal,
     ...(errors.length > 0 && { errors }),
   })
 }

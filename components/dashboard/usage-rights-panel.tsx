@@ -4,7 +4,8 @@ import { useOptimistic, useTransition } from 'react'
 import { toast } from 'sonner'
 import { AlertCircle, Users } from 'lucide-react'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
-import { cn, getInfluencerLabel } from '@/lib/utils'
+import { getInfluencerLabel } from '@/lib/utils'
+import { Switch } from '@/components/ui/switch'
 
 interface CampaignInfluencer {
   id: string
@@ -73,30 +74,13 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
             {!item.usage_rights && (
               <AlertCircle size={13} className="text-warning flex-shrink-0" />
             )}
-
-            {/* Toggle */}
-            <button
-              type="button"
+            <Switch
+              size="sm"
+              checked={item.usage_rights}
+              onCheckedChange={() => handleToggle(item.id, item.usage_rights)}
               disabled={!canEdit || isPending}
-              onClick={() => handleToggle(item.id, item.usage_rights)}
               aria-label={`Toggle usage rights for @${item.influencer ? getInfluencerLabel(item.influencer) : 'influencer'}`}
-              className={cn(
-                'relative inline-flex h-4 w-7 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
-                'transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
-                'disabled:cursor-not-allowed disabled:opacity-50',
-                item.usage_rights ? 'bg-brand' : 'bg-foreground-muted'
-              )}
-              aria-checked={item.usage_rights}
-              role="switch"
-            >
-              <span
-                className={cn(
-                  'pointer-events-none inline-block h-3 w-3 rounded-full bg-background-surface shadow',
-                  'transform transition-transform duration-200',
-                  item.usage_rights ? 'translate-x-3' : 'translate-x-0'
-                )}
-              />
-            </button>
+            />
           </div>
         </div>
       ))}
