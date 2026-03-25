@@ -34,7 +34,7 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
     startTransition(async () => {
       updateOptimistic({ id, value: newValue })
       const result = await toggleUsageRights(id, newValue)
-      if (result?.error) {
+      if (result && 'error' in result) {
         toast.error(result.error)
       }
     })

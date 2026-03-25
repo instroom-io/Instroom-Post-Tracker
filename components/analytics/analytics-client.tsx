@@ -172,7 +172,7 @@ export function AnalyticsClient({
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <AnalyticsFilterBar
         filters={filters}
         onFilterChange={setFilters}
@@ -195,7 +195,7 @@ export function AnalyticsClient({
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
           <p className="mb-4 text-[13px] font-display font-bold text-foreground">
             Post Volume

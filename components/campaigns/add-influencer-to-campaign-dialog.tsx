@@ -468,7 +468,7 @@ export function AddInfluencerToCampaignDialog({
                             )}
                           </div>
                           {/* Avatar */}
-                          <InfluencerAvatar handle={r.handle} profilePicUrl={r.profile_pic_url} />
+                          <InfluencerAvatar handle={r.handle} profilePicUrl={r.profile_pic_url ?? null} />
                           {/* Handle */}
                           <span className="font-mono text-[12px] text-foreground">
                             <span className="text-foreground-muted">@</span>{r.handle}

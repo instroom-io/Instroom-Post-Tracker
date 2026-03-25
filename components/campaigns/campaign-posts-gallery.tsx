@@ -192,7 +192,7 @@ export function CampaignPostsGallery({
             </div>
 
             {/* Cards grid */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4">
               {groupPosts.map((post) => (
                 <div
                   key={post.id}

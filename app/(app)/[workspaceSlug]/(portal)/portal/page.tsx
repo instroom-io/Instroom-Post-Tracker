@@ -54,13 +54,13 @@ export default async function BrandPortalPage({ params }: PageProps) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           { label: 'Posts Downloaded', value: (postCount ?? 0).toLocaleString() },
           { label: 'Total Reach', value: totalReach >= 1000 ? `${(totalReach / 1000).toFixed(0)}K` : totalReach.toString() },
           { label: 'EMV', value: totalEmv >= 1000 ? `€${(totalEmv / 1000).toFixed(1)}K` : `€${totalEmv.toFixed(0)}` },
         ].map((stat, i) => (
-          <div key={stat.label} className={`rounded-xl border border-border bg-background-surface p-4 shadow-md animate-fade-up animate-fade-up-delay-${i + 1}`}>
+          <div key={stat.label} className={`rounded-xl border border-border bg-background-surface p-4 shadow-sm animate-fade-up animate-fade-up-delay-${i + 1}`}>
             <p className="text-[11px] uppercase tracking-wide text-foreground-muted">{stat.label}</p>
             <p className="mt-1 text-2xl font-bold text-foreground">{stat.value}</p>
           </div>

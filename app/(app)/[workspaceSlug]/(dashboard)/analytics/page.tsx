@@ -95,16 +95,18 @@ export default async function AnalyticsPage({ params }: PageProps) {
   })
 
   return (
-    <div className="p-6 space-y-6">
+    <div>
       <PageHeader title="Analytics" />
-      <AnalyticsClient
-        metrics={metricsData}
-        campaigns={campaigns ?? []}
-        emvConfigs={emvConfigs ?? []}
-        workspaceId={workspace.id}
-        canEdit={canEdit}
-        defaultFilters={{ from, to, campaignId: 'all', platform: 'all' }}
-      />
+      <div className="p-5">
+        <AnalyticsClient
+          metrics={metricsData}
+          campaigns={campaigns ?? []}
+          emvConfigs={emvConfigs ?? []}
+          workspaceId={workspace.id}
+          canEdit={canEdit}
+          defaultFilters={{ from, to, campaignId: 'all', platform: 'all' }}
+        />
+      </div>
     </div>
   )
 }
