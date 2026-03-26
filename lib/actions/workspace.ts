@@ -11,6 +11,7 @@ import {
 } from '@/lib/validations'
 import { toSlug, extractDriveFolderId, isPersonalEmail } from '@/lib/utils'
 import { sendEmail, escapeHtml } from '@/lib/email'
+import { teamInviteEmail } from '@/lib/email/templates/team-invite'
 import type { WorkspaceRole } from '@/lib/types'
 
 export async function createWorkspace(
@@ -175,12 +176,12 @@ export async function inviteMember(
   try {
     await sendEmail({
       to: parsed.data.email,
-      subject: `You've been invited to ${escapeHtml(workspace?.name ?? 'a workspace')} on Instroom Post Tracker`,
-      html: `
-        <p>You've been invited to join <strong>${escapeHtml(workspace?.name ?? 'a workspace')}</strong> on Instroom Post Tracker as a <strong>${escapeHtml(parsed.data.role)}</strong>.</p>
-        <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}">Accept invitation →</a></p>
-        <p>This link expires in 7 days.</p>
-      `,
+      subject: `You've been invited to ${escapeHtml(workspace?.name ?? 'a workspace')} on Instroom`,
+      html: teamInviteEmail({
+        workspaceName: workspace?.name ?? 'a workspace',
+        role: parsed.data.role,
+        inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`,
+      }),
     })
   } catch (err) {
     console.error('[email] Failed to send team member invite email:', err)

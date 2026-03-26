@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { sendEmail, escapeHtml } from '@/lib/email'
+import { brandInviteEmail } from '@/lib/email/templates/brand-invite'
+import { agencyApprovedEmail } from '@/lib/email/templates/agency-approved'
 import { isPersonalEmail } from '@/lib/utils'
 import { z } from 'zod'
 import { agencyRequestSchema, createWorkspaceSchema, inviteMemberSchema } from '@/lib/validations'
@@ -36,7 +38,7 @@ export async function inviteBrand(
 
   const { data: agency } = await supabase
     .from('agencies')
-    .select('id, name')
+    .select('id, name, logo_url')
     .eq('id', agencyId)
     .eq('owner_id', user.id)
     .single()
@@ -61,14 +63,13 @@ export async function inviteBrand(
   try {
     await sendEmail({
       to: emailParsed.data,
-      subject: `${escapeHtml(nameParsed.data.name)} — complete your brand profile on Instroom`,
-      html: `
-        <p>Hi,</p>
-        <p><strong>${escapeHtml(agency.name)}</strong> has invited you to set up your brand profile for <strong>${escapeHtml(nameParsed.data.name)}</strong> on Instroom Post Tracker.</p>
-        <p>Please complete the short form to get started:</p>
-        <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/brand-invite/${invite.token}">Complete brand profile →</a></p>
-        <p>This link expires in 7 days.</p>
-      `,
+      subject: `${escapeHtml(agency.name)} has invited you to Instroom`,
+      html: brandInviteEmail({
+        agencyName: agency.name,
+        agencyLogoUrl: agency.logo_url ?? undefined,
+        workspaceName: nameParsed.data.name,
+        inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/brand-invite/${invite.token}`,
+      }),
     })
   } catch (err) {
     console.error('[email] Failed to send brand invite email:', err)
@@ -245,15 +246,12 @@ export async function approveAgencyRequest(
   // Send approval email to agency contact
   await sendEmail({
     to: request.contact_email,
-    subject: 'Your agency application has been approved — Instroom',
-    html: `
-      <p>Hi ${escapeHtml(request.contact_name)},</p>
-      <p>Great news — your agency <strong>${escapeHtml(request.agency_name)}</strong> has been approved on Instroom Post Tracker.</p>
-      <p>To access your agency dashboard, sign up (or log in) using this email address at:</p>
-      <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/signup">${process.env.NEXT_PUBLIC_APP_URL}/signup</a></p>
-      <p>Once logged in, you'll be taken directly to your agency dashboard where you can manage brand workspaces and approve brand requests.</p>
-      <p>— The Instroom Team</p>
-    `,
+    subject: `Your agency has been approved — Instroom`,
+    html: agencyApprovedEmail({
+      contactName: request.contact_name,
+      agencyName: request.agency_name,
+      signupUrl: `${process.env.NEXT_PUBLIC_APP_URL}/signup`,
+    }),
   })
 }
 

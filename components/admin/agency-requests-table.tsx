@@ -11,6 +11,32 @@ interface Props {
   requests: AgencyRequest[]
 }
 
+function LogoAvatar({ websiteUrl, agencyName }: { websiteUrl: string; agencyName: string }) {
+  const [showFallback, setShowFallback] = useState(false)
+
+  let hostname = ''
+  try { hostname = new URL(websiteUrl).hostname } catch { /* invalid url */ }
+
+  const initial = (
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-background text-[15px] font-bold">
+      {agencyName.charAt(0).toUpperCase()}
+    </div>
+  )
+
+  if (!hostname || showFallback) return initial
+
+  return (
+    <img
+      src={`https://logo.clearbit.com/${hostname}`}
+      alt=""
+      width={36}
+      height={36}
+      className="h-9 w-9 shrink-0 rounded-lg border border-border bg-background-subtle object-contain p-1"
+      onError={() => setShowFallback(true)}
+    />
+  )
+}
+
 export function AgencyRequestsTable({ requests }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -58,14 +84,17 @@ export function AgencyRequestsTable({ requests }: Props) {
           key={req.id}
           className="flex items-center justify-between rounded-lg border border-border bg-background-surface px-4 py-3"
         >
-          <div>
-            <p className="text-[13px] font-semibold text-foreground">{req.agency_name}</p>
-            <p className="text-[11px] text-foreground-lighter">
-              {req.contact_email} · {new Date(req.created_at).toLocaleDateString()}
-            </p>
-            {req.description && (
-              <p className="mt-1 text-[11px] text-foreground-lighter line-clamp-1">{req.description}</p>
-            )}
+          <div className="flex items-center gap-3">
+            <LogoAvatar websiteUrl={req.website_url} agencyName={req.agency_name} />
+            <div>
+              <p className="text-[13px] font-semibold text-foreground">{req.agency_name}</p>
+              <p className="text-[11px] text-foreground-lighter">
+                {req.contact_name} · {req.contact_email} · {new Date(req.created_at).toLocaleDateString()}
+              </p>
+              {req.description && (
+                <p className="mt-0.5 text-[11px] text-foreground-lighter line-clamp-1">{req.description}</p>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button

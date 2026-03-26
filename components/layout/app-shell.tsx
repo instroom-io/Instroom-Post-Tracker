@@ -108,7 +108,7 @@ export function AppShell({
               <Link
                 href={`/agency/${agency.slug}/dashboard`}
                 className={cn(
-                  'flex items-center rounded-lg px-2.5 py-[7px] text-[11px] text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground-light',
+                  'flex items-center rounded-lg px-2.5 py-[7px] text-[11px] text-foreground-muted transition-colors hover:bg-brand-muted hover:text-brand',
                   collapsed ? 'justify-center gap-0' : 'gap-1.5'
                 )}
               >
@@ -154,12 +154,12 @@ export function AppShell({
                     collapsed ? 'justify-center gap-0' : 'gap-2.5',
                     isActive
                       ? 'relative bg-background-muted font-medium text-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-r-full before:bg-brand'
-                      : 'text-foreground-lighter hover:bg-background-muted hover:text-foreground-light'
+                      : 'text-foreground-lighter hover:bg-brand-muted hover:text-brand'
                   )}
                 >
                   <item.icon
                     size={14}
-                    className={cn(isActive ? 'text-foreground' : 'text-foreground-lighter')}
+                    className={cn(isActive ? 'text-foreground' : '')}
                   />
                   <AnimatePresence>
                     {!collapsed && (

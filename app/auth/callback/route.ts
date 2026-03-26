@@ -28,31 +28,39 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
+        const serviceClient = createServiceClient()
+
+        // Ensure public.users row always exists (trigger may fail silently)
+        await serviceClient.from('users').upsert({
+          id: user.id,
+          email: user.email!,
+          full_name: user.user_metadata?.full_name ?? null,
+          avatar_url: user.user_metadata?.avatar_url ?? null,
+        }, { onConflict: 'id', ignoreDuplicates: false })
+
+        // For admin email: always ensure is_platform_admin = true on every sign-in
+        const adminEmail = process.env.ADMIN_EMAIL
+        const email = user.email!
+        const isAdmin = adminEmail && email.toLowerCase() === adminEmail.toLowerCase()
+
+        if (isAdmin) {
+          await serviceClient.from('users').update({ is_platform_admin: true }).eq('id', user.id)
+        }
+
         // Detect new user: created_at and last_sign_in_at are within 10 seconds
         const createdAt = new Date(user.created_at).getTime()
         const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : createdAt
         const isNewUser = Math.abs(createdAt - lastSignIn) < 10000
 
         if (isNewUser) {
-          const adminEmail = process.env.ADMIN_EMAIL
-          const email = user.email!
-          const isAdmin = adminEmail && email.toLowerCase() === adminEmail.toLowerCase()
-
           // Block personal email domains (except admin)
           if (!isAdmin && isPersonalEmail(email)) {
-            await createServiceClient().auth.admin.deleteUser(user.id)
+            await serviceClient.auth.admin.deleteUser(user.id)
             await supabase.auth.signOut()
             return redirectTo('/login?error=work_email_required')
           }
 
-          if (isAdmin) {
-            await createServiceClient()
-              .from('users')
-              .update({ is_platform_admin: true })
-              .eq('id', user.id)
-          } else {
-            const serviceClient = createServiceClient()
-
+          if (!isAdmin) {
             const [{ data: invite }, { data: agencyRequest }] = await Promise.all([
               serviceClient.from('invitations').select('id')
                 .eq('email', email).is('accepted_at', null)
