@@ -51,7 +51,7 @@ export async function triggerPostDownload(
     const result = await processPostDownload(serviceClient, postId, member.drive_folder_id)
 
     revalidatePath('/', 'layout')
-    return { driveUrl: `https://drive.google.com/file/d/${result.driveFileId}/view` }
+    return { driveUrl: `https://drive.google.com/drive/folders/${member.drive_folder_id}` }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Download failed.'
     return { error: message }

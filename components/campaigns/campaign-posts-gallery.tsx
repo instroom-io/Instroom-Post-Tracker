@@ -36,6 +36,7 @@ interface CampaignPostsGalleryProps {
   posts: PostRow[]
   trackingConfigs?: CampaignTrackingConfig[]
   workspaceId: string
+  memberDriveUrl?: string
 }
 
 function getThumbnailSrc(post: PostRow): string | null {
@@ -158,6 +159,7 @@ export function CampaignPostsGallery({
   posts,
   trackingConfigs = [],
   workspaceId,
+  memberDriveUrl,
 }: CampaignPostsGalleryProps) {
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null)
 
@@ -276,6 +278,7 @@ export function CampaignPostsGallery({
         onClose={() => setSelectedPost(null)}
         trackingConfigs={trackingConfigs}
         workspaceId={workspaceId}
+        memberDriveUrl={memberDriveUrl}
       />
     </>
   )

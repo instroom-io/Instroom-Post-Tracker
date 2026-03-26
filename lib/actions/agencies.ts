@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { sendEmail, escapeHtml } from '@/lib/email'
+import { isPersonalEmail } from '@/lib/utils'
 import { z } from 'zod'
 import { agencyRequestSchema, createWorkspaceSchema, inviteMemberSchema } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
@@ -18,12 +19,16 @@ export async function inviteBrand(
   agencyId: string,
   name: string,
   email: string
-): Promise<{ error: string } | { token: string }> {
+): Promise<{ error: string } | { token: string; emailSent: boolean }> {
   const nameParsed = createWorkspaceSchema.safeParse({ name })
   if (!nameParsed.success) return { error: nameParsed.error.errors[0].message }
 
   const emailParsed = inviteMemberSchema.shape.email.safeParse(email)
   if (!emailParsed.success) return { error: emailParsed.error.errors[0].message }
+
+  if (isPersonalEmail(emailParsed.data)) {
+    return { error: 'Please use a work email address.' }
+  }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -52,6 +57,7 @@ export async function inviteBrand(
 
   if (inviteError || !invite) return { error: 'Failed to send invite.' }
 
+  let emailSent = true
   try {
     await sendEmail({
       to: emailParsed.data,
@@ -66,10 +72,11 @@ export async function inviteBrand(
     })
   } catch (err) {
     console.error('[email] Failed to send brand invite email:', err)
+    emailSent = false
   }
 
   revalidatePath('/', 'layout')
-  return { token: invite.token }
+  return { token: invite.token, emailSent }
 }
 
 /**
@@ -317,6 +324,40 @@ export async function getAgencyRequests(
   if (status) query = query.eq('status', status)
   const { data } = await query
   return (data ?? []) as AgencyRequest[]
+}
+
+/**
+ * Update agency name and logo.
+ * Agency owner only.
+ */
+export async function updateAgency(
+  agencyId: string,
+  data: { name: string; logo_url: string }
+): Promise<{ error: string } | void> {
+  const schema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+    logo_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+  })
+  const parsed = schema.safeParse(data)
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // Verify caller owns this agency (RLS also enforces this)
+  const { data: agency } = await supabase
+    .from('agencies').select('owner_id').eq('id', agencyId).single()
+  if (!agency || agency.owner_id !== user.id) return { error: 'Unauthorized.' }
+
+  const { error } = await supabase
+    .from('agencies')
+    .update({ name: parsed.data.name, logo_url: parsed.data.logo_url || null })
+    .eq('id', agencyId)
+  if (error) return { error: 'Failed to save settings.' }
+
+  revalidatePath('/agency/[agencySlug]/settings', 'page')
+  revalidatePath('/agency/[agencySlug]/dashboard', 'page')
 }
 
 /**

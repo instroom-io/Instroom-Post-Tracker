@@ -27,6 +27,7 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [emailSent, setEmailSent] = useState(true)
   const [copied, setCopied] = useState(false)
 
   function handleClose() {
@@ -35,6 +36,7 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
     setEmail('')
     setError(null)
     setInviteLink(null)
+    setEmailSent(true)
     setCopied(false)
   }
 
@@ -54,6 +56,7 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
         setError(result.error)
         return
       }
+      setEmailSent(result.emailSent)
       setInviteLink(`${window.location.origin}/brand-invite/${result.token}`)
     })
   }
@@ -73,7 +76,9 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
             <DialogHeader>
               <DialogTitle>Invite created</DialogTitle>
               <DialogDescription>
-                An email was sent to the brand. You can also share this link directly.
+                {emailSent
+                  ? 'An email was sent to the brand. You can also share this link directly.'
+                  : "Email couldn't be sent — share this link directly with the brand."}
               </DialogDescription>
             </DialogHeader>
             <DialogBody className="space-y-3">

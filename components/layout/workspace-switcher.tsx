@@ -99,7 +99,7 @@ export function WorkspaceSwitcher({
           <WorkspaceLogo
             name={currentWorkspace.name}
             logoUrl={currentWorkspace.logo_url}
-            className={cn('flex-shrink-0 rounded-lg object-cover', align === 'left' ? 'h-9 w-9 rounded-xl' : 'h-7 w-7')}
+            className={cn('flex-shrink-0 rounded-lg object-contain', align === 'left' ? 'h-9 w-9 rounded-xl' : 'h-7 w-7')}
             fallbackClassName={align === 'left' ? 'h-9 w-9 rounded-xl bg-white/10 border border-white/15 text-white/70' : 'h-7 w-7 rounded-lg bg-background-muted border border-border text-foreground-lighter'}
             textClassName={align === 'left' ? 'text-[10px]' : 'text-[9px]'}
           />
@@ -167,7 +167,7 @@ export function WorkspaceSwitcher({
                   <WorkspaceLogo
                     name={ws.name}
                     logoUrl={ws.logo_url}
-                    className="h-5 w-5 flex-shrink-0 rounded-md object-cover"
+                    className="h-5 w-5 flex-shrink-0 rounded-md object-contain"
                     fallbackClassName="h-5 w-5 rounded-md bg-background-muted border border-border text-foreground-lighter"
                     textClassName="text-[8px]"
                   />

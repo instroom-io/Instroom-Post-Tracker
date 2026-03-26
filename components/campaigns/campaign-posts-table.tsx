@@ -36,6 +36,7 @@ interface CampaignPostsTableProps {
   showCampaignColumn?: boolean
   campaignName?: string
   workspaceId?: string
+  memberDriveUrl?: string
 }
 
 const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
@@ -53,7 +54,7 @@ const collabVariant: Record<
   not_added: 'destructive',
 }
 
-export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId }: CampaignPostsTableProps) {
+export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, memberDriveUrl }: CampaignPostsTableProps) {
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null)
 
   if (posts.length === 0) {
@@ -197,6 +198,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId }:
         onClose={() => setSelectedPost(null)}
         trackingConfigs={trackingConfigs}
         workspaceId={workspaceId}
+        memberDriveUrl={memberDriveUrl}
       />
     </>
   )

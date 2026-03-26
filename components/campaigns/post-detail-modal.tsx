@@ -44,6 +44,7 @@ interface PostDetailModalProps {
   onClose: () => void
   trackingConfigs: CampaignTrackingConfig[]
   workspaceId?: string
+  memberDriveUrl?: string
 }
 
 const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
@@ -79,7 +80,7 @@ function MetricCell({ label, value }: { label: string; value: string }) {
   )
 }
 
-function ModalDownloadButton({ post, workspaceId }: { post: PostRow; workspaceId: string }) {
+function ModalDownloadButton({ post, workspaceId, memberDriveUrl }: { post: PostRow; workspaceId: string; memberDriveUrl?: string }) {
   const [isPending, startTransition] = useTransition()
 
   if (post.download_status === 'blocked') {
@@ -95,18 +96,21 @@ function ModalDownloadButton({ post, workspaceId }: { post: PostRow; workspaceId
     )
   }
 
-  if (post.download_status === 'downloaded' && post.drive_file_id) {
-    return (
-      <a
-        href={`https://drive.google.com/file/d/${post.drive_file_id}/view`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-background-muted transition-colors"
-      >
-        <ExternalLink size={12} />
-        Open in Drive
-      </a>
-    )
+  if (post.download_status === 'downloaded') {
+    const driveHref = memberDriveUrl ?? (post.drive_file_id ? `https://drive.google.com/file/d/${post.drive_file_id}/view` : null)
+    if (driveHref) {
+      return (
+        <a
+          href={driveHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-background-muted transition-colors"
+        >
+          <ExternalLink size={12} />
+          Open in Drive
+        </a>
+      )
+    }
   }
 
   function handleDownload() {
@@ -139,7 +143,7 @@ function ModalDownloadButton({ post, workspaceId }: { post: PostRow; workspaceId
   )
 }
 
-export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId }: PostDetailModalProps) {
+export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, memberDriveUrl }: PostDetailModalProps) {
   // Detect which tracking hashtags/mentions appear in the caption
   const caption = post?.caption?.toLowerCase() ?? ''
   const matchedHashtags = post && caption
@@ -176,7 +180,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId }:
                     </div>
                     <DialogTitle>@{influencerLabel}</DialogTitle>
                   </div>
-                  {workspaceId && <ModalDownloadButton post={post} workspaceId={workspaceId} />}
+                  {workspaceId && <ModalDownloadButton post={post} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />}
                 </div>
                 <DialogDescription>
                   {formatRelativeDate(post.posted_at)}

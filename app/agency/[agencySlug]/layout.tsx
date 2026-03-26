@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
 import { AgencyLogoImage } from '@/components/agency/agency-logo-image'
+import { AgencyNav } from '@/components/agency/agency-nav'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -43,10 +44,7 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <nav className="flex items-center gap-4">
-            <a href={`/agency/${agencySlug}/dashboard`} className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Dashboard</a>
-            <a href={`/agency/${agencySlug}/settings`} className="text-[13px] font-medium text-foreground-lighter hover:text-foreground transition-colors">Settings</a>
-          </nav>
+          <AgencyNav agencySlug={agencySlug} />
           <UserMenu user={user} compact settingsHref={`/agency/${agencySlug}/settings`} />
           <ThemeToggle />
         </div>

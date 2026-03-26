@@ -61,7 +61,7 @@ export default async function AgencyDashboardPage({ params }: PageProps) {
             {workspaces!.slice(0, 5).map((w) => (
               <a key={w.id} href={`/${w.slug}/overview`} className="flex items-center gap-3 rounded-lg border border-border px-4 py-2 hover:border-foreground/20 transition-colors">
                 {w.logo_url ? (
-                  <img src={w.logo_url} alt={w.name} className="h-7 w-7 flex-shrink-0 rounded-md object-cover" />
+                  <img src={w.logo_url} alt={w.name} className="h-7 w-7 flex-shrink-0 rounded-md object-contain" />
                 ) : (
                   <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-border bg-background-subtle text-[11px] font-semibold uppercase text-foreground-muted">
                     {w.name.slice(0, 2)}
