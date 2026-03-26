@@ -439,7 +439,7 @@ export async function GET(request: NextRequest) {
           //   Each cron run advances ~50 posts until campaign start_date is reached.
           // - Backfill complete: fetch 1 page (~10 posts) from newest posts for ongoing monitoring.
           const cursorForThisRun = tiktokBackfillComplete ? null : tiktokNextCursor
-          const depth = 5
+          const depth = tiktokBackfillComplete ? 1 : 5
           const backfillTarget = (row.product_sent_at as string | null) ?? campaign.start_date
           result = await scrapeTikTok(handle, cursorForThisRun, backfillTarget, depth)
         } else if (platform === 'youtube') {
