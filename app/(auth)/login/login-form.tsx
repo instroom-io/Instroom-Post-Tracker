@@ -35,12 +35,20 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="password"
-          className="text-[12px] font-medium text-foreground-light"
-        >
-          Password
-        </label>
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="password"
+            className="text-[12px] font-medium text-foreground-light"
+          >
+            Password
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-[11px] text-foreground-muted hover:text-foreground transition-colors"
+          >
+            Forgot password?
+          </Link>
+        </div>
         <div className="relative">
           <input
             id="password"
