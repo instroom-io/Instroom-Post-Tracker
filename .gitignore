@@ -60,3 +60,5 @@ ensemble-docs.png
 landing-*.png
 landing-*.jpeg
 .worktrees/
+
+.vercel

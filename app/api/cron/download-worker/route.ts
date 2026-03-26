@@ -3,7 +3,7 @@ import { processPostDownload } from '@/lib/downloads/process-download'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 800
+export const maxDuration = 300
 
 export async function GET(request: NextRequest) {
   // Verify cron secret

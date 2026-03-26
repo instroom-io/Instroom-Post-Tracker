@@ -129,7 +129,7 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="brand@nike.com"
+                  placeholder="instroom@brand.com"
                   required
                   error={undefined}
                 />

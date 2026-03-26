@@ -77,7 +77,7 @@ export function RequestAccessTabs() {
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="contact_email" className={labelClass}>Contact email</label>
-        <input id="contact_email" name="contact_email" type="email" required placeholder="jane@acmeagency.com" className={inputClass} />
+        <input id="contact_email" name="contact_email" type="email" required placeholder="instroom@agency.com" className={inputClass} />
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="description" className={labelClass}>

@@ -60,11 +60,11 @@ export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogP
         <DialogBody>
           <div className="space-y-4">
             <Input
-              label="Email address"
+              label="Work email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="colleague@agency.com"
+              placeholder="instroom@colleague.com"
               disabled={isPending}
             />
             <Select
