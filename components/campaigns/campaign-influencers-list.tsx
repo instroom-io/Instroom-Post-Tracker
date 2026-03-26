@@ -15,6 +15,7 @@ import { toggleUsageRights } from '@/lib/actions/usage-rights'
 import { removeInfluencerFromCampaign, updateProductSentAt, refreshInfluencerProfile } from '@/lib/actions/influencers'
 import { cn, getInfluencerLabel, getInitials } from '@/lib/utils'
 import { Switch } from '@/components/ui/switch'
+import { differenceInDays } from 'date-fns'
 import type { Platform } from '@/lib/types'
 
 interface InfluencerRow {
@@ -22,6 +23,9 @@ interface InfluencerRow {
   usage_rights: boolean
   monitoring_status: string
   product_sent_at: string | null
+  added_at: string
+  follow_up_1_sent_at: string | null
+  follow_up_2_sent_at: string | null
   influencer: {
     id: string
     ig_handle: string | null
@@ -126,6 +130,22 @@ const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
   youtube: 'youtube',
 }
 
+type FollowUpStatus = 'first_due' | 'first_sent' | 'second_due' | 'second_sent' | null
+
+function getFollowUpStatus(
+  item: InfluencerRow,
+  hasPost: boolean
+): FollowUpStatus {
+  if (hasPost) return null
+  const clockStart = item.product_sent_at ?? item.added_at
+  const daysSince = differenceInDays(new Date(), new Date(clockStart))
+  if (daysSince < 10) return null
+  if (!item.follow_up_1_sent_at) return 'first_due'
+  if (daysSince < 13) return 'first_sent'
+  if (!item.follow_up_2_sent_at) return 'second_due'
+  return 'second_sent'
+}
+
 export function CampaignInfluencersList({
   items,
   workspaceId,
@@ -213,6 +233,9 @@ export function CampaignInfluencersList({
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Product sent
               </th>
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                Follow-up
+              </th>
               {canEdit && <th className="w-10 px-5 py-3" />}
             </tr>
           </thead>
@@ -278,6 +301,17 @@ export function CampaignInfluencersList({
                   </td>
                   <td className="px-5 py-3.5">
                     <ProductSentDateCell row={item} canEdit={canEdit} workspaceId={workspaceId} />
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {(() => {
+                      const hasPost = (postCountsByInfluencerId?.[item.influencer.id] ?? 0) > 0
+                      const status = getFollowUpStatus(item, hasPost)
+                      if (!status) return null
+                      if (status === 'first_due') return <Badge variant="warning">Follow up</Badge>
+                      if (status === 'first_sent') return <Badge variant="muted">1st sent</Badge>
+                      if (status === 'second_due') return <Badge variant="destructive">Follow up again</Badge>
+                      return <Badge variant="muted">2nd sent</Badge>
+                    })()}
                   </td>
                   {canEdit && (
                     <td className="px-3 py-3.5">
