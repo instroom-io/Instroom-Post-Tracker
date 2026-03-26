@@ -14,6 +14,18 @@ export const signUpSchema = z.object({
   full_name: z.string().min(2).max(100).optional(),
 })
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+})
+
+export const resetPasswordSchema = z.object({
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+})
+
 // ─── Workspace ────────────────────────────────────────────────────────────────
 
 export const createWorkspaceSchema = z.object({
@@ -130,6 +142,8 @@ export const updateEmvConfigSchema = z.object({
 
 export type SignInInput = z.infer<typeof signInSchema>
 export type SignUpInput = z.infer<typeof signUpSchema>
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>
 export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>
