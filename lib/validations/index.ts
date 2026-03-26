@@ -42,6 +42,11 @@ export const inviteMemberSchema = z.object({
   }),
 })
 
+export const updateAssignedMemberSchema = z.object({
+  userId: z.string().uuid().nullable(),
+})
+export type UpdateAssignedMemberInput = z.infer<typeof updateAssignedMemberSchema>
+
 // ─── Campaigns ────────────────────────────────────────────────────────────────
 
 export const createCampaignSchema = z.object({

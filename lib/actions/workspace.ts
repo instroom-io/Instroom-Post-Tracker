@@ -7,8 +7,9 @@ import {
   createWorkspaceSchema,
   updateWorkspaceSchema,
   inviteMemberSchema,
+  updateAssignedMemberSchema,
 } from '@/lib/validations'
-import { toSlug, extractDriveFolderId } from '@/lib/utils'
+import { toSlug, extractDriveFolderId, isPersonalEmail } from '@/lib/utils'
 import { sendEmail, escapeHtml } from '@/lib/email'
 import type { WorkspaceRole } from '@/lib/types'
 
@@ -109,6 +110,10 @@ export async function inviteMember(
 ): Promise<{ error: string } | void> {
   const parsed = inviteMemberSchema.safeParse(data)
   if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  if (isPersonalEmail(parsed.data.email)) {
+    return { error: 'Please use a work email address.' }
+  }
 
   const supabase = await createClient()
   const {
@@ -277,6 +282,40 @@ export async function setMemberDriveFolder(
     .eq('id', memberId)
 
   if (error) return { error: 'Failed to save Drive folder.' }
+
+  revalidatePath('/', 'layout')
+}
+
+export async function updateAssignedMember(
+  workspaceId: string,
+  data: unknown
+): Promise<{ error: string } | void> {
+  const parsed = updateAssignedMemberSchema.safeParse(data)
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!member || !['owner', 'admin'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
+  const { error } = await supabase
+    .from('workspaces')
+    .update({ assigned_member_id: parsed.data.userId })
+    .eq('id', workspaceId)
+
+  if (error) return { error: 'Failed to update assigned member.' }
 
   revalidatePath('/', 'layout')
 }
