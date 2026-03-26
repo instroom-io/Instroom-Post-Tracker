@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { differenceInDays } from 'date-fns'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300
@@ -345,6 +346,7 @@ export async function GET(request: NextRequest) {
       tiktok_next_cursor,
       tiktok_backfill_complete,
       product_sent_at,
+      added_at,
       campaigns!inner (
         id,
         workspace_id,
@@ -384,6 +386,11 @@ export async function GET(request: NextRequest) {
   const errors: string[] = []
 
   for (const row of rows) {
+    // ── Scrape delay: skip if fewer than 7 days since product was sent / added ──
+    const clockStart = (row.product_sent_at as string | null) ?? (row.added_at as string)
+    const daysSince = differenceInDays(new Date(), new Date(clockStart))
+    if (daysSince < 7) continue
+
     const campaign = row.campaigns as unknown as {
       id: string
       workspace_id: string
@@ -432,7 +439,7 @@ export async function GET(request: NextRequest) {
           //   Each cron run advances ~50 posts until campaign start_date is reached.
           // - Backfill complete: fetch 1 page (~10 posts) from newest posts for ongoing monitoring.
           const cursorForThisRun = tiktokBackfillComplete ? null : tiktokNextCursor
-          const depth = tiktokBackfillComplete ? 1 : 5
+          const depth = 5
           const backfillTarget = (row.product_sent_at as string | null) ?? campaign.start_date
           result = await scrapeTikTok(handle, cursorForThisRun, backfillTarget, depth)
         } else if (platform === 'youtube') {
