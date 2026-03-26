@@ -9,7 +9,7 @@ import { EmvSettingsPanel } from '@/components/settings/emv-settings-panel'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
 import { MembersSkeleton } from '@/components/dashboard/members-skeleton'
 import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
-import type { WorkspaceRole } from '@/lib/types'
+import type { WorkspaceRole, Workspace } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
@@ -86,6 +86,36 @@ async function EmvSection({
   )
 }
 
+async function GeneralSection({
+  workspace,
+  canEdit,
+}: {
+  workspace: Workspace
+  canEdit: boolean
+}) {
+  const supabase = await createClient()
+  const { data: members } = await supabase
+    .from('workspace_members')
+    .select('id, user_id, role, user:users!workspace_members_user_id_fkey(full_name, email)')
+    .eq('workspace_id', workspace.id)
+    .order('joined_at')
+
+  const membersData = (members ?? []).map((m) => ({
+    id: m.id,
+    user_id: m.user_id,
+    role: m.role,
+    user: Array.isArray(m.user) ? (m.user[0] ?? null) : m.user,
+  }))
+
+  return (
+    <WorkspaceSettingsForm
+      workspace={workspace}
+      canEdit={canEdit}
+      members={membersData}
+    />
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function SettingsPage({ params }: PageProps) {
@@ -95,7 +125,7 @@ export default async function SettingsPage({ params }: PageProps) {
   const [{ data: workspace }, { data: { user } }] = await Promise.all([
     supabase
       .from('workspaces')
-      .select('id, name, slug, logo_url, agency_id, drive_connection_type, drive_oauth_token, created_at')
+      .select('id, name, slug, logo_url, agency_id, drive_connection_type, drive_oauth_token, created_at, assigned_member_id')
       .eq('slug', workspaceSlug)
       .single(),
     supabase.auth.getUser(),
@@ -126,7 +156,7 @@ export default async function SettingsPage({ params }: PageProps) {
               Workspace name, logo, and Google Drive folder.
             </p>
           </div>
-          <WorkspaceSettingsForm workspace={workspace} canEdit={canEdit} />
+          <GeneralSection workspace={workspace as unknown as Workspace} canEdit={canEdit} />
         </div>
 
         {/* Members — streams in independently */}
