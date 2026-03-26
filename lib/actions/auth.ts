@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { signInSchema, signUpSchema } from '@/lib/validations'
+import { signInSchema, signUpSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/validations'
 import { isPersonalEmail } from '@/lib/utils'
 
 export async function signIn(
@@ -119,4 +119,58 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
   redirect('/login')
+}
+
+export async function requestPasswordReset(
+  _prevState: unknown,
+  formData: FormData
+): Promise<{ error: string } | { success: true; email: string }> {
+  const parsed = forgotPasswordSchema.safeParse({
+    email: formData.get('email'),
+  })
+
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message }
+  }
+
+  // Block personal email domains (except admin)
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
+  if (!isAdmin && isPersonalEmail(parsed.data.email)) {
+    return { error: 'Please use a work email address.' }
+  }
+
+  const supabase = await createClient()
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent('/reset-password')}`
+
+  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: resetUrl,
+  })
+
+  // Always return success — never reveal whether email exists
+  return { success: true, email: parsed.data.email }
+}
+
+export async function updatePassword(
+  _prevState: unknown,
+  formData: FormData
+): Promise<{ error: string } | void> {
+  const parsed = resetPasswordSchema.safeParse({
+    password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
+  })
+
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
+
+  if (error) {
+    return { error: 'Failed to update password. The reset link may have expired. Please request a new one.' }
+  }
+
+  revalidatePath('/', 'layout')
+  redirect('/app')
 }
