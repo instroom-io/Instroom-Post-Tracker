@@ -45,6 +45,8 @@ export async function proxy(request: NextRequest) {
     '/request-access',
     '/onboarding',
     '/no-access',
+    '/forgot-password',
+    '/reset-password',
   ]
 
   const isPublicPath =
