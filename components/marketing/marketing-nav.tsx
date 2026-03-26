@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMarketingContact } from '@/components/marketing/marketing-contact-provider'
@@ -15,6 +16,8 @@ const navLinks = [
 
 export function MarketingNav() {
   const { setOpen } = useMarketingContact()
+  const pathname = usePathname()
+  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -27,7 +30,11 @@ export function MarketingNav() {
   function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
     e.preventDefault()
     setMobileOpen(false)
-    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
+    if (pathname === '/') {
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      router.push(`/${href}`)
+    }
   }
 
   return (
