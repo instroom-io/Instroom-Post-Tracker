@@ -132,8 +132,11 @@ export async function GET(request: NextRequest) {
       // ── Determine which follow-up to send ────────────────────────────────────
       const handle =
         influencer.tiktok_handle ?? influencer.ig_handle ?? influencer.youtube_handle ?? 'Unknown'
-      const campaignName = escapeHtml(campaign.name)
-      const influencerHandle = escapeHtml(`@${handle}`)
+      const rawCampaignName = campaign.name
+      const rawInfluencerHandle = `@${handle}`
+
+      const campaignName = escapeHtml(rawCampaignName)
+      const influencerHandle = escapeHtml(rawInfluencerHandle)
       const workspaceName = escapeHtml(workspace.name)
 
       const follow_up_1_sent_at = row.follow_up_1_sent_at as string | null
@@ -145,7 +148,7 @@ export async function GET(request: NextRequest) {
 
       if (daysSince >= 10 && !follow_up_1_sent_at) {
         // First follow-up: day 10
-        subject = `[${campaignName}] Follow up with ${influencerHandle}`
+        subject = `[${rawCampaignName}] Follow up with ${rawInfluencerHandle}`
         html = `
           <p>Hi ${escapeHtml(recipientName)},</p>
           <p><strong>${influencerHandle}</strong> hasn't posted yet for the <strong>${campaignName}</strong> campaign (${workspaceName}).</p>
@@ -155,7 +158,7 @@ export async function GET(request: NextRequest) {
         updateField = { follow_up_1_sent_at: new Date().toISOString() }
       } else if (daysSince >= 13 && follow_up_1_sent_at && !follow_up_2_sent_at) {
         // Second follow-up: day 13
-        subject = `[${campaignName}] Follow up again with ${influencerHandle}`
+        subject = `[${rawCampaignName}] Follow up again with ${rawInfluencerHandle}`
         html = `
           <p>Hi ${escapeHtml(recipientName)},</p>
           <p><strong>${influencerHandle}</strong> still hasn't posted for the <strong>${campaignName}</strong> campaign (${workspaceName}).</p>
