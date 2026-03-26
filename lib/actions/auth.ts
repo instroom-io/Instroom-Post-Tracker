@@ -19,6 +19,13 @@ export async function signIn(
     return { error: parsed.error.errors[0].message }
   }
 
+  // Block personal email domains (except admin)
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
+  if (!isAdmin && isPersonalEmail(parsed.data.email)) {
+    return { error: 'Please use a work email address to sign in.' }
+  }
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword(parsed.data)
 

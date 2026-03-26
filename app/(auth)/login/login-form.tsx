@@ -21,7 +21,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
           htmlFor="email"
           className="text-[12px] font-medium text-foreground-light"
         >
-          Email
+          Work email
         </label>
         <input
           id="email"
