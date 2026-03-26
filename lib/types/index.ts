@@ -64,6 +64,7 @@ export interface Workspace {
   drive_connection_type: DriveConnectionType | null
   drive_oauth_token: string | null
   created_at: string
+  assigned_member_id?: string | null   // team member who receives follow-up notification emails; falls back to workspace owner if null
 }
 
 export interface WorkspaceMember {
