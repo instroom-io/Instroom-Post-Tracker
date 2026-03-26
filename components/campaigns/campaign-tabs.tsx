@@ -38,6 +38,9 @@ interface InfluencerRow {
   usage_rights: boolean
   monitoring_status: string
   product_sent_at: string | null
+  added_at: string
+  follow_up_1_sent_at: string | null
+  follow_up_2_sent_at: string | null
   influencer: {
     id: string
     ig_handle: string | null
@@ -65,6 +68,7 @@ interface CampaignTabsProps {
   campaignPlatforms: Platform[]
   canEdit: boolean
   postCountsByInfluencerId: Record<string, number>
+  memberDriveUrl?: string
 }
 
 type Tab = 'overview' | 'influencers' | 'posts' | 'downloads'
@@ -80,6 +84,7 @@ export function CampaignTabs({
   campaignPlatforms,
   canEdit,
   postCountsByInfluencerId,
+  memberDriveUrl,
 }: CampaignTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>('overview')
 
@@ -223,7 +228,7 @@ export function CampaignTabs({
               <h2 className="font-display text-[15px] font-bold text-foreground">Posts</h2>
               <p className="text-[11px] text-foreground-lighter">{posts.length} detected</p>
             </div>
-            <CampaignPostsGallery posts={posts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} />
+            <CampaignPostsGallery posts={posts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />
           </div>
         )}
 
@@ -249,7 +254,7 @@ export function CampaignTabs({
                 </p>
               </div>
             ) : (
-              <CampaignPostsTable posts={downloadedPosts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} />
+              <CampaignPostsTable posts={downloadedPosts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />
             )}
           </div>
         )}

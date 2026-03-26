@@ -39,12 +39,15 @@ export default async function CampaignDetailPage({ params }: PageProps) {
 
   const { data: member } = await supabase
     .from('workspace_members')
-    .select('role')
+    .select('role, drive_folder_id')
     .eq('workspace_id', workspace.id)
     .eq('user_id', user.id)
     .single()
 
   const role = (member?.role ?? 'viewer') as WorkspaceRole
+  const memberDriveUrl = member?.drive_folder_id
+    ? `https://drive.google.com/drive/folders/${member.drive_folder_id}`
+    : undefined
   const canEdit = ['owner', 'admin', 'editor'].includes(role)
 
   const [
@@ -67,7 +70,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     supabase
       .from('campaign_influencers')
       .select(
-        'id, usage_rights, monitoring_status, product_sent_at, influencer:influencers(id, ig_handle, tiktok_handle, youtube_handle, profile_pic_url)'
+        'id, usage_rights, monitoring_status, product_sent_at, added_at, follow_up_1_sent_at, follow_up_2_sent_at, influencer:influencers(id, ig_handle, tiktok_handle, youtube_handle, profile_pic_url)'
       )
       .eq('campaign_id', campaignId)
       .neq('monitoring_status', 'removed'),
@@ -182,6 +185,9 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     usage_rights: item.usage_rights,
     monitoring_status: item.monitoring_status,
     product_sent_at: (item.product_sent_at as string | null) ?? null,
+    added_at: (item.added_at as string),
+    follow_up_1_sent_at: (item.follow_up_1_sent_at as string | null) ?? null,
+    follow_up_2_sent_at: (item.follow_up_2_sent_at as string | null) ?? null,
     influencer: item.influencer as unknown as {
       id: string
       ig_handle: string | null
@@ -255,6 +261,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
           campaignPlatforms={campaign.platforms as Platform[]}
           canEdit={canEdit}
           postCountsByInfluencerId={postCountsByInfluencerId}
+          memberDriveUrl={memberDriveUrl}
         />
       </div>
     </div>
