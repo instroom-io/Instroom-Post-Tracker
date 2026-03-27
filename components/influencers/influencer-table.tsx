@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { getInitials, getInfluencerLabel } from '@/lib/utils'
+import { PlatformIcon } from '@/components/ui/platform-icon'
 
 interface InfluencerRow {
   id: string
@@ -111,13 +112,13 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
                 </span>
               </th>
               <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
-                Instagram
+                <PlatformIcon platform="instagram" size={14} />
               </th>
               <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
-                TikTok
+                <PlatformIcon platform="tiktok" size={14} />
               </th>
               <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
-                YouTube
+                <PlatformIcon platform="youtube" size={14} />
               </th>
               <th
                 onClick={() => toggleSort('campaign_count')}

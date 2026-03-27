@@ -19,6 +19,7 @@ import {
   type HandleValidationResult,
 } from '@/lib/actions/influencers'
 import { getInfluencerLabel, getInitials } from '@/lib/utils'
+import { PlatformIcon } from '@/components/ui/platform-icon'
 import { cn } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
 
@@ -347,7 +348,7 @@ export function AddInfluencerToCampaignDialog({
                             : 'text-foreground-muted hover:text-foreground hover:bg-background-muted'
                         )}
                       >
-                        {tab.label}
+                        <PlatformIcon platform={tab.key} size={15} />
                       </button>
                     ))}
                   </div>
@@ -355,7 +356,7 @@ export function AddInfluencerToCampaignDialog({
 
                 {batchTabs.length === 1 && (
                   <p className="text-[11px] text-foreground-muted">
-                    Platform: <span className="font-medium text-foreground">{batchTabs[0].label}</span>
+                    Platform: <span className="inline-flex items-center gap-1 font-medium text-foreground"><PlatformIcon platform={batchTabs[0].key} size={13} />{batchTabs[0].label}</span>
                   </p>
                 )}
 

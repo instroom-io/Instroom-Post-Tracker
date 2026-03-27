@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
+import { PlatformLogo } from '@/components/ui/platform-icon'
 import { Button } from '@/components/ui/button'
 import { updateEmvConfig } from '@/lib/actions/analytics'
 import type { EmvConfig, Platform } from '@/lib/types'
@@ -13,11 +14,6 @@ interface EmvConfigFormProps {
   canEdit: boolean
 }
 
-const PLATFORM_LABELS: Record<Platform, string> = {
-  instagram: 'Instagram',
-  tiktok: 'TikTok',
-  youtube: 'YouTube',
-}
 
 const PLATFORMS: Platform[] = ['instagram', 'tiktok', 'youtube']
 
@@ -53,9 +49,7 @@ export function EmvConfigForm({ workspaceId, configs, canEdit }: EmvConfigFormPr
       {PLATFORMS.map((platform) => (
         <div key={platform} className="flex items-center gap-4">
           <div className="w-24">
-            <p className="text-[12px] font-medium text-foreground">
-              {PLATFORM_LABELS[platform]}
-            </p>
+            <PlatformLogo platform={platform} size={13} className="text-[12px] font-medium text-foreground" />
             <p className="text-[11px] text-foreground-lighter">CPM rate</p>
           </div>
           <div className="w-32">

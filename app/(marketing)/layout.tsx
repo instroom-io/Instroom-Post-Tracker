@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { MarketingContactProvider } from '@/components/marketing/marketing-contact-provider'
 import { MarketingNav } from '@/components/marketing/marketing-nav'
 import { ContactModal } from '@/components/marketing/contact-modal'
+import { PlatformLogo } from '@/components/ui/platform-icon'
 
 function FooterCta() {
   return (
@@ -90,9 +91,9 @@ export default function MarketingLayout({
                     Platforms
                   </h4>
                   <ul className="space-y-2">
-                    <li className="text-foreground-lighter">Instagram</li>
-                    <li className="text-foreground-lighter">TikTok</li>
-                    <li className="text-foreground-lighter">YouTube</li>
+                    <li className="text-foreground-lighter"><PlatformLogo platform="instagram" size={13} /></li>
+                    <li className="text-foreground-lighter"><PlatformLogo platform="tiktok" size={13} /></li>
+                    <li className="text-foreground-lighter"><PlatformLogo platform="youtube" size={13} /></li>
                   </ul>
                 </div>
               </div>

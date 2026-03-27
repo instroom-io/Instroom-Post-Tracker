@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef } from 'react'
 import { Plus, Upload, CheckCircle2, XCircle, Lock, FileText } from 'lucide-react'
+import { PlatformIcon } from '@/components/ui/platform-icon'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -250,13 +251,13 @@ export function AddInfluencerDialog({
                         if (csvStep === 'validated') { setCsvStep('parsed'); setValidationResults([]) }
                       }}
                       className={cn(
-                        'rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors',
+                        'rounded-lg border px-3 py-1.5 transition-colors',
                         csvPlatform === p.value
-                          ? 'border-brand/40 bg-brand/10 text-brand'
-                          : 'border-border bg-background-surface text-foreground-lighter hover:text-foreground hover:bg-background-muted'
+                          ? 'border-brand/40 bg-brand/10'
+                          : 'border-border bg-background-surface hover:bg-background-muted'
                       )}
                     >
-                      {p.label}
+                      <PlatformIcon platform={p.value} size={16} />
                     </button>
                   ))}
                 </div>

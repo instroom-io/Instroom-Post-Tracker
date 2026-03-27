@@ -11,6 +11,22 @@ import {
   Legend,
 } from 'recharts'
 import { CHART_COLORS } from '@/lib/constants/platform-colors'
+import { PlatformIcon } from '@/components/ui/platform-icon'
+
+type Platform = 'instagram' | 'tiktok' | 'youtube'
+
+function PlatformLegend({ payload }: { payload?: Array<{ value: string; color: string }> }) {
+  return (
+    <div className="flex justify-center gap-4 pt-1">
+      {(payload ?? []).map((entry) => (
+        <span key={entry.value} className="flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-full" style={{ background: entry.color }} />
+          <PlatformIcon platform={entry.value as Platform} size={11} />
+        </span>
+      ))}
+    </div>
+  )
+}
 
 interface DayData {
   date: string
@@ -66,7 +82,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
           }}
         />
         {multiPlatform && (
-          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
+          <Legend content={<PlatformLegend />} />
         )}
         {multiPlatform && (
           <Line type="monotone" dataKey="instagram" stroke={CHART_COLORS.instagram} strokeWidth={2} dot={false} name="Instagram" />

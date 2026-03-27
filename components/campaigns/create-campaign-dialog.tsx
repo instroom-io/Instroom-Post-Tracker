@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Plus, Info } from 'lucide-react'
+import { PlatformIcon } from '@/components/ui/platform-icon'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -149,13 +150,13 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
                     key={p.value}
                     type="button"
                     onClick={() => togglePlatform(p.value)}
-                    className={`rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                    className={`rounded-lg border px-3 py-1.5 transition-colors ${
                       selectedPlatforms.includes(p.value)
-                        ? 'border-brand bg-brand-muted text-brand'
-                        : 'border-border bg-background-surface text-foreground-lighter hover:border-brand/50'
+                        ? 'border-brand bg-brand-muted'
+                        : 'border-border bg-background-surface hover:border-brand/50'
                     }`}
                   >
-                    {p.label}
+                    <PlatformIcon platform={p.value} size={16} />
                   </button>
                 ))}
               </div>
@@ -172,10 +173,7 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
                       className={`space-y-3 px-4 py-3 ${idx > 0 ? 'border-t border-border' : ''}`}
                     >
                       <div className="flex items-center gap-2">
-                        <span
-                          className="inline-block h-2 w-2 rounded-full"
-                          style={{ background: p.color }}
-                        />
+                        <PlatformIcon platform={platform} size={13} />
                         <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
                           {p.label}
                         </span>
