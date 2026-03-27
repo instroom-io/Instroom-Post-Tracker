@@ -2,8 +2,9 @@
 
 import { useOptimistic, useTransition, useState } from 'react'
 import { toast } from 'sonner'
-import { MoreHorizontal, Trash2, AlertCircle, Users, RefreshCw } from 'lucide-react'
+import { MoreHorizontal, Trash2, AlertCircle, Users, RefreshCw, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -153,6 +154,7 @@ export function CampaignInfluencersList({
   onAddInfluencer,
   postCountsByInfluencerId,
 }: CampaignInfluencersListProps) {
+  const [query, setQuery] = useState('')
   const [isPending, startTransition] = useTransition()
   const [optimisticItems, updateOptimistic] = useOptimistic(
     items,
@@ -161,6 +163,17 @@ export function CampaignInfluencersList({
         item.id === id ? { ...item, usage_rights: value } : item
       )
   )
+
+  const filtered = query.trim()
+    ? optimisticItems.filter((row) => {
+        const q = query.toLowerCase()
+        return (
+          row.influencer.ig_handle?.toLowerCase().includes(q) ||
+          row.influencer.tiktok_handle?.toLowerCase().includes(q) ||
+          row.influencer.youtube_handle?.toLowerCase().includes(q)
+        )
+      })
+    : optimisticItems
 
   function handleToggle(id: string, currentValue: boolean) {
     if (currentValue) {
@@ -214,6 +227,18 @@ export function CampaignInfluencersList({
 
   return (
     <div>
+      <div className="px-5 py-3 border-b border-border">
+        <div className="relative w-48">
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted pointer-events-none" />
+          <Input
+            type="text"
+            placeholder="Search influencers..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-7 h-7 text-[12px]"
+          />
+        </div>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -240,7 +265,7 @@ export function CampaignInfluencersList({
             </tr>
           </thead>
           <tbody>
-            {optimisticItems.map((item) => {
+            {filtered.map((item) => {
               const platforms = platformsForInfluencer(item.influencer)
               return (
                 <tr
@@ -341,6 +366,13 @@ export function CampaignInfluencersList({
                 </tr>
               )
             })}
+            {filtered.length === 0 && query.trim() && (
+              <tr>
+                <td colSpan={canEdit ? 7 : 6} className="px-5 py-10 text-center text-[12px] text-foreground-muted">
+                  No influencers match your search.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
