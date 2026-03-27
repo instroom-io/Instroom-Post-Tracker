@@ -213,7 +213,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
         title={campaign.name}
         description={formatDateRange(campaign.start_date, campaign.end_date)}
         actions={
-          <div className="flex items-center gap-2">
+          <div data-tour="campaign-status" className="flex items-center gap-2">
             <CampaignTourButton />
             {campaign.status === 'active' ? (
               <AnimatedBadge>{campaign.status}</AnimatedBadge>

@@ -6,12 +6,13 @@ import { persist } from 'zustand/middleware'
 interface TourStore {
   isActive: boolean
   currentStep: number
-  tourId: 'agency' | 'workspace' | 'campaign' | null
+  tourId: 'agency' | 'workspace' | 'campaign' | 'campaigns-list' | null
   hasSeenAgencyTour: boolean
   hasSeenWorkspaceTour: boolean
   hasSeenCampaignTour: boolean
+  hasSeenCampaignsTour: boolean
 
-  startTour: (tourId: 'agency' | 'workspace' | 'campaign') => void
+  startTour: (tourId: 'agency' | 'workspace' | 'campaign' | 'campaigns-list') => void
   nextStep: () => void
   prevStep: () => void
   endTour: () => void
@@ -27,6 +28,7 @@ export const useTour = create<TourStore>()(
       hasSeenAgencyTour: false,
       hasSeenWorkspaceTour: false,
       hasSeenCampaignTour: false,
+      hasSeenCampaignsTour: false,
 
       startTour: (tourId) => set({ isActive: true, currentStep: 0, tourId }),
 
@@ -41,6 +43,7 @@ export const useTour = create<TourStore>()(
           hasSeenAgencyTour: s.tourId === 'agency' ? true : s.hasSeenAgencyTour,
           hasSeenWorkspaceTour: s.tourId === 'workspace' ? true : s.hasSeenWorkspaceTour,
           hasSeenCampaignTour: s.tourId === 'campaign' ? true : s.hasSeenCampaignTour,
+          hasSeenCampaignsTour: s.tourId === 'campaigns-list' ? true : s.hasSeenCampaignsTour,
           tourId: null,
         })),
 
@@ -52,6 +55,7 @@ export const useTour = create<TourStore>()(
         hasSeenAgencyTour: s.hasSeenAgencyTour,
         hasSeenWorkspaceTour: s.hasSeenWorkspaceTour,
         hasSeenCampaignTour: s.hasSeenCampaignTour,
+        hasSeenCampaignsTour: s.hasSeenCampaignsTour,
       }),
     }
   )

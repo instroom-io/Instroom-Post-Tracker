@@ -9,7 +9,7 @@ import { TourTooltip } from './tour-tooltip'
 import type { TourRect } from './tour-spotlight'
 
 interface TourProviderProps {
-  tourId: 'agency' | 'workspace' | 'campaign'
+  tourId: 'agency' | 'workspace' | 'campaign' | 'campaigns-list'
 }
 
 export function TourProvider({ tourId }: TourProviderProps) {

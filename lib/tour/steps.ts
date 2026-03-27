@@ -63,20 +63,44 @@ export const WORKSPACE_STEPS: TourStep[] = [
     description: 'Invite team members, configure your workspace name and logo, and set your Google Drive folder for post downloads.',
     side: 'right',
   },
+  {
+    id: 'ws-user-menu',
+    title: 'Your Account',
+    description: 'Access your profile, switch workspaces using the switcher above, and sign out here.',
+    side: 'right',
+  },
 ]
 
 export const CAMPAIGN_STEPS: TourStep[] = [
   {
+    id: 'campaign-status',
+    title: 'Campaign Status',
+    description: 'Campaigns move through three states: Draft → Active → Ended. Activate once your tracking config is complete and influencers are added. End the campaign when the collaboration is over — you can re-activate if needed.',
+    side: 'bottom',
+  },
+  {
     id: 'campaign-tab-overview',
     title: 'Overview',
-    description: 'Campaign stats, tracking configuration, and post volume at a glance. Set your hashtags and handles here to control what Instroom detects.',
+    description: 'Campaign stats at a glance — posts detected, downloads, total views, and EMV. Your tracking configuration lives here too: set the hashtags and @mentions Instroom will look for.',
+    side: 'bottom',
+  },
+  {
+    id: 'campaign-tracking-config',
+    title: 'Tracking Config',
+    description: 'Add at least one hashtag (e.g. #yourbrand) and one @mention (e.g. @YourBrand) per platform. Instroom only picks up posts that match both. This must be complete before you can activate the campaign.',
     side: 'bottom',
   },
   {
     id: 'campaign-tab-influencers',
     title: 'Influencers',
-    description: "Everyone you're tracking in this campaign. Add influencers, view their handles across platforms, and manage who is included.",
+    description: 'Add influencers to track in this campaign and set each product sent date to trigger the 7-day scan delay. Use the Usage Rights toggle per influencer — when on, detected posts are automatically downloaded to Google Drive; when off, posts are still tracked but never downloaded.',
     side: 'bottom',
+  },
+  {
+    id: 'campaign-usage-rights',
+    title: 'Usage Rights',
+    description: 'Toggle this per influencer to enable automatic Drive downloads for their posts. When off, posts are still detected and tracked — they just won\'t be saved to Drive. You can change this at any time.',
+    side: 'right',
   },
   {
     id: 'campaign-tab-posts',
@@ -92,8 +116,24 @@ export const CAMPAIGN_STEPS: TourStep[] = [
   },
 ]
 
-export const TOUR_STEPS: Record<'agency' | 'workspace' | 'campaign', TourStep[]> = {
+export const CAMPAIGNS_LIST_STEPS: TourStep[] = [
+  {
+    id: 'campaigns-new-btn',
+    title: 'Create a Campaign',
+    description: 'Set up a campaign for each brand collaboration. Choose the social platforms you want to track, add your influencers, and configure the hashtags and @handles Instroom should look for.',
+    side: 'bottom',
+  },
+  {
+    id: 'campaigns-table',
+    title: 'Your Campaigns',
+    description: 'All campaigns in this workspace — with status, date range, and post count at a glance. Click into any campaign to manage tracking, view detected posts, and handle downloads.',
+    side: 'bottom',
+  },
+]
+
+export const TOUR_STEPS: Record<'agency' | 'workspace' | 'campaign' | 'campaigns-list', TourStep[]> = {
   agency: AGENCY_STEPS,
   workspace: WORKSPACE_STEPS,
   campaign: CAMPAIGN_STEPS,
+  'campaigns-list': CAMPAIGNS_LIST_STEPS,
 }

@@ -143,6 +143,8 @@ function getFollowUpStatus(
   return 'second_sent'
 }
 
+const PAGE_SIZE = 20
+
 export function CampaignInfluencersList({
   items,
   workspaceId,
@@ -151,6 +153,7 @@ export function CampaignInfluencersList({
   postCountsByInfluencerId,
 }: CampaignInfluencersListProps) {
   const [query, setQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
   const [isPending, startTransition] = useTransition()
   const [optimisticItems, updateOptimistic] = useOptimistic(
     items,
@@ -160,8 +163,12 @@ export function CampaignInfluencersList({
       )
   )
 
+  const totalPages = Math.max(1, Math.ceil(optimisticItems.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginated = optimisticItems.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
   const filtered = query.trim()
-    ? optimisticItems.filter((row) => {
+    ? paginated.filter((row) => {
         const q = query.toLowerCase()
         return (
           row.influencer.ig_handle?.toLowerCase().includes(q) ||
@@ -169,7 +176,7 @@ export function CampaignInfluencersList({
           row.influencer.youtube_handle?.toLowerCase().includes(q)
         )
       })
-    : optimisticItems
+    : paginated
 
   function handleToggle(id: string, currentValue: boolean) {
     if (currentValue) {
@@ -248,7 +255,7 @@ export function CampaignInfluencersList({
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Monitoring
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th data-tour="campaign-usage-rights" className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Usage rights
               </th>
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
@@ -370,6 +377,36 @@ export function CampaignInfluencersList({
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-border px-5 py-3">
+          <p className="text-[11px] text-foreground-muted">
+            Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, optimisticItems.length)} of{' '}
+            {optimisticItems.length} influencers
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="rounded-md border border-border bg-background-muted px-2.5 py-1.5 text-[11px] font-medium text-foreground-light transition-colors hover:bg-background-surface disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              ← Prev
+            </button>
+            <span className="min-w-[56px] text-center text-[11px] text-foreground-muted">
+              {safePage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="rounded-md border border-border bg-background-muted px-2.5 py-1.5 text-[11px] font-medium text-foreground-light transition-colors hover:bg-background-surface disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -13,7 +13,7 @@ interface TourTooltipProps {
   targetRect: TourRect | null
   side: 'right' | 'left' | 'bottom'
   isCompletion: boolean
-  tourId: 'agency' | 'workspace' | 'campaign'
+  tourId: 'agency' | 'workspace' | 'campaign' | 'campaigns-list'
   onNext: () => void
   onPrev: () => void
   onSkip: () => void
@@ -23,10 +23,11 @@ const TOOLTIP_WIDTH = 256
 const TOOLTIP_GAP = 16
 const PAD = 6
 
-const COMPLETION_TEXT: Record<'agency' | 'workspace' | 'campaign', string> = {
+const COMPLETION_TEXT: Record<'agency' | 'workspace' | 'campaign' | 'campaigns-list', string> = {
   agency: 'You now know your way around the agency dashboard. Come back to this tour any time using the Take a tour button in the header.',
   workspace: 'You now know your way around Instroom. Come back to this tour any time using the ? Take a tour button in the sidebar.',
   campaign: 'You now know your way around this campaign. Come back to this tour any time using the Take a tour button in the campaign header.',
+  'campaigns-list': 'You know how campaigns work. Create your first campaign with the New campaign button, then open it to set up tracking. Come back to this tour any time using the Take a tour button.',
 }
 
 export function TourTooltip({
@@ -70,10 +71,11 @@ export function TourTooltip({
       top = targetRect.y + targetRect.height + PAD + TOOLTIP_GAP
     }
 
-    // Clamp left to stay within viewport
+    // Clamp to stay within viewport
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1280
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800
     left = Math.max(12, Math.min(left, viewportWidth - TOOLTIP_WIDTH - 12))
-    top = Math.max(12, top)
+    top = Math.max(12, Math.min(top, viewportHeight - 248 - 12))
   }
 
   return (

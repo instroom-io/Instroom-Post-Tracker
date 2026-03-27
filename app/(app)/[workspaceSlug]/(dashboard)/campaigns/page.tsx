@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/layout/page-header'
 import { CampaignsTable } from '@/components/dashboard/campaigns-table'
 import { CreateCampaignDialog } from '@/components/campaigns/create-campaign-dialog'
+import { CampaignsListTourWrapper, CampaignsListTourButton } from '@/components/campaigns/campaigns-list-tour-wrapper'
 import type { WorkspaceRole, CampaignStatus } from '@/lib/types'
 
 interface PageProps {
@@ -66,21 +67,28 @@ export default async function CampaignsPage({ params }: PageProps) {
   }))
 
   return (
-    <div>
-      <PageHeader
-        title="Campaigns"
-        actions={
-          canEdit ? (
-            <CreateCampaignDialog workspaceId={workspace.id} />
-          ) : undefined
-        }
-      />
+    <CampaignsListTourWrapper>
+      <div>
+        <PageHeader
+          title="Campaigns"
+          actions={
+            <div className="flex items-center gap-2">
+              <CampaignsListTourButton />
+              {canEdit && (
+                <div data-tour="campaigns-new-btn">
+                  <CreateCampaignDialog workspaceId={workspace.id} />
+                </div>
+              )}
+            </div>
+          }
+        />
 
-      <div className="p-5">
-        <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-          <CampaignsTable campaigns={enrichedCampaigns} workspaceSlug={workspaceSlug} />
+        <div className="p-5">
+          <div data-tour="campaigns-table" className="rounded-xl border border-border bg-background-surface shadow-sm">
+            <CampaignsTable campaigns={enrichedCampaigns} workspaceSlug={workspaceSlug} />
+          </div>
         </div>
       </div>
-    </div>
+    </CampaignsListTourWrapper>
   )
 }

@@ -218,6 +218,7 @@ export function AppShell({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              data-tour="ws-user-menu"
               className="border-t border-border p-2.5"
             >
               <UserMenu user={user} />
