@@ -172,30 +172,45 @@ export async function addInfluencer(
     return { error: 'Insufficient permissions.' }
   }
 
-  // Fetch profile pic from whichever platform handle is present
   const platform = parsed.data.tiktok_handle ? 'tiktok'
     : parsed.data.ig_handle ? 'instagram'
     : 'youtube'
   const handle = parsed.data.tiktok_handle || parsed.data.ig_handle || parsed.data.youtube_handle || ''
-  const { profile_pic_url } = handle ? await fetchProfileInfo(platform, handle) : { profile_pic_url: null }
+  const handleField = platform === 'tiktok' ? 'tiktok_handle'
+    : platform === 'instagram' ? 'ig_handle'
+    : 'youtube_handle'
 
-  const { data: influencer, error } = await supabase
+  // Reuse existing influencer if this handle is already in the workspace
+  const { data: existing } = await supabase
     .from('influencers')
-    .insert({
-      workspace_id: workspaceId,
-      ig_handle: parsed.data.ig_handle || null,
-      tiktok_handle: parsed.data.tiktok_handle || null,
-      youtube_handle: parsed.data.youtube_handle || null,
-      profile_pic_url,
-    })
     .select('id')
-    .single()
+    .eq('workspace_id', workspaceId)
+    .eq(handleField, handle)
+    .maybeSingle()
 
-  if (error || !influencer) return { error: 'Failed to add influencer.' }
+  let influencerId: string
+  if (existing) {
+    influencerId = existing.id
+  } else {
+    const { profile_pic_url } = handle ? await fetchProfileInfo(platform, handle) : { profile_pic_url: null }
+    const { data: influencer, error } = await supabase
+      .from('influencers')
+      .insert({
+        workspace_id: workspaceId,
+        ig_handle: parsed.data.ig_handle || null,
+        tiktok_handle: parsed.data.tiktok_handle || null,
+        youtube_handle: parsed.data.youtube_handle || null,
+        profile_pic_url,
+      })
+      .select('id')
+      .single()
+    if (error || !influencer) return { error: 'Failed to add influencer.' }
+    influencerId = influencer.id
+  }
 
   // Optionally add to campaign
   if (campaignId) {
-    const result = await addInfluencerToCampaign(workspaceId, campaignId, influencer.id)
+    const result = await addInfluencerToCampaign(workspaceId, campaignId, influencerId)
     if (result?.error) return result
   }
 
@@ -229,35 +244,61 @@ export async function addInfluencersBatch(
   const deduped = [...new Set(handles.map((h) => h.trim()).filter(Boolean))]
   if (deduped.length === 0) return { error: 'No valid handles provided.', added: 0, skipped: 0 }
 
-  const profiles = await Promise.all(deduped.map((handle) => fetchProfileInfo(platform, handle)))
+  const handleField = platform === 'instagram' ? 'ig_handle'
+    : platform === 'tiktok' ? 'tiktok_handle'
+    : 'youtube_handle'
 
-  const rows = deduped.map((handle, i) => ({
-    workspace_id: workspaceId,
-    ig_handle: platform === 'instagram' ? handle : null,
-    tiktok_handle: platform === 'tiktok' ? handle : null,
-    youtube_handle: platform === 'youtube' ? handle : null,
-    profile_pic_url: profiles[i].profile_pic_url,
-  }))
-
-  const { data: inserted, error } = await supabase
+  // Find which handles already exist in this workspace — reuse their IDs
+  const { data: existingInfluencers } = await supabase
     .from('influencers')
-    .insert(rows)
-    .select('id')
+    .select(`id, ${handleField}`)
+    .eq('workspace_id', workspaceId)
+    .in(handleField, deduped)
 
-  if (error) return { error: 'Failed to add influencers.', added: 0, skipped: 0 }
+  const existingMap = new Map(
+    (existingInfluencers ?? []).map((inf) => [
+      (inf as Record<string, string | null>)[handleField] as string,
+      inf.id,
+    ])
+  )
 
-  const insertedIds = (inserted ?? []).map((r) => r.id)
-  const added = insertedIds.length
-  const skipped = deduped.length - added
+  const newHandles = deduped.filter((h) => !existingMap.has(h))
+  const existingIds = deduped.filter((h) => existingMap.has(h)).map((h) => existingMap.get(h)!)
 
-  if (campaignId && insertedIds.length > 0) {
-    const campaignRows = insertedIds.map((influencer_id) => ({
+  // Only fetch profiles and insert for new handles
+  let newIds: string[] = []
+  if (newHandles.length > 0) {
+    const profiles = await Promise.all(newHandles.map((handle) => fetchProfileInfo(platform, handle)))
+    const rows = newHandles.map((handle, i) => ({
+      workspace_id: workspaceId,
+      ig_handle: platform === 'instagram' ? handle : null,
+      tiktok_handle: platform === 'tiktok' ? handle : null,
+      youtube_handle: platform === 'youtube' ? handle : null,
+      profile_pic_url: profiles[i].profile_pic_url,
+    }))
+    const { data: inserted, error } = await supabase
+      .from('influencers')
+      .insert(rows)
+      .select('id')
+    if (error) return { error: 'Failed to add influencers.', added: 0, skipped: 0 }
+    newIds = (inserted ?? []).map((r) => r.id)
+  }
+
+  const allIds = [...existingIds, ...newIds]
+  const added = newIds.length
+  const skipped = deduped.length - allIds.length
+
+  if (campaignId && allIds.length > 0) {
+    const campaignRows = allIds.map((influencer_id) => ({
       campaign_id: campaignId,
       influencer_id,
       added_by: user.id,
       ...(productSentAt ? { product_sent_at: productSentAt } : {}),
     }))
-    await supabase.from('campaign_influencers').insert(campaignRows)
+    // ignoreDuplicates prevents re-adding influencers already in the campaign
+    await supabase
+      .from('campaign_influencers')
+      .upsert(campaignRows, { onConflict: 'campaign_id,influencer_id', ignoreDuplicates: true })
   }
 
   revalidatePath('/', 'layout')
