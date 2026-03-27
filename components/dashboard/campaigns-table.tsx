@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Megaphone, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { AnimatedBadge } from '@/components/ui/animated-badge'
 import { formatDateRange } from '@/lib/utils'
 import type { CampaignStatus } from '@/lib/types'
 
@@ -160,9 +161,13 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
                     </Link>
                   </td>
                   <td className="px-5 py-3.5">
-                    <Badge variant={statusVariant[campaign.status]}>
-                      {campaign.status}
-                    </Badge>
+                    {campaign.status === 'active' ? (
+                      <AnimatedBadge>{campaign.status}</AnimatedBadge>
+                    ) : (
+                      <Badge variant={statusVariant[campaign.status]}>
+                        {campaign.status}
+                      </Badge>
+                    )}
                   </td>
                   <td className="px-5 py-3.5 text-right text-[12px] font-medium text-foreground">
                     {campaign.post_count}

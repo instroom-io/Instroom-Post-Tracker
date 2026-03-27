@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/layout/page-header'
 import { Badge } from '@/components/ui/badge'
+import { AnimatedBadge } from '@/components/ui/animated-badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { CampaignTabs } from '@/components/campaigns/campaign-tabs'
@@ -211,9 +212,13 @@ export default async function CampaignDetailPage({ params }: PageProps) {
         description={formatDateRange(campaign.start_date, campaign.end_date)}
         actions={
           <div className="flex items-center gap-2">
-            <Badge variant={statusVariant[campaign.status as CampaignStatus]}>
-              {campaign.status}
-            </Badge>
+            {campaign.status === 'active' ? (
+              <AnimatedBadge>{campaign.status}</AnimatedBadge>
+            ) : (
+              <Badge variant={statusVariant[campaign.status as CampaignStatus]}>
+                {campaign.status}
+              </Badge>
+            )}
             {canEdit && (campaign.status === 'draft' || campaign.status === 'ended') && (() => {
               const tooltipMsg = !canActivate
                 ? `Complete tracking config (# and @) for: ${missingPlatforms.join(', ')}`
