@@ -349,7 +349,7 @@ export function CampaignInfluencersList({
                             <MoreHorizontal size={14} />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" side="top">
+                        <DropdownMenuContent align="end">
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={() =>

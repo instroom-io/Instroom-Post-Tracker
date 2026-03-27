@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 interface DropdownContextValue {
   open: boolean
   setOpen: (open: boolean) => void
+  containerRef: { current: HTMLDivElement | null }
 }
 
 const DropdownContext = createContext<DropdownContextValue | null>(null)
@@ -66,7 +67,7 @@ export function DropdownMenu({ children, open: controlledOpen, onOpenChange }: D
   }, [open])
 
   return (
-    <DropdownContext.Provider value={{ open, setOpen }}>
+    <DropdownContext.Provider value={{ open, setOpen, containerRef: ref }}>
       <div ref={ref} className="relative inline-block">
         {children}
       </div>
@@ -106,11 +107,22 @@ const alignClasses: Record<DropdownAlign, string> = {
 export function DropdownMenuContent({
   children,
   align = 'start',
-  side = 'bottom',
+  side: _side,
   className,
 }: DropdownMenuContentProps) {
-  const { open } = useDropdownContext()
-  const yInit = side === 'top' ? 4 : -4
+  const { open, containerRef } = useDropdownContext()
+  const [resolvedSide, setResolvedSide] = useState<'top' | 'bottom'>('bottom')
+
+  useEffect(() => {
+    if (open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - rect.bottom
+      const spaceAbove = rect.top
+      setResolvedSide(spaceBelow < 160 && spaceAbove > spaceBelow ? 'top' : 'bottom')
+    }
+  }, [open, containerRef])
+
+  const yInit = resolvedSide === 'top' ? 4 : -4
 
   return (
     <AnimatePresence>
@@ -123,7 +135,7 @@ export function DropdownMenuContent({
           transition={{ duration: 0.1 }}
           className={cn(
             'absolute z-50 min-w-[160px] rounded-xl border border-border bg-background-surface shadow-md',
-            side === 'top' ? 'bottom-full mb-1' : 'top-full mt-1',
+            resolvedSide === 'top' ? 'bottom-full mb-1' : 'top-full mt-1',
             alignClasses[align],
             className
           )}
