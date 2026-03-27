@@ -65,9 +65,8 @@ export function TourTooltip({
       <motion.div
         key={currentStep}
         initial={{ opacity: 0, y: 4 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -4 }}
-        transition={{ duration: 0.2 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.2 } }}
+        exit={{ opacity: 0, y: -4, transition: { duration: 0.15 } }}
         className="fixed z-[9999] rounded-xl border border-border bg-background-surface"
         style={{
           left,
@@ -114,7 +113,7 @@ export function TourTooltip({
           {/* Description */}
           <p className="mb-4 text-xs leading-relaxed text-foreground-light">
             {isLast
-              ? 'You now know your way around Instroom. Come back to this tour any time using the Take a tour button in the sidebar.'
+              ? 'You now know your way around Instroom. Come back to this tour any time using the ? Take a tour button in the sidebar.'
               : description}
           </p>
 
