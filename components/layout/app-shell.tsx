@@ -264,7 +264,6 @@ function WorkspaceTourAutoStart() {
       const t = setTimeout(() => startTour('workspace'), 600)
       return () => clearTimeout(t)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [hasSeenWorkspaceTour, startTour])
   return null
 }
