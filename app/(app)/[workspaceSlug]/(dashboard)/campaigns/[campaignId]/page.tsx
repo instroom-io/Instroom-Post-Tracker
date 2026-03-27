@@ -8,6 +8,7 @@ import { AnimatedBadge } from '@/components/ui/animated-badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { CampaignTabs } from '@/components/campaigns/campaign-tabs'
+import { CampaignTourWrapper, CampaignTourButton } from '@/components/campaigns/campaign-tour-wrapper'
 import { formatDateRange } from '@/lib/utils'
 import { updateCampaign } from '@/lib/actions/campaigns'
 import type { WorkspaceRole, CampaignStatus, Platform, DownloadStatus, CollabStatus } from '@/lib/types'
@@ -199,6 +200,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
   }))
 
   return (
+    <CampaignTourWrapper>
     <div>
       <Link
         href={`/${workspaceSlug}/campaigns`}
@@ -212,6 +214,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
         description={formatDateRange(campaign.start_date, campaign.end_date)}
         actions={
           <div className="flex items-center gap-2">
+            <CampaignTourButton />
             {campaign.status === 'active' ? (
               <AnimatedBadge>{campaign.status}</AnimatedBadge>
             ) : (
@@ -270,5 +273,6 @@ export default async function CampaignDetailPage({ params }: PageProps) {
         />
       </div>
     </div>
+    </CampaignTourWrapper>
   )
 }

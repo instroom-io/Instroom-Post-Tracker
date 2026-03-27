@@ -42,19 +42,7 @@ export const WORKSPACE_STEPS: TourStep[] = [
   {
     id: 'ws-campaigns',
     title: 'Campaigns',
-    description: 'Create a campaign for each brand collaboration. Add influencers, set tracking hashtags and handles, and Instroom detects their posts automatically across TikTok, Instagram and YouTube.',
-    side: 'right',
-  },
-  {
-    id: 'ws-influencers',
-    title: 'Influencers',
-    description: "Every influencer you've ever tracked lives here — across all campaigns. Add them once, reuse across campaigns.",
-    side: 'right',
-  },
-  {
-    id: 'ws-posts',
-    title: 'Posts',
-    description: 'All detected posts across every campaign, filterable by platform, influencer, and date. Download to Drive or manage collab tags from here.',
+    description: 'Create a campaign for each brand collaboration. Add influencers, configure tracking handles and hashtags, then view posts and downloads — all within each campaign.',
     side: 'right',
   },
   {
@@ -77,7 +65,35 @@ export const WORKSPACE_STEPS: TourStep[] = [
   },
 ]
 
-export const TOUR_STEPS: Record<'agency' | 'workspace', TourStep[]> = {
+export const CAMPAIGN_STEPS: TourStep[] = [
+  {
+    id: 'campaign-tab-overview',
+    title: 'Overview',
+    description: 'Campaign stats, tracking configuration, and post volume at a glance. Set your hashtags and handles here to control what Instroom detects.',
+    side: 'bottom',
+  },
+  {
+    id: 'campaign-tab-influencers',
+    title: 'Influencers',
+    description: "Everyone you're tracking in this campaign. Add influencers, view their handles across platforms, and manage who is included.",
+    side: 'bottom',
+  },
+  {
+    id: 'campaign-tab-posts',
+    title: 'Posts',
+    description: 'All posts detected for this campaign across TikTok, Instagram, and YouTube — sorted by recency, filterable by platform.',
+    side: 'bottom',
+  },
+  {
+    id: 'campaign-tab-downloads',
+    title: 'Downloads',
+    description: 'Posts that have been downloaded to Google Drive. Enable usage rights per influencer on the Overview tab to unlock downloads.',
+    side: 'bottom',
+  },
+]
+
+export const TOUR_STEPS: Record<'agency' | 'workspace' | 'campaign', TourStep[]> = {
   agency: AGENCY_STEPS,
   workspace: WORKSPACE_STEPS,
+  campaign: CAMPAIGN_STEPS,
 }

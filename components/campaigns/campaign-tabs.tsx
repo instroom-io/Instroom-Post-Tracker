@@ -113,6 +113,7 @@ export function CampaignTabs({
           <button
             key={tab.key}
             type="button"
+            data-tour={`campaign-tab-${tab.key}`}
             onClick={() => setActiveTab(tab.key)}
             className={cn(
               'mr-1 inline-flex items-center gap-1.5 border-b-2 px-3 py-3 text-[13px] transition-colors',

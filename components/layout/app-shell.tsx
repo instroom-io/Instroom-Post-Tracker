@@ -9,8 +9,6 @@ import type { User } from '@supabase/supabase-js'
 import {
   LayoutDashboard,
   Megaphone,
-  Users,
-  FileText,
   BarChart2,
   Settings,
   ChevronLeft,
@@ -33,12 +31,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview',    href: (s) => `/${s}/overview`,    icon: LayoutDashboard, tourId: 'ws-overview'    },
-  { label: 'Campaigns',   href: (s) => `/${s}/campaigns`,   icon: Megaphone,       tourId: 'ws-campaigns'   },
-  { label: 'Influencers', href: (s) => `/${s}/influencers`, icon: Users,           tourId: 'ws-influencers' },
-  { label: 'Posts',       href: (s) => `/${s}/posts`,       icon: FileText,        tourId: 'ws-posts'       },
-  { label: 'Analytics',   href: (s) => `/${s}/analytics`,   icon: BarChart2,       tourId: 'ws-analytics'   },
-  { label: 'Settings',    href: (s) => `/${s}/settings`,    icon: Settings,        tourId: 'ws-settings'    },
+  { label: 'Overview',  href: (s) => `/${s}/overview`,  icon: LayoutDashboard, tourId: 'ws-overview'  },
+  { label: 'Campaigns', href: (s) => `/${s}/campaigns`, icon: Megaphone,       tourId: 'ws-campaigns' },
+  { label: 'Analytics', href: (s) => `/${s}/analytics`, icon: BarChart2,       tourId: 'ws-analytics' },
+  { label: 'Settings',  href: (s) => `/${s}/settings`,  icon: Settings,        tourId: 'ws-settings'  },
 ]
 
 interface AppShellProps {
