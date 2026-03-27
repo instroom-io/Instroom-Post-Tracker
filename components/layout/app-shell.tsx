@@ -9,11 +9,16 @@ import type { User } from '@supabase/supabase-js'
 import {
   LayoutDashboard,
   Megaphone,
+  Users,
+  FileText,
   BarChart2,
   Settings,
   ChevronLeft,
   ChevronRight,
+  HelpCircle,
 } from 'lucide-react'
+import { useTour } from '@/lib/hooks/use-tour'
+import { TourProvider } from '@/components/tour/tour-provider'
 import { cn } from '@/lib/utils'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
 import { WorkspaceSwitcher } from './workspace-switcher'
@@ -24,13 +29,16 @@ interface NavItem {
   label: string
   href: (slug: string) => string
   icon: React.ElementType
+  tourId: string
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview',  href: (s) => `/${s}/overview`,  icon: LayoutDashboard },
-  { label: 'Campaigns', href: (s) => `/${s}/campaigns`, icon: Megaphone },
-  { label: 'Analytics', href: (s) => `/${s}/analytics`, icon: BarChart2 },
-  { label: 'Settings',  href: (s) => `/${s}/settings`,  icon: Settings },
+  { label: 'Overview',    href: (s) => `/${s}/overview`,    icon: LayoutDashboard, tourId: 'ws-overview'    },
+  { label: 'Campaigns',   href: (s) => `/${s}/campaigns`,   icon: Megaphone,       tourId: 'ws-campaigns'   },
+  { label: 'Influencers', href: (s) => `/${s}/influencers`, icon: Users,           tourId: 'ws-influencers' },
+  { label: 'Posts',       href: (s) => `/${s}/posts`,       icon: FileText,        tourId: 'ws-posts'       },
+  { label: 'Analytics',   href: (s) => `/${s}/analytics`,   icon: BarChart2,       tourId: 'ws-analytics'   },
+  { label: 'Settings',    href: (s) => `/${s}/settings`,    icon: Settings,        tourId: 'ws-settings'    },
 ]
 
 interface AppShellProps {
@@ -54,6 +62,7 @@ export function AppShell({
 }: AppShellProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const { startTour } = useTour()
 
   // Auto-collapse sidebar on small screens
   useEffect(() => {
@@ -148,6 +157,7 @@ export function AppShell({
             return (
               <Link key={item.label} href={href} aria-current={isActive ? 'page' : undefined} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 rounded-lg block">
                 <motion.div
+                  data-tour={item.tourId}
                   whileTap={{ scale: 0.98 }}
                   className={cn(
                     'mb-0.5 flex items-center rounded-lg px-2.5 py-[7px] text-[12px] transition-colors',
@@ -177,6 +187,31 @@ export function AppShell({
               </Link>
             )
           })}
+
+          {/* Tour re-launch button */}
+          <div className="mt-2 border-t border-border pt-2">
+            <button
+              onClick={() => startTour('workspace')}
+              className={cn(
+                'flex w-full items-center rounded-lg px-2.5 py-[7px] text-[11px] text-foreground-muted transition-colors hover:bg-brand-muted hover:text-brand',
+                collapsed ? 'justify-center gap-0' : 'gap-2'
+              )}
+            >
+              <HelpCircle size={14} className="flex-shrink-0" />
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="overflow-hidden whitespace-nowrap"
+                  >
+                    Take a tour
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+          </div>
 
         </nav>
 
@@ -216,6 +251,20 @@ export function AppShell({
 
       </div>
     </div>
+      <TourProvider tourId="workspace" />
+      <WorkspaceTourAutoStart />
     </>
   )
+}
+
+function WorkspaceTourAutoStart() {
+  const { hasSeenWorkspaceTour, startTour } = useTour()
+  useEffect(() => {
+    if (!hasSeenWorkspaceTour) {
+      const t = setTimeout(() => startTour('workspace'), 600)
+      return () => clearTimeout(t)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return null
 }
