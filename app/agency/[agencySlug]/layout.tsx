@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
 import { AgencyLogoImage } from '@/components/agency/agency-logo-image'
 import { AgencyNav } from '@/components/agency/agency-nav'
+import { AgencyTourWrapper, AgencyTourButton } from '@/components/agency/agency-tour-wrapper'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -46,10 +47,13 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
         <div className="flex items-center gap-4">
           <AgencyNav agencySlug={agencySlug} />
           <UserMenu user={user} compact settingsHref={`/agency/${agencySlug}/settings`} />
+          <AgencyTourButton />
           <ThemeToggle />
         </div>
       </div>
-      <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
+      <AgencyTourWrapper>
+        <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
+      </AgencyTourWrapper>
     </div>
   )
 }
