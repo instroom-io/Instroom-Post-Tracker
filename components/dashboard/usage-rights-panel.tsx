@@ -55,7 +55,7 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
   }
 
   return (
-    <div className="max-h-[260px] overflow-y-auto divide-y divide-border/50">
+    <div data-tour="ws-usage-rights" className="max-h-[260px] overflow-y-auto divide-y divide-border/50">
       {optimisticItems.map((item) => (
         <div
           key={item.id}
