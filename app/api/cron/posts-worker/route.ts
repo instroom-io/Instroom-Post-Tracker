@@ -28,19 +28,50 @@ interface ScrapeResult {
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Returns true if caption matches any hashtag or mention in the config.
- *  Returns false if no filter is configured — tracking config is required. */
+ *  Returns false if no filter is configured — tracking config is required.
+ *
+ *  Matching rules:
+ *  - Case-insensitive always.
+ *  - Hashtag keyword matches: `#keyword` OR plain `keyword` (no prefix).
+ *  - Mention keyword matches: `@keyword` OR plain `keyword` (no prefix).
+ *  - Extensions and emojis after the keyword are allowed (#keyword.app, #keyword🔥).
+ *  - Keyword must end at a word boundary — `#keywordextra` does NOT match `#keyword`.
+ */
 function matchesTrackingConfig(
   caption: string | null,
   hashtags: string[],
   mentions: string[]
 ): boolean {
-  // No filter configured — skip posts (tracking config is required)
   if (hashtags.length === 0 && mentions.length === 0) return false
   if (!caption) return false
   const lower = caption.toLowerCase()
+
+  // Trailing boundary: keyword must be followed by a non-word char or end of string.
+  // Allows: .app, emojis, spaces, punctuation. Blocks: alcansideburger.
+  const after = '(?:[^a-z0-9_]|$)'
+
+  // Escape regex special characters in the keyword (e.g. dots, plus signs)
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+  const testHashtag = (keyword: string): boolean => {
+    const k = esc(keyword)
+    return (
+      new RegExp(`#${k}${after}`).test(lower) ||                      // with # prefix
+      new RegExp(`(?:^|[^a-z0-9_#@])${k}${after}`).test(lower)       // plain word, no prefix
+    )
+  }
+
+  const testMention = (keyword: string): boolean => {
+    const k = esc(keyword)
+    return (
+      new RegExp(`@${k}${after}`).test(lower) ||                      // with @ prefix
+      new RegExp(`(?:^|[^a-z0-9_#@])${k}${after}`).test(lower)       // plain word, no prefix
+    )
+  }
+
   return (
-    hashtags.some((h) => lower.includes(`#${h.replace(/^#/, '').toLowerCase()}`)) ||
-    mentions.some((m) => lower.includes(`@${m.replace(/^@/, '').toLowerCase()}`))
+    hashtags.some((h) => testHashtag(h.replace(/^#/, '').toLowerCase())) ||
+    mentions.some((m) => testMention(m.replace(/^@/, '').toLowerCase()))
   )
 }
 
