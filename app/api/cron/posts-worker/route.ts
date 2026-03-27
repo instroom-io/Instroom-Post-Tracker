@@ -149,7 +149,7 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null): Pr
   // Fetch regular posts and Reels in parallel — Reels are a separate EnsembleData endpoint
   const [postsRes, reelsRes] = await Promise.all([
     fetch(`${ENSEMBLE_API_URL}/instagram/user/posts?user_id=${encodeURIComponent(userId)}&depth=3&token=${ENSEMBLE_API_KEY}`),
-    fetch(`${ENSEMBLE_API_URL}/ig/user/reels?user_id=${encodeURIComponent(userId)}&depth=3&token=${ENSEMBLE_API_KEY}`),
+    fetch(`${ENSEMBLE_API_URL}/instagram/user/reels?user_id=${encodeURIComponent(userId)}&depth=3&token=${ENSEMBLE_API_KEY}`),
   ])
 
   const seenShortcodes = new Set<string>()
