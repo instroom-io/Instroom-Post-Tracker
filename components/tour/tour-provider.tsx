@@ -42,6 +42,11 @@ export function TourProvider({ tourId }: TourProviderProps) {
     setTargetRect({ x: r.left, y: r.top, width: r.width, height: r.height })
   }, [step, nextStep])
 
+  const handleNext = useCallback(() => {
+    if (currentStep === steps.length - 1) endTour()
+    else nextStep()
+  }, [currentStep, steps.length, endTour, nextStep])
+
   // Recompute rect when step changes or layout shifts
   useEffect(() => {
     if (!isThisTourActive) return
@@ -68,18 +73,12 @@ export function TourProvider({ tourId }: TourProviderProps) {
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isThisTourActive, currentStep, steps.length])
+  }, [isThisTourActive, handleNext, prevStep, skipTour])
 
   // SSR safety — portals require document
   useEffect(() => setMounted(true), [])
 
   if (!mounted || !isThisTourActive || !step) return null
-
-  function handleNext() {
-    if (currentStep === steps.length - 1) endTour()
-    else nextStep()
-  }
 
   return createPortal(
     <>
