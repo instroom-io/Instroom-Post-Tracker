@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface TooltipProps {
-  content: string
+  content: React.ReactNode
   children: React.ReactNode
   side?: 'top' | 'bottom' | 'left' | 'right'
   className?: string
@@ -38,8 +38,8 @@ export function Tooltip({
       {visible && content && (
         <div
           className={cn(
-            'pointer-events-none absolute z-50 whitespace-nowrap',
-            'rounded-md bg-foreground px-2 py-1',
+            'pointer-events-none absolute z-50 max-w-xs w-max',
+            'rounded-md bg-foreground px-2.5 py-2',
             'text-[11px] text-background',
             positionClasses[side],
             className

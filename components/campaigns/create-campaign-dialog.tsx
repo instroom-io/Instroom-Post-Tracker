@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { TagInput } from '@/components/ui/tag-input'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { createCampaign } from '@/lib/actions/campaigns'
 import type { Platform } from '@/lib/types'
 
@@ -208,13 +209,38 @@ export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps)
 
             {/* Date range */}
             <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="Start date"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                required
-              />
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-1">
+                  <span className="text-[12px] font-medium text-foreground-light">Start date</span>
+                  <Tooltip
+                    side="right"
+                    content={
+                      <div className="space-y-2">
+                        <p className="font-medium">Set this to the date products were delivered to influencers.</p>
+                        <div className="space-y-1">
+                          <p className="font-medium text-background/70">How it works:</p>
+                          <ul className="space-y-1 pl-1">
+                            <li>• Posts before this date will not be detected</li>
+                            <li>• The system waits 7 days after an influencer is added before the first scan</li>
+                            <li>• Posts made the next day or 2 after delivery will still be captured — they remain in the influencer's recent feed when the first scan runs</li>
+                            <li>• If no posts are found by day 10, a follow-up reminder is sent to your team</li>
+                            <li>• A second reminder follows at day 13</li>
+                          </ul>
+                        </div>
+                        <p className="text-background/70">Only add influencers who just received their delivery and have not been tracked in a previous campaign.</p>
+                      </div>
+                    }
+                  >
+                    <Info size={12} className="cursor-help text-foreground-muted" />
+                  </Tooltip>
+                </div>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  required
+                />
+              </div>
               <Input
                 label="End date (optional)"
                 type="date"
