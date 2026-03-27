@@ -30,38 +30,37 @@ export function TourProvider({ tourId }: TourProviderProps) {
   const step = steps[currentStep]
   const isThisTourActive = isActive && activeTourId === tourId
 
-  const computeRect = useCallback(() => {
-    if (!step) return
-    const el = document.querySelector(`[data-tour="${step.id}"]`)
-    if (!el) {
-      // Element not in DOM — skip this step silently
-      nextStep()
-      return
-    }
-    const r = el.getBoundingClientRect()
-    setTargetRect({ x: r.left, y: r.top, width: r.width, height: r.height })
-  }, [step, nextStep])
-
   const handleNext = useCallback(() => {
     if (currentStep === steps.length - 1) endTour()
     else nextStep()
   }, [currentStep, steps.length, endTour, nextStep])
 
-  // Recompute rect when step changes or layout shifts
+  // Query DOM, set rect, observe resize
   useEffect(() => {
-    if (!isThisTourActive) return
-    computeRect()
+    if (!isThisTourActive || !step) return
 
-    const el = step ? document.querySelector(`[data-tour="${step.id}"]`) : null
-    const resizeObserver = new ResizeObserver(computeRect)
-    if (el) resizeObserver.observe(el)
-    window.addEventListener('resize', computeRect)
+    const el = document.querySelector(`[data-tour="${step.id}"]`)
+    if (!el) {
+      // Element not in DOM — defer skip to avoid synchronous loop
+      const timer = setTimeout(() => nextStep(), 0)
+      return () => clearTimeout(timer)
+    }
+
+    const updateRect = () => {
+      const r = el.getBoundingClientRect()
+      setTargetRect({ x: r.left, y: r.top, width: r.width, height: r.height })
+    }
+    updateRect()
+
+    const resizeObserver = new ResizeObserver(updateRect)
+    resizeObserver.observe(el)
+    window.addEventListener('resize', updateRect)
 
     return () => {
       resizeObserver.disconnect()
-      window.removeEventListener('resize', computeRect)
+      window.removeEventListener('resize', updateRect)
     }
-  }, [isThisTourActive, computeRect, step])
+  }, [isThisTourActive, step, nextStep])
 
   // Keyboard navigation
   useEffect(() => {

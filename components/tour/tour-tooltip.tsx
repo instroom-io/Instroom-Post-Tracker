@@ -78,7 +78,7 @@ export function TourTooltip({
         role="dialog"
         aria-modal="true"
         aria-label={`Tour step ${currentStep + 1} of ${totalSteps}: ${title}`}
-        aria-describedby="tour-tooltip-description"
+        aria-describedby={`tour-tooltip-description-${currentStep}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4">
@@ -113,7 +113,7 @@ export function TourTooltip({
           </p>
 
           {/* Description */}
-          <p id="tour-tooltip-description" className="mb-4 text-xs leading-relaxed text-foreground-light">
+          <p id={`tour-tooltip-description-${currentStep}`} className="mb-4 text-xs leading-relaxed text-foreground-light">
             {isLast
               ? 'You now know your way around Instroom. Come back to this tour any time using the ? Take a tour button in the sidebar.'
               : description}
