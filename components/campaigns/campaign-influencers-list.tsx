@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { MoreHorizontal, Trash2, AlertCircle, Users, RefreshCw, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { PlatformLogo } from '@/components/ui/platform-icon'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -125,11 +126,6 @@ const platformsForInfluencer = (inf: InfluencerRow['influencer']): Platform[] =>
   return platforms
 }
 
-const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
-  instagram: 'instagram',
-  tiktok: 'tiktok',
-  youtube: 'youtube',
-}
 
 type FollowUpStatus = 'first_due' | 'first_sent' | 'second_due' | 'second_sent' | null
 
@@ -281,11 +277,9 @@ export function CampaignInfluencersList({
                     </div>
                   </td>
                   <td className="px-5 py-3.5">
-                    <div className="flex gap-1">
+                    <div className="flex flex-col gap-1.5">
                       {platforms.map((p) => (
-                        <Badge key={p} variant={platformVariant[p]}>
-                          {p}
-                        </Badge>
+                        <PlatformLogo key={p} platform={p} size={13} className="text-[12px] font-medium text-foreground-muted" />
                       ))}
                     </div>
                   </td>
