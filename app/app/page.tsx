@@ -38,5 +38,5 @@ export default async function AppPage() {
     if (workspace?.slug) redirect(`/${workspace.slug}/overview`)
   }
 
-  redirect('/no-access')
+  redirect('/request-access')
 }

@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { signInSchema, signUpSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/validations'
 import { isPersonalEmail } from '@/lib/utils'
 
@@ -17,13 +17,6 @@ export async function signIn(
 
   if (!parsed.success) {
     return { error: parsed.error.errors[0].message }
-  }
-
-  // Block personal email domains (except admin)
-  const adminEmail = process.env.ADMIN_EMAIL
-  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
-  if (!isAdmin && isPersonalEmail(parsed.data.email)) {
-    return { error: 'Please use a work email address to sign in.' }
   }
 
   const supabase = await createClient()
@@ -59,33 +52,6 @@ export async function signUp(
   const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
   if (!isAdmin && isPersonalEmail(parsed.data.email)) {
     return { error: 'Please use a work email address to sign up.' }
-  }
-
-  // Invite-only gate: only admin email or users with a valid access path can sign up
-  if (!isAdmin) {
-    const serviceClient = createServiceClient()
-    const email = parsed.data.email
-
-    // Check 1: pending workspace invitation
-    const { data: invite } = await serviceClient
-      .from('invitations')
-      .select('id')
-      .eq('email', email)
-      .is('accepted_at', null)
-      .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
-      .maybeSingle()
-
-    // Check 2: pending or approved agency request (agency contact signing up before/after approval)
-    const { data: agencyRequest } = await serviceClient
-      .from('agency_requests')
-      .select('id')
-      .eq('contact_email', email)
-      .in('status', ['pending', 'approved'])
-      .maybeSingle()
-
-    if (!invite && !agencyRequest) {
-      return { error: 'Sign-up is by invitation only. Please use the invite link sent to your email.' }
-    }
   }
 
   const redirectTo = formData.get('redirectTo')
