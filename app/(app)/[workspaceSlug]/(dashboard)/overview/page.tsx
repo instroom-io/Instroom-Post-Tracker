@@ -47,7 +47,7 @@ async function OverviewBottom({
       supabase
         .from('campaign_influencers')
         .select(
-          'id, usage_rights, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), campaign:campaigns(name)'
+          'id, usage_rights, influencer:influencers(tiktok_handle, ig_handle, youtube_handle, profile_pic_url), campaign:campaigns(name)'
         )
         .in('campaign_id', activeCampaignIds)
         .neq('monitoring_status', 'removed')
@@ -110,6 +110,7 @@ async function OverviewBottom({
                 tiktok_handle: string | null
                 ig_handle: string | null
                 youtube_handle: string | null
+                profile_pic_url: string | null
               } | null,
               campaign: item.campaign as unknown as { name: string } | null,
             }))}

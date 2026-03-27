@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch'
 interface CampaignInfluencer {
   id: string
   usage_rights: boolean
-  influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
+  influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null; profile_pic_url: string | null } | null
   campaign: { name: string } | null
 }
 
@@ -61,13 +61,27 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
           key={item.id}
           className="flex items-center justify-between px-5 py-3"
         >
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-medium text-foreground">
-              @{item.influencer ? getInfluencerLabel(item.influencer) : 'Unknown'}
-            </p>
-            <p className="text-[11px] text-foreground-lighter">
-              {item.campaign?.name ?? ''}
-            </p>
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            {item.influencer?.profile_pic_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.influencer.profile_pic_url}
+                alt=""
+                className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-background-muted text-[11px] font-semibold text-foreground-muted">
+                {(item.influencer ? getInfluencerLabel(item.influencer) : '?')[0]?.toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-[12px] font-medium text-foreground">
+                @{item.influencer ? getInfluencerLabel(item.influencer) : 'Unknown'}
+              </p>
+              <p className="text-[11px] text-foreground-lighter">
+                {item.campaign?.name ?? ''}
+              </p>
+            </div>
           </div>
 
           <div className="ml-4 flex items-center gap-2">
