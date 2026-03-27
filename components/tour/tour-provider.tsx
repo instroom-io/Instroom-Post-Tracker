@@ -27,17 +27,19 @@ export function TourProvider({ tourId }: TourProviderProps) {
   const [mounted, setMounted] = useState(false)
 
   const steps = TOUR_STEPS[tourId]
-  const step = steps[currentStep]
   const isThisTourActive = isActive && activeTourId === tourId
+  // Virtual completion step sits at index === steps.length (one past the last real step)
+  const isCompletion = currentStep >= steps.length
+  const step = isCompletion ? undefined : steps[currentStep]
 
   const handleNext = useCallback(() => {
-    if (currentStep === steps.length - 1) endTour()
-    else nextStep()
-  }, [currentStep, steps.length, endTour, nextStep])
+    if (isCompletion) { endTour(); return }
+    nextStep()
+  }, [isCompletion, endTour, nextStep])
 
-  // Query DOM, set rect, observe resize
+  // Query DOM, set rect, observe resize — only for real steps
   useEffect(() => {
-    if (!isThisTourActive || !step) return
+    if (!isThisTourActive || isCompletion || !step) return
 
     const el = document.querySelector(`[data-tour="${step.id}"]`)
     if (!el) {
@@ -60,7 +62,12 @@ export function TourProvider({ tourId }: TourProviderProps) {
       resizeObserver.disconnect()
       window.removeEventListener('resize', updateRect)
     }
-  }, [isThisTourActive, step, nextStep])
+  }, [isThisTourActive, isCompletion, step, nextStep])
+
+  // Clear rect when entering completion state
+  useEffect(() => {
+    if (isCompletion) setTargetRect(null)
+  }, [isCompletion])
 
   // Keyboard navigation
   useEffect(() => {
@@ -68,27 +75,31 @@ export function TourProvider({ tourId }: TourProviderProps) {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') skipTour()
       else if (e.key === 'ArrowRight') handleNext()
-      else if (e.key === 'ArrowLeft') prevStep()
+      else if (e.key === 'ArrowLeft' && !isCompletion) prevStep()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [isThisTourActive, handleNext, prevStep, skipTour])
+  }, [isThisTourActive, isCompletion, handleNext, prevStep, skipTour])
 
   // SSR safety — portals require document
   useEffect(() => setMounted(true), [])
 
-  if (!mounted || !isThisTourActive || !step) return null
+  if (!mounted || !isThisTourActive) return null
 
   return createPortal(
     <>
-      <TourSpotlight targetRect={targetRect} onClickOverlay={skipTour} />
+      {!isCompletion && (
+        <TourSpotlight targetRect={targetRect} onClickOverlay={skipTour} />
+      )}
       <TourTooltip
-        title={step.title}
-        description={step.description}
+        title={step?.title ?? ''}
+        description={step?.description ?? ''}
         currentStep={currentStep}
         totalSteps={steps.length}
         targetRect={targetRect}
-        side={step.side}
+        side={step?.side ?? 'right'}
+        isCompletion={isCompletion}
+        tourId={tourId}
         onNext={handleNext}
         onPrev={prevStep}
         onSkip={skipTour}
