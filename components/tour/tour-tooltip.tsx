@@ -57,7 +57,8 @@ export function TourTooltip({
   }
 
   // Clamp left to stay within viewport
-  left = Math.max(12, Math.min(left, window.innerWidth - TOOLTIP_WIDTH - 12))
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1280
+  left = Math.max(12, Math.min(left, viewportWidth - TOOLTIP_WIDTH - 12))
   top = Math.max(12, top)
 
   return (
@@ -77,6 +78,7 @@ export function TourTooltip({
         role="dialog"
         aria-modal="true"
         aria-label={`Tour step ${currentStep + 1} of ${totalSteps}: ${title}`}
+        aria-describedby="tour-tooltip-description"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4">
@@ -111,7 +113,7 @@ export function TourTooltip({
           </p>
 
           {/* Description */}
-          <p className="mb-4 text-xs leading-relaxed text-foreground-light">
+          <p id="tour-tooltip-description" className="mb-4 text-xs leading-relaxed text-foreground-light">
             {isLast
               ? 'You now know your way around Instroom. Come back to this tour any time using the ? Take a tour button in the sidebar.'
               : description}
