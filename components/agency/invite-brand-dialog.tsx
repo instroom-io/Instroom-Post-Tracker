@@ -63,7 +63,7 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); else setOpen(true) }}>
-      <DialogTrigger>
+      <DialogTrigger data-tour="agency-invite-brand">
         <Button variant="primary" size="sm">
           <Plus size={13} />
           Invite brand
