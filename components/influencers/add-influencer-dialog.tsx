@@ -26,8 +26,37 @@ import {
 
 interface AddInfluencerDialogProps {
   workspaceId: string
-  campaignId?: string
+  campaignId?: string                                    // existing: hardcoded campaign (campaign detail page)
+  campaigns?: Array<{ id: string; name: string }>       // new: workspace-level list with optional selector
   trigger?: React.ReactNode
+}
+
+function CampaignSelector({
+  campaigns,
+  value,
+  onChange,
+}: {
+  campaigns: Array<{ id: string; name: string }>
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="px-6 pb-1">
+      <label className="mb-1.5 block text-[11px] font-medium text-foreground-light">
+        Add to campaign <span className="text-foreground-muted">(optional)</span>
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-8 w-full rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
+      >
+        <option value="">No campaign</option>
+        {campaigns.map((c) => (
+          <option key={c.id} value={c.id}>{c.name}</option>
+        ))}
+      </select>
+    </div>
+  )
 }
 
 type Mode = 'manual' | 'csv'
@@ -43,6 +72,7 @@ const PLATFORMS: { value: CsvPlatform; label: string }[] = [
 export function AddInfluencerDialog({
   workspaceId,
   campaignId,
+  campaigns,
   trigger,
 }: AddInfluencerDialogProps) {
   const [open, setOpen] = useState(false)
@@ -63,6 +93,7 @@ export function AddInfluencerDialog({
   const [isValidating, startValidateTransition] = useTransition()
   const [isImporting, startImportTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string>('')
 
   // ── Manual handlers ───────────────────────────────────────────────────────
   function handleChange(field: keyof typeof form, value: string) {
@@ -73,7 +104,7 @@ export function AddInfluencerDialog({
     e.preventDefault()
     setError(null)
     startTransition(async () => {
-      const result = await addInfluencer(workspaceId, form, campaignId)
+      const result = await addInfluencer(workspaceId, form, effectiveCampaignId)
       if (result?.error) { setError(result.error); return }
       toast.success('Influencer added')
       handleClose()
@@ -122,7 +153,7 @@ export function AddInfluencerDialog({
     if (validHandles.length === 0) return
 
     startImportTransition(async () => {
-      const result = await addInfluencersBatch(workspaceId, validHandles, csvPlatform, campaignId)
+      const result = await addInfluencersBatch(workspaceId, validHandles, csvPlatform, effectiveCampaignId)
       if (result?.error) { setCsvError(result.error); return }
 
       const { added, skipped } = result
@@ -149,10 +180,14 @@ export function AddInfluencerDialog({
     setCsvStep('idle')
     setCsvError(null)
     setValidationResults([])
+    setSelectedCampaignId('')
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   // ── Derived ───────────────────────────────────────────────────────────────
+  // Use hardcoded campaignId if provided; otherwise use the dropdown selection
+  const effectiveCampaignId = campaignId ?? (selectedCampaignId || undefined)
+
   const validCount = validationResults.filter((r) => r.status === 'valid').length
   const privateCount = validationResults.filter((r) => r.status === 'private').length
   const notFoundCount = validationResults.filter((r) => r.status === 'not_found').length
@@ -173,7 +208,7 @@ export function AddInfluencerDialog({
           <DialogTitle>Add influencer</DialogTitle>
           <DialogDescription>
             Add influencers to your workspace.
-            {campaignId && ' They will also be added to this campaign.'}
+            {(campaignId || selectedCampaignId) && ' They will also be added to the selected campaign.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -195,6 +230,15 @@ export function AddInfluencerDialog({
             </button>
           ))}
         </div>
+
+        {/* Campaign selector — only on workspace-level influencer page */}
+        {campaigns && !campaignId && (
+          <CampaignSelector
+            campaigns={campaigns}
+            value={selectedCampaignId}
+            onChange={setSelectedCampaignId}
+          />
+        )}
 
         {/* ── Manual tab ── */}
         {mode === 'manual' && (
