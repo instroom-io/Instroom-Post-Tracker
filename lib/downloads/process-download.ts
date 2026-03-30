@@ -1,4 +1,4 @@
-import { createServiceClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { uploadToDrive } from '@/lib/drive/upload'
 
 const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
@@ -55,7 +55,7 @@ export interface DownloadResult {
  * Throws on failure — caller is responsible for error handling.
  */
 export async function processPostDownload(
-  supabase: ReturnType<typeof createServiceClient>,
+  supabase: SupabaseClient,
   postId: string,
   memberDriveFolderId?: string | null
 ): Promise<DownloadResult> {
