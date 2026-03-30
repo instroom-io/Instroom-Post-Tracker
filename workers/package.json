@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "posts": "tsx src/posts-worker.ts",
-    "metrics": "tsx src/metrics-worker.ts",
-    "download": "tsx src/download-worker.ts",
-    "followup": "tsx src/followup-worker.ts"
+    "posts": "tsx --env-file ../.env.local src/posts-worker.ts",
+    "metrics": "tsx --env-file ../.env.local src/metrics-worker.ts",
+    "download": "tsx --env-file ../.env.local src/download-worker.ts",
+    "followup": "tsx --env-file ../.env.local src/followup-worker.ts"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
@@ -15,8 +15,8 @@
     "googleapis": "^148.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.8.3"
+    "@types/node": "^20",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
   }
 }
