@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "posts": "tsx --env-file ../.env.local src/posts-worker.ts",
-    "metrics": "tsx --env-file ../.env.local src/metrics-worker.ts",
-    "download": "tsx --env-file ../.env.local src/download-worker.ts",
-    "followup": "tsx --env-file ../.env.local src/followup-worker.ts"
+    "posts": "tsx src/posts-worker.ts",
+    "metrics": "tsx src/metrics-worker.ts",
+    "download": "tsx src/download-worker.ts",
+    "followup": "tsx src/followup-worker.ts",
+    "dev:posts": "tsx --env-file ../.env.local src/posts-worker.ts",
+    "dev:metrics": "tsx --env-file ../.env.local src/metrics-worker.ts",
+    "dev:download": "tsx --env-file ../.env.local src/download-worker.ts",
+    "dev:followup": "tsx --env-file ../.env.local src/followup-worker.ts"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
