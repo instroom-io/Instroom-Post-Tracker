@@ -82,6 +82,7 @@ export function AddInfluencerDialog({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({ ig_handle: '', tiktok_handle: '', youtube_handle: '' })
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   // ── CSV tab state ─────────────────────────────────────────────────────────
   const [csvPlatform, setCsvPlatform] = useState<CsvPlatform>('tiktok')
@@ -103,7 +104,39 @@ export function AddInfluencerDialog({
   function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    setValidationErrors({})
+
+    // Build per-platform check list from filled fields
+    const checks: Array<{ field: 'ig_handle' | 'tiktok_handle' | 'youtube_handle'; platform: 'instagram' | 'tiktok' | 'youtube'; handle: string }> = []
+    if (form.ig_handle)      checks.push({ field: 'ig_handle',      platform: 'instagram', handle: form.ig_handle })
+    if (form.tiktok_handle)  checks.push({ field: 'tiktok_handle',  platform: 'tiktok',    handle: form.tiktok_handle })
+    if (form.youtube_handle) checks.push({ field: 'youtube_handle', platform: 'youtube',   handle: form.youtube_handle })
+
+    if (checks.length === 0) { setError('Enter at least one handle.'); return }
+
     startTransition(async () => {
+      // Validate all handles in parallel against EnsembleData API
+      const results = await Promise.all(
+        checks.map(({ platform, handle }) =>
+          validateInfluencerHandles(workspaceId, platform, [handle]).then((r) => r[0])
+        )
+      )
+
+      // Map results back to fields
+      const errors: Record<string, string> = {}
+      let hasBlockingError = false
+      results.forEach((result, i) => {
+        if (result.status === 'not_found') {
+          errors[checks[i].field] = 'Handle not found'
+          hasBlockingError = true
+        } else if (result.status === 'private') {
+          errors[checks[i].field] = 'Account is private — posts won\'t be visible but will still be tracked'
+        }
+      })
+      setValidationErrors(errors)
+      if (hasBlockingError) return
+
+      // All valid (or private) — proceed to add
       const result = await addInfluencer(workspaceId, form, effectiveCampaignId)
       if (result?.error) { setError(result.error); return }
       toast.success('Influencer added')
@@ -173,6 +206,7 @@ export function AddInfluencerDialog({
     // reset manual
     setForm({ ig_handle: '', tiktok_handle: '', youtube_handle: '' })
     setError(null)
+    setValidationErrors({})
     // reset csv
     setCsvPlatform('tiktok')
     setParsedHandles([])
@@ -245,33 +279,56 @@ export function AddInfluencerDialog({
           <form onSubmit={handleManualSubmit}>
             <DialogBody className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Instagram handle"
-                  value={form.ig_handle}
-                  onChange={(e) => handleChange('ig_handle', e.target.value.replace(/^@/, ''))}
-                  placeholder="janesmithig"
-                  hint="Without @"
-                />
-                <Input
-                  label="TikTok handle"
-                  value={form.tiktok_handle}
-                  onChange={(e) => handleChange('tiktok_handle', e.target.value.replace(/^@/, ''))}
-                  placeholder="janesmithtt"
-                  hint="Without @"
-                />
+                <div>
+                  <Input
+                    label="Instagram handle"
+                    value={form.ig_handle}
+                    onChange={(e) => { handleChange('ig_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, ig_handle: '' })) }}
+                    placeholder="janesmithig"
+                    hint="Without @"
+                  />
+                  {validationErrors.ig_handle && (
+                    <p className={`mt-1 text-[11px] ${validationErrors.ig_handle === 'Handle not found' ? 'text-destructive' : 'text-warning'}`}>
+                      {validationErrors.ig_handle}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Input
+                    label="TikTok handle"
+                    value={form.tiktok_handle}
+                    onChange={(e) => { handleChange('tiktok_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, tiktok_handle: '' })) }}
+                    placeholder="janesmithtt"
+                    hint="Without @"
+                  />
+                  {validationErrors.tiktok_handle && (
+                    <p className={`mt-1 text-[11px] ${validationErrors.tiktok_handle === 'Handle not found' ? 'text-destructive' : 'text-warning'}`}>
+                      {validationErrors.tiktok_handle}
+                    </p>
+                  )}
+                </div>
               </div>
-              <Input
-                label="YouTube handle"
-                value={form.youtube_handle}
-                onChange={(e) => handleChange('youtube_handle', e.target.value.replace(/^@/, ''))}
-                placeholder="janesmith"
-                hint="Without @"
-              />
+              <div>
+                <Input
+                  label="YouTube handle"
+                  value={form.youtube_handle}
+                  onChange={(e) => { handleChange('youtube_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, youtube_handle: '' })) }}
+                  placeholder="janesmith"
+                  hint="Without @"
+                />
+                {validationErrors.youtube_handle && (
+                  <p className={`mt-1 text-[11px] ${validationErrors.youtube_handle === 'Handle not found' ? 'text-destructive' : 'text-warning'}`}>
+                    {validationErrors.youtube_handle}
+                  </p>
+                )}
+              </div>
               {error && <p className="text-[11px] text-destructive">{error}</p>}
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="secondary" size="md" onClick={handleClose}>Cancel</Button>
-              <Button type="submit" variant="primary" size="md" loading={isPending}>Add influencer</Button>
+              <Button type="submit" variant="primary" size="md" loading={isPending}>
+                {isPending ? 'Validating…' : 'Add influencer'}
+              </Button>
             </DialogFooter>
           </form>
         )}
