@@ -1,16 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/posts-worker",
-      "schedule": "0 16 * * *"
-    },
-    {
-      "path": "/api/cron/followup-worker",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/metrics-worker",
-      "schedule": "0 17 * * *"
-    }
-  ]
-}
+{}
