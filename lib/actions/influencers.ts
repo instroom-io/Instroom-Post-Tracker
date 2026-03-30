@@ -94,12 +94,7 @@ export async function validateInfluencerHandles(
         `${ENSEMBLE_API_URL}/tt/user/posts?username=${encodeURIComponent(handle)}&depth=1&token=${ENSEMBLE_API_KEY}`
       )
       if (!res.ok) return { handle, status: 'not_found' }
-      const json = await res.json() as { data?: unknown[] | null }
-      if (json.data === null) {
-        // Account exists but posts are private
-        const { profile_pic_url } = await fetchProfileInfo('tiktok', handle)
-        return { handle, status: 'private', profile_pic_url }
-      }
+      const json = await res.json() as { data?: unknown[] }
       if (!Array.isArray(json.data)) return { handle, status: 'not_found' }
       const status = json.data.length > 0 ? 'valid' : 'private'
       // Fetch avatar separately via the dedicated user info endpoint
