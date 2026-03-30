@@ -79,8 +79,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
           title="Influencers"
           description="0 influencers in this workspace"
           actions={
-            // TODO: pass campaigns={campaigns ?? []} after Task 6 adds the prop to AddInfluencerDialog
-            <AddInfluencerDialog workspaceId={workspace.id} />
+            <AddInfluencerDialog workspaceId={workspace.id} campaigns={campaigns ?? []} />
           }
         />
         <InfluencerListTable
@@ -179,8 +178,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
         title="Influencers"
         description={`${totalCount} influencer${totalCount !== 1 ? 's' : ''} in this workspace`}
         actions={
-          // TODO: pass campaigns={campaigns ?? []} after Task 6 adds the prop to AddInfluencerDialog
-          <AddInfluencerDialog workspaceId={workspace.id} />
+          <AddInfluencerDialog workspaceId={workspace.id} campaigns={campaigns ?? []} />
         }
       />
 
