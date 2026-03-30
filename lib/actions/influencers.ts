@@ -377,6 +377,40 @@ export async function removeInfluencerFromCampaign(
   revalidatePath('/', 'layout')
 }
 
+export async function removeInfluencerFromWorkspace(
+  influencerId: string,
+  workspaceId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // Verify caller is an owner/admin/editor in this workspace (RLS also enforces)
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
+  // Delete the influencer row; FK cascade handles campaign_influencers cleanup
+  const { error } = await supabase
+    .from('influencers')
+    .delete()
+    .eq('id', influencerId)
+    .eq('workspace_id', workspaceId)
+
+  if (error) return { error: 'Failed to remove influencer from workspace.' }
+
+  revalidatePath('/', 'layout')
+}
+
 export async function updateProductSentAt(
   workspaceId: string,
   input: UpdateProductSentAtInput,
