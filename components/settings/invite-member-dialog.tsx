@@ -61,11 +61,11 @@ export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogP
         <DialogBody>
           <div className="space-y-4">
             <Input
-              label="Work email"
+              label="Email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="instroom@colleague.com"
+              placeholder="colleague@example.com"
               disabled={isPending}
             />
             <div className="flex flex-col gap-1.5">
