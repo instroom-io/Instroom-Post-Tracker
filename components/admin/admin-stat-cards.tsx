@@ -1,4 +1,6 @@
+import { Building2, Users, HardDriveDownload, TrendingUp } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
 
 export async function AdminStatCards() {
   const supabase = createServiceClient()
@@ -21,18 +23,54 @@ export async function AdminStatCards() {
     : `€${totalEmv.toFixed(0)}`
 
   const stats = [
-    { label: 'Active Agencies', value: agencyCount ?? 0 },
-    { label: 'Brand Clients', value: brandCount ?? 0 },
-    { label: 'Posts Downloaded', value: (postCount ?? 0).toLocaleString() },
-    { label: 'Platform EMV', value: formattedEmv },
+    {
+      label: 'Active Agencies',
+      value: agencyCount ?? 0,
+      sub: 'on the platform',
+      icon: Building2,
+      iconBg: 'bg-brand/10',
+      iconColor: 'text-brand',
+    },
+    {
+      label: 'Brand Clients',
+      value: brandCount ?? 0,
+      sub: 'active workspaces',
+      icon: Users,
+      iconBg: 'bg-accent/10',
+      iconColor: 'text-accent',
+    },
+    {
+      label: 'Posts Downloaded',
+      value: (postCount ?? 0).toLocaleString(),
+      sub: 'to Google Drive',
+      icon: HardDriveDownload,
+      iconBg: 'bg-info/10',
+      iconColor: 'text-info',
+    },
+    {
+      label: 'Platform EMV',
+      value: formattedEmv,
+      sub: 'estimated media value',
+      icon: TrendingUp,
+      iconBg: 'bg-warning/10',
+      iconColor: 'text-warning',
+    },
   ]
+
+  const delayClasses = ['', 'animate-fade-up-delay-1', 'animate-fade-up-delay-2', 'animate-fade-up-delay-3']
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
       {stats.map((stat, i) => (
-        <div key={stat.label} className={`rounded-xl border border-border bg-background-surface p-4 shadow-md animate-fade-up animate-fade-up-delay-${i + 1}`}>
-          <p className="text-[11px] uppercase tracking-wide text-foreground-muted">{stat.label}</p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{stat.value}</p>
+        <div key={stat.label} className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[i] ?? ''}`}>
+          <div className="flex items-start justify-between">
+            <p className="text-[12px] font-medium text-foreground-lighter">{stat.label}</p>
+            <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', stat.iconBg)}>
+              <stat.icon size={14} className={stat.iconColor} />
+            </div>
+          </div>
+          <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{stat.value}</p>
+          <p className="mt-0.5 text-[11px] text-foreground-muted">{stat.sub}</p>
         </div>
       ))}
     </div>

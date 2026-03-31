@@ -25,6 +25,9 @@ export function AgenciesTable({ agencies }: Props) {
           <div>
             <p className="text-[13px] font-semibold text-foreground">{agency.name}</p>
             <p className="text-[11px] text-foreground-lighter">{agency.slug}</p>
+            <p className="text-[11px] text-foreground-muted">
+              {new Date(agency.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </p>
           </div>
           <Badge
             variant={
