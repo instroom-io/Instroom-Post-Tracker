@@ -284,9 +284,22 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                       )}
                     </div>
                   ) : (
-                    <p className="text-[12px] text-foreground-muted">
-                      Metrics are fetched 7 days after publish and not yet available for this post.
-                    </p>
+                    <div className="flex flex-col gap-3">
+                      <p className="text-[12px] text-foreground-muted">
+                        Metrics are fetched 7 days after publish and not yet available for this post.
+                      </p>
+                      {post.post_url && (
+                        <a
+                          href={post.post_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-brand hover:underline"
+                        >
+                          <ExternalLink size={13} />
+                          Open post
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               </DialogBody>
