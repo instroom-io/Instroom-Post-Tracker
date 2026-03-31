@@ -180,7 +180,20 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                     </div>
                     <DialogTitle>@{influencerLabel}</DialogTitle>
                   </div>
-                  {workspaceId && <ModalDownloadButton post={post} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />}
+                  <div className="flex flex-col items-end gap-1.5">
+                    {workspaceId && <ModalDownloadButton post={post} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />}
+                    {post.post_url && (
+                      <a
+                        href={post.post_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-brand hover:underline"
+                      >
+                        <ExternalLink size={11} />
+                        Open post
+                      </a>
+                    )}
+                  </div>
                 </div>
                 <DialogDescription>
                   {formatRelativeDate(post.posted_at)}
@@ -284,22 +297,9 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                       )}
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-3">
-                      <p className="text-[12px] text-foreground-muted">
-                        Metrics are fetched 7 days after publish and not yet available for this post.
-                      </p>
-                      {post.post_url && (
-                        <a
-                          href={post.post_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-brand hover:underline"
-                        >
-                          <ExternalLink size={13} />
-                          Open post
-                        </a>
-                      )}
-                    </div>
+                    <p className="text-[12px] text-foreground-muted">
+                      Metrics are fetched 7 days after publish and not yet available for this post.
+                    </p>
                   )}
                 </div>
               </DialogBody>
