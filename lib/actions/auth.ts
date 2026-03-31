@@ -19,10 +19,14 @@ export async function signIn(
     return { error: parsed.error.errors[0].message }
   }
 
-  // Block personal email domains (except admin)
+  const redirectTo = formData.get('redirectTo')
+  const destination = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
+
+  // Bypass personal email block for invite links
+  const isInviteFlow = destination.startsWith('/invite/')
   const adminEmail = process.env.ADMIN_EMAIL
   const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
-  if (!isAdmin && isPersonalEmail(parsed.data.email)) {
+  if (!isAdmin && !isInviteFlow && isPersonalEmail(parsed.data.email)) {
     return { error: 'Please use a work email address to sign in.' }
   }
 
@@ -32,9 +36,6 @@ export async function signIn(
   if (error) {
     return { error: 'Invalid email or password.' }
   }
-
-  const redirectTo = formData.get('redirectTo')
-  const destination = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
 
   revalidatePath('/', 'layout')
   redirect(destination)
@@ -55,15 +56,16 @@ export async function signUp(
     return { error: parsed.error.errors[0].message }
   }
 
-  // Block personal email domains (except admin)
-  const adminEmail = process.env.ADMIN_EMAIL
-  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
-  if (!isAdmin && isPersonalEmail(parsed.data.email)) {
-    return { error: 'Please use a work email address to sign up.' }
-  }
-
   const redirectTo = formData.get('redirectTo')
   const nextPath = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
+
+  // Bypass personal email block for invite links
+  const isInviteFlow = nextPath.startsWith('/invite/')
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
+  if (!isAdmin && !isInviteFlow && isPersonalEmail(parsed.data.email)) {
+    return { error: 'Please use a work email address to sign up.' }
+  }
   const emailRedirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(nextPath)}`
 
   const supabase = await createClient()

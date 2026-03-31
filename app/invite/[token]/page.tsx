@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { AcceptInviteButton } from './accept-invite-button'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface PageProps {
   params: Promise<{ token: string }>
@@ -60,8 +61,8 @@ export default async function InvitePage({ params }: PageProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm text-center">
-          <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand">
-            <span className="font-display text-[16px] font-bold text-white">in</span>
+          <div className="mx-auto mb-4">
+            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={160} height={32} className="h-8 w-auto" />
           </div>
           <h1 className="font-display text-[22px] font-extrabold text-foreground mb-2">
             You've been invited
@@ -94,8 +95,8 @@ export default async function InvitePage({ params }: PageProps) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-brand">
-            <span className="font-display text-[16px] font-bold text-white">in</span>
+          <div className="mx-auto mb-4">
+            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={160} height={32} className="h-8 w-auto" />
           </div>
           <h1 className="font-display text-[22px] font-extrabold text-foreground mb-1">
             Accept invitation
