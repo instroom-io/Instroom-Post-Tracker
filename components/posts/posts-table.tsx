@@ -54,7 +54,10 @@ function ThumbnailCell({ thumbnailUrl, mediaUrl, platform }: {
   function onEnter() {
     if (!canPreview) return
     setHovering(true)
-    videoRef.current?.play()
+    const video = videoRef.current
+    if (!video) return
+    video.load()
+    video.play().catch(() => {})
   }
   function onLeave() {
     if (!canPreview) return
@@ -83,10 +86,11 @@ function ThumbnailCell({ thumbnailUrl, mediaUrl, platform }: {
       {canPreview && (
         <video
           ref={videoRef}
-          src={mediaUrl}
+          src={mediaUrl!}
           muted
           loop
           playsInline
+          preload="none"
           className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
         />
       )}
