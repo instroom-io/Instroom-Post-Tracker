@@ -116,8 +116,8 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null): Pr
     }
   }
   const [postsRes, reelsRes] = await Promise.all([
-    fetch(`${ENSEMBLE_API_URL}/instagram/user/posts?user_id=${encodeURIComponent(userId)}&depth=3&token=${ENSEMBLE_API_KEY}`),
-    fetch(`${ENSEMBLE_API_URL}/instagram/user/reels?user_id=${encodeURIComponent(userId)}&depth=3&token=${ENSEMBLE_API_KEY}`),
+    fetch(`${ENSEMBLE_API_URL}/instagram/user/posts?user_id=${encodeURIComponent(userId)}&depth=5&token=${ENSEMBLE_API_KEY}`),
+    fetch(`${ENSEMBLE_API_URL}/instagram/user/reels?user_id=${encodeURIComponent(userId)}&depth=5&token=${ENSEMBLE_API_KEY}`),
   ])
   const seenShortcodes = new Set<string>()
   const posts: NormalizedPost[] = []
