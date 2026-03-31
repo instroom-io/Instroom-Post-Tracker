@@ -395,15 +395,15 @@ export function AddInfluencerToCampaignDialog({
                   <textarea
                     value={batchText}
                     onChange={(e) => setBatchText(e.target.value)}
-                    placeholder="Paste handles, one per line or comma-separated&#10;e.g. kellyx, debalans, nadia"
+                    placeholder="Paste handles without @, one per line or comma-separated&#10;e.g. kellyx, debalans, nadia"
                     rows={5}
                     className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-[13px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition-colors"
                   />
-                  <p className="text-[11px] text-foreground-muted">
-                    {parsedHandles.length > 0
-                      ? `${parsedHandles.length} handle${parsedHandles.length !== 1 ? 's' : ''} detected`
-                      : 'Enter handles without @'}
-                  </p>
+                  {parsedHandles.length > 0 && (
+                    <p className="text-[11px] text-foreground-muted">
+                      {parsedHandles.length} handle{parsedHandles.length !== 1 ? 's' : ''} detected
+                    </p>
+                  )}
                 </div>
               </DialogBody>
 

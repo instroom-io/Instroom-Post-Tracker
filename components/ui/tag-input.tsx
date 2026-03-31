@@ -100,6 +100,9 @@ export function TagInput({
           </span>
         ))}
 
+        {prefix && (
+          <span className="select-none text-[13px] font-medium text-foreground-muted">{prefix}</span>
+        )}
         <input
           ref={inputRef}
           value={inputValue}
@@ -107,8 +110,8 @@ export function TagInput({
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           disabled={disabled}
-          placeholder={tags.length === 0 ? (placeholder ?? (prefix ? `Type ${prefix}tag…` : 'Type and press Enter…')) : ''}
-          className="h-6 min-w-[80px] flex-1 bg-transparent text-[13px] text-foreground placeholder:text-foreground-muted outline-none"
+          placeholder={tags.length === 0 ? (placeholder ?? 'Type and press Enter…') : ''}
+          className="h-6 min-w-[60px] flex-1 bg-transparent text-[13px] text-foreground placeholder:text-foreground-muted outline-none"
         />
       </div>
 
