@@ -100,7 +100,7 @@ export function MemberTable({
               const isOwner = member.role === 'owner'
               const isSelf = member.user_id === currentUserId
               const canRemove = canManage && !isOwner && !isSelf
-              const canSetDrive = isSelf || canManage
+              const canSetDrive = !isOwner && (isSelf || canManage)
 
               return (
                 <tr
