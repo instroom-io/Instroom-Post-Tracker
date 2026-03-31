@@ -459,6 +459,17 @@ async function main() {
         const newPosts = inserted ?? []
         totalNewPosts += newPosts.length
 
+        // Backfill media_url + thumbnail_url for existing posts that were scraped before these columns existed
+        const toBackfill = filtered.filter((p) => p.media_url !== null || p.thumbnail_url !== null)
+        for (const post of toBackfill) {
+          await supabase
+            .from('posts')
+            .update({ media_url: post.media_url, thumbnail_url: post.thumbnail_url })
+            .eq('platform_post_id', post.ensemble_post_id)
+            .eq('campaign_id', campaign.id)
+            .is('media_url', null)
+        }
+
         const downloadable = newPosts.filter((p) => p.download_status === 'pending')
         if (downloadable.length > 0) {
           const { error: queueError } = await supabase.from('retry_queue').insert(
