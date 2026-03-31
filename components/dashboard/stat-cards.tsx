@@ -1,5 +1,7 @@
+import { Layers, HardDriveDownload, TrendingUp, Megaphone } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatNumber, formatEMV } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 interface StatCardsProps {
   workspaceId: string
@@ -46,6 +48,9 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       label: 'Total posts',
       value: formatNumber(totalPosts ?? 0),
       sub: 'detected via Ensemble',
+      icon: Layers,
+      iconBg: 'bg-brand/10',
+      iconColor: 'text-brand',
     },
     {
       label: 'Downloads',
@@ -53,16 +58,25 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       sub: totalPosts
         ? `${downloadRate}% of ${totalPosts} downloaded`
         : 'no posts yet',
+      icon: HardDriveDownload,
+      iconBg: 'bg-info/10',
+      iconColor: 'text-info',
     },
     {
       label: 'Total EMV',
       value: formatEMV(totalEmv),
       sub: 'estimated media value',
+      icon: TrendingUp,
+      iconBg: 'bg-warning/10',
+      iconColor: 'text-warning',
     },
     {
       label: 'Active campaigns',
       value: formatNumber(activeCampaigns ?? 0),
       sub: 'currently tracking',
+      icon: Megaphone,
+      iconBg: 'bg-brand/10',
+      iconColor: 'text-brand',
     },
   ]
 
@@ -75,10 +89,15 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
           key={stat.label}
           className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[i] ?? ''}`}
         >
-          <p className="text-[12px] font-medium text-foreground-lighter">
-            {stat.label}
-          </p>
-          <p className="mt-1 font-display text-[22px] font-extrabold text-foreground">
+          <div className="flex items-start justify-between">
+            <p className="text-[12px] font-medium text-foreground-lighter">
+              {stat.label}
+            </p>
+            <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', stat.iconBg)}>
+              <stat.icon size={14} className={stat.iconColor} />
+            </div>
+          </div>
+          <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
             {stat.value}
           </p>
           <p className="mt-0.5 text-[11px] text-foreground-muted">{stat.sub}</p>

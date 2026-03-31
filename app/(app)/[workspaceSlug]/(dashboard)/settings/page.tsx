@@ -146,7 +146,7 @@ export default async function SettingsPage({ params }: PageProps) {
 
   return (
     <div>
-      <PageHeader title="Settings" />
+      <PageHeader title="Settings" description="Manage workspace, members, and billing." />
       <div className="p-5 space-y-5">
         {/* General — renders immediately, no extra data needed */}
         <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">

@@ -136,19 +136,6 @@ export function AppShell({
             </div>
           )}
 
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-foreground-muted"
-              >
-                Menu
-              </motion.p>
-            )}
-          </AnimatePresence>
-
           {NAV_ITEMS.map((item) => {
             const href = item.href(workspaceSlug)
             const isActive = pathname === href || pathname.startsWith(href + '/')

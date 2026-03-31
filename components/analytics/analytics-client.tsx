@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { BarChart3, Eye, Percent, TrendingUp } from 'lucide-react'
 import { AnalyticsFilterBar, type AnalyticsFilters } from '@/components/analytics/analytics-filter-bar'
 import { PostVolumeChart } from '@/components/analytics/post-volume-chart'
 import { PlatformBreakdown } from '@/components/analytics/platform-breakdown'
@@ -158,10 +159,10 @@ export function AnalyticsClient({
   const multiPlatform = filters.platform === 'all'
 
   const statCards = [
-    { label: 'Posts', value: totalPosts.toLocaleString() },
-    { label: 'Total Views', value: formatNumber(totalViews) },
-    { label: 'Avg ER', value: avgEr > 0 ? formatPercent(avgEr) : '—' },
-    { label: 'Total EMV', value: formatEMV(totalEmv) },
+    { label: 'Posts', value: totalPosts.toLocaleString(), icon: BarChart3, iconBg: 'bg-brand/10', iconColor: 'text-brand' },
+    { label: 'Total Views', value: formatNumber(totalViews), icon: Eye, iconBg: 'bg-info/10', iconColor: 'text-info' },
+    { label: 'Avg ER', value: avgEr > 0 ? formatPercent(avgEr) : '—', icon: Percent, iconBg: 'bg-warning/10', iconColor: 'text-warning' },
+    { label: 'Total EMV', value: formatEMV(totalEmv), icon: TrendingUp, iconBg: 'bg-warning/10', iconColor: 'text-warning' },
   ]
 
   return (
@@ -178,10 +179,13 @@ export function AnalyticsClient({
             key={card.label}
             className="rounded-xl border border-border bg-background-surface p-4 shadow-sm"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
-              {card.label}
-            </p>
-            <p className="mt-1 text-[22px] font-display font-extrabold text-foreground">
+            <div className="flex items-start justify-between">
+              <p className="text-[12px] font-medium text-foreground-lighter">{card.label}</p>
+              <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${card.iconBg}`}>
+                <card.icon size={14} className={card.iconColor} />
+              </div>
+            </div>
+            <p className="mt-2 text-[22px] font-display font-extrabold text-foreground">
               {card.value}
             </p>
           </div>

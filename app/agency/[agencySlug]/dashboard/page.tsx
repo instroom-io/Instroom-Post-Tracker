@@ -1,3 +1,4 @@
+import { Building2, Layers } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { InviteBrandDialog } from '@/components/agency/invite-brand-dialog'
@@ -37,16 +38,27 @@ export default async function AgencyDashboardPage({ params }: PageProps) {
         <p className="text-[13px] text-foreground-lighter">Agency Dashboard</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
-        {[
-          { label: 'Workspaces', value: workspaceCount ?? 0 },
-          { label: 'Total Posts', value: postCount ?? 0 },
-        ].map((stat, i) => (
-          <div key={stat.label} className={`rounded-xl border border-border bg-background-surface p-4 shadow-md animate-fade-up animate-fade-up-delay-${i + 1}`}>
-            <p className="text-[11px] uppercase tracking-wide text-foreground-muted">{stat.label}</p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{stat.value}</p>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl border border-border bg-background-surface p-4 shadow-md animate-fade-up animate-fade-up-delay-1">
+          <div className="flex items-start justify-between">
+            <p className="text-[12px] font-medium text-foreground-lighter">Workspaces</p>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10">
+              <Building2 size={14} className="text-brand" />
+            </div>
           </div>
-        ))}
+          <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{workspaceCount ?? 0}</p>
+          <p className="mt-0.5 text-[11px] text-foreground-muted">brand workspaces</p>
+        </div>
+        <div className="rounded-xl border border-border bg-background-surface p-4 shadow-md animate-fade-up animate-fade-up-delay-2">
+          <div className="flex items-start justify-between">
+            <p className="text-[12px] font-medium text-foreground-lighter">Total Posts</p>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
+              <Layers size={14} className="text-info" />
+            </div>
+          </div>
+          <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{postCount ?? 0}</p>
+          <p className="mt-0.5 text-[11px] text-foreground-muted">detected via Ensemble</p>
+        </div>
       </div>
 
       <div className="rounded-xl border border-border bg-background-surface p-5">

@@ -151,7 +151,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
 
   return (
     <div>
-      <PageHeader title="Analytics" />
+      <PageHeader title="Analytics" description="Post metrics, EMV, and influencer performance." />
       <div className="space-y-5 p-5">
         <SectionErrorBoundary>
           <Suspense fallback={<AnalyticsBodySkeleton />}>

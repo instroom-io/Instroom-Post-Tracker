@@ -41,7 +41,7 @@ function CampaignSelector({
   onChange: (v: string) => void
 }) {
   return (
-    <div className="px-6 pb-1">
+    <div>
       <label className="mb-1.5 block text-[11px] font-medium text-foreground-light">
         Add to campaign <span className="text-foreground-muted">(optional)</span>
       </label>
@@ -247,11 +247,13 @@ export function AddInfluencerDialog({
         </DialogHeader>
 
         {/* Tab switcher */}
-        <div className="flex gap-1 rounded-lg bg-background-muted p-1 mx-6 mt-1">
+        <div role="tablist" aria-label="Add mode" className="flex gap-1 rounded-lg bg-background-muted p-1 mx-6 mt-1">
           {(['manual', 'csv'] as const).map((m) => (
             <button
               key={m}
               type="button"
+              role="tab"
+              aria-selected={mode === m}
               onClick={() => setMode(m)}
               className={cn(
                 'flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors',
@@ -265,63 +267,62 @@ export function AddInfluencerDialog({
           ))}
         </div>
 
-        {/* Campaign selector — only on workspace-level influencer page */}
-        {campaigns && !campaignId && (
-          <CampaignSelector
-            campaigns={campaigns}
-            value={selectedCampaignId}
-            onChange={setSelectedCampaignId}
-          />
-        )}
-
         {/* ── Manual tab ── */}
         {mode === 'manual' && (
           <form onSubmit={handleManualSubmit}>
             <DialogBody className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Input
-                    label="Instagram handle"
+                    label="Instagram"
                     value={form.ig_handle}
                     onChange={(e) => { handleChange('ig_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, ig_handle: '' })) }}
                     placeholder="janesmithig"
-                    hint="Without @"
+                    prefix="@"
                   />
                   {validationErrors.ig_handle && (
-                    <p className={`mt-1 text-[11px] ${validationErrors.ig_handle === 'Handle not found' ? 'text-destructive' : 'text-warning'}`}>
+                    <p className={cn('mt-1 text-[11px]', validationErrors.ig_handle === 'Handle not found' ? 'text-destructive' : 'text-warning')}>
                       {validationErrors.ig_handle}
                     </p>
                   )}
                 </div>
                 <div>
                   <Input
-                    label="TikTok handle"
+                    label="TikTok"
                     value={form.tiktok_handle}
                     onChange={(e) => { handleChange('tiktok_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, tiktok_handle: '' })) }}
                     placeholder="janesmithtt"
-                    hint="Without @"
+                    prefix="@"
                   />
                   {validationErrors.tiktok_handle && (
-                    <p className={`mt-1 text-[11px] ${validationErrors.tiktok_handle === 'Handle not found' ? 'text-destructive' : 'text-warning'}`}>
+                    <p className={cn('mt-1 text-[11px]', validationErrors.tiktok_handle === 'Handle not found' ? 'text-destructive' : 'text-warning')}>
                       {validationErrors.tiktok_handle}
                     </p>
                   )}
                 </div>
+                <div>
+                  <Input
+                    label="YouTube"
+                    value={form.youtube_handle}
+                    onChange={(e) => { handleChange('youtube_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, youtube_handle: '' })) }}
+                    placeholder="janesmith"
+                    prefix="@"
+                  />
+                  {validationErrors.youtube_handle && (
+                    <p className={cn('mt-1 text-[11px]', validationErrors.youtube_handle === 'Handle not found' ? 'text-destructive' : 'text-warning')}>
+                      {validationErrors.youtube_handle}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div>
-                <Input
-                  label="YouTube handle"
-                  value={form.youtube_handle}
-                  onChange={(e) => { handleChange('youtube_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, youtube_handle: '' })) }}
-                  placeholder="janesmith"
-                  hint="Without @"
+              {/* Campaign selector — only on workspace-level influencer page */}
+              {campaigns && !campaignId && (
+                <CampaignSelector
+                  campaigns={campaigns}
+                  value={selectedCampaignId}
+                  onChange={setSelectedCampaignId}
                 />
-                {validationErrors.youtube_handle && (
-                  <p className={`mt-1 text-[11px] ${validationErrors.youtube_handle === 'Handle not found' ? 'text-destructive' : 'text-warning'}`}>
-                    {validationErrors.youtube_handle}
-                  </p>
-                )}
-              </div>
+              )}
               {error && <p className="text-[11px] text-destructive">{error}</p>}
             </DialogBody>
             <DialogFooter>
@@ -346,19 +347,22 @@ export function AddInfluencerDialog({
                     <button
                       key={p.value}
                       type="button"
+                      aria-label={p.label}
+                      aria-pressed={csvPlatform === p.value}
                       onClick={() => {
                         setCsvPlatform(p.value)
                         // reset validation if platform changes after parse
                         if (csvStep === 'validated') { setCsvStep('parsed'); setValidationResults([]) }
                       }}
                       className={cn(
-                        'rounded-lg border px-3 py-1.5 transition-colors',
+                        'flex flex-col items-center gap-1 rounded-lg border px-3 py-1.5 transition-colors',
                         csvPlatform === p.value
                           ? 'border-brand/40 bg-brand/10'
                           : 'border-border bg-background-surface hover:bg-background-muted'
                       )}
                     >
                       <PlatformIcon platform={p.value} size={16} />
+                      <span className="text-[10px] font-medium text-foreground-muted">{p.label}</span>
                     </button>
                   ))}
                 </div>

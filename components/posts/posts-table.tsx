@@ -194,14 +194,16 @@ export function PostsTable({
       )}
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 py-20 text-center rounded-xl border border-border bg-background-surface">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
-            <Inbox size={18} className="text-foreground-muted" />
+        <div className="flex flex-col items-center justify-center gap-3 py-24 text-center rounded-xl border border-border bg-background-surface">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-background-muted">
+            <Inbox size={22} className="text-foreground-muted" />
           </div>
-          <p className="font-display text-[14px] font-bold text-foreground">No posts detected</p>
-          <p className="max-w-xs text-[13px] text-foreground-lighter">
-            Posts appear here as Ensemble finds them.
-          </p>
+          <div>
+            <p className="font-display text-[14px] font-bold text-foreground">No posts detected</p>
+            <p className="mt-1 max-w-xs text-[13px] text-foreground-lighter">
+              Posts appear here as Ensemble finds them.
+            </p>
+          </div>
         </div>
       ) : (
         <div className="rounded-xl border border-border bg-background-surface shadow-sm overflow-x-auto">

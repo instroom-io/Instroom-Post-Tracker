@@ -71,6 +71,7 @@ export default async function CampaignsPage({ params }: PageProps) {
       <div>
         <PageHeader
           title="Campaigns"
+          description="Track influencer campaigns and post performance."
           actions={
             <div className="flex items-center gap-2">
               <CampaignsListTourButton />

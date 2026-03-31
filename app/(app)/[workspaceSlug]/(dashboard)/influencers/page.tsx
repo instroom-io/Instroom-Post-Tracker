@@ -71,13 +71,18 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
     .eq('workspace_id', workspace.id)
     .order('created_at', { ascending: false })
 
+  // Resolve active campaign name for header description
+  const activeCampaign = campaignFilter
+    ? (campaigns ?? []).find((c) => c.id === campaignFilter) ?? null
+    : null
+
   // Short-circuit when campaign filter yields empty
   if (filteredInfluencerIds !== null && filteredInfluencerIds.length === 0) {
     return (
       <div className="space-y-6">
         <PageHeader
           title="Influencers"
-          description="0 influencers in this workspace"
+          description={activeCampaign ? `0 influencers in ${activeCampaign.name}` : '0 influencers in this workspace'}
           actions={
             <AddInfluencerDialog workspaceId={workspace.id} campaigns={campaigns ?? []} />
           }
@@ -176,7 +181,11 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
     <div className="space-y-6">
       <PageHeader
         title="Influencers"
-        description={`${totalCount} influencer${totalCount !== 1 ? 's' : ''} in this workspace`}
+        description={
+          activeCampaign
+            ? `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in ${activeCampaign.name}`
+            : `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in this workspace`
+        }
         actions={
           <AddInfluencerDialog workspaceId={workspace.id} campaigns={campaigns ?? []} />
         }

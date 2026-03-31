@@ -5,11 +5,12 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
   label?: string
   error?: string
   hint?: string
+  prefix?: string
   size?: 'default' | 'lg'
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, size = 'default', className, ...props }, ref) => {
+  ({ label, error, hint, prefix, size = 'default', className, ...props }, ref) => {
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
@@ -17,21 +18,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input
-          ref={ref}
-          className={cn(
-            'w-full rounded-lg border bg-background-surface px-3 text-[13px] text-foreground',
-            'placeholder:text-foreground-muted',
-            'focus:outline-none focus:ring-2 transition-colors',
-            'disabled:cursor-not-allowed disabled:opacity-50',
-            size === 'default' ? 'h-9' : 'h-10',
-            error
-              ? 'border-destructive focus:border-destructive focus:ring-destructive/20'
-              : 'border-border focus:border-brand focus:ring-brand/20',
-            className
+        <div className="relative">
+          {prefix && (
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none text-[13px] text-foreground-muted">
+              {prefix}
+            </span>
           )}
-          {...props}
-        />
+          <input
+            ref={ref}
+            className={cn(
+              'w-full rounded-lg border bg-background-surface text-[13px] text-foreground',
+              'placeholder:text-foreground-muted',
+              'focus:outline-none focus:ring-2 transition-colors',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+              size === 'default' ? 'h-9' : 'h-10',
+              prefix ? 'pl-6 pr-3' : 'px-3',
+              error
+                ? 'border-destructive focus:border-destructive focus:ring-destructive/20'
+                : 'border-border focus:border-brand focus:ring-brand/20',
+              className
+            )}
+            {...props}
+          />
+        </div>
         {hint && !error && (
           <p className="text-[11px] text-foreground-lighter">{hint}</p>
         )}

@@ -122,7 +122,7 @@ export default async function OverviewPage({ params }: PageProps) {
 
   return (
     <div>
-      <PageHeader title="Overview" />
+      <PageHeader title="Overview" description="Workspace summary and recent activity." />
 
       <div className="space-y-5 p-5">
         {/* Stat cards stream in first */}

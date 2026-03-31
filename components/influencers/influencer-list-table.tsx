@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
-  ChevronDown,
   ChevronRight,
   MoreHorizontal,
   Trash2,
@@ -12,6 +12,7 @@ import {
   ExternalLink,
   ChevronLeft,
   FolderPlus,
+  X,
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -65,6 +66,20 @@ interface InfluencerListTableProps {
   pageSize: number
 }
 
+const STATUS_DOT: Record<MonitoringStatus, string> = {
+  active:  'bg-brand',
+  pending: 'bg-warning',
+  paused:  'bg-foreground-muted/50',
+  removed: 'bg-destructive',
+}
+
+const STATUS_LABEL: Record<MonitoringStatus, string> = {
+  active:  'text-brand',
+  pending: 'text-warning',
+  paused:  'text-foreground-muted',
+  removed: 'text-destructive',
+}
+
 function MonitoringBadge({ status }: { status: MonitoringStatus }) {
   const styles: Record<MonitoringStatus, string> = {
     active:  'bg-brand/10 text-brand',
@@ -73,9 +88,100 @@ function MonitoringBadge({ status }: { status: MonitoringStatus }) {
     removed: 'bg-destructive/10 text-destructive',
   }
   return (
-    <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide', styles[status])}>
+    <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide', styles[status])}>
       {status}
     </span>
+  )
+}
+
+interface CampaignCardProps {
+  entry: CampaignEntry
+  workspaceSlug: string
+  canEdit: boolean
+  isRemoving: boolean
+  influencerLabel: string
+  onRequestRemove: (ciId: string, campaignName: string, influencerLabel: string) => void
+}
+
+function CampaignCard({ entry, workspaceSlug, canEdit, isRemoving, influencerLabel, onRequestRemove }: CampaignCardProps) {
+  return (
+    <div
+      className={cn(
+        'group flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-background-muted/50',
+        isRemoving && 'opacity-40'
+      )}
+    >
+      {/* Status dot */}
+      <div
+        className={cn('h-1.5 w-1.5 flex-shrink-0 rounded-full', STATUS_DOT[entry.monitoring_status])}
+        aria-hidden="true"
+      />
+      {/* Campaign name */}
+      <Link
+        href={`/${workspaceSlug}/campaigns/${entry.campaign_id}`}
+        className="flex min-w-0 flex-1 items-center gap-1 text-[12px] font-medium text-foreground-light transition-colors hover:text-foreground"
+      >
+        <span className="truncate">{entry.name}</span>
+        <ExternalLink
+          size={9}
+          className="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-40"
+        />
+      </Link>
+      {/* Status label */}
+      <span className={cn('flex-shrink-0 text-[11px] font-medium capitalize', STATUS_LABEL[entry.monitoring_status])}>
+        {entry.monitoring_status}
+      </span>
+      {/* Remove icon — appears on hover */}
+      {canEdit && (
+        <Tooltip content={`Remove @${influencerLabel} from "${entry.name}"`} side="top">
+          <button
+            type="button"
+            onClick={() => onRequestRemove(entry.campaign_influencer_id, entry.name, influencerLabel)}
+            disabled={isRemoving}
+            aria-label={`Remove from ${entry.name}`}
+            className="ml-0.5 flex-shrink-0 rounded p-0.5 text-foreground-muted opacity-0 transition-all group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 disabled:cursor-not-allowed"
+          >
+            <X size={12} />
+          </button>
+        </Tooltip>
+      )}
+    </div>
+  )
+}
+
+interface CampaignExpansionPanelProps {
+  campaigns: CampaignEntry[]
+  workspaceSlug: string
+  canEdit: boolean
+  removingCiId: string | null
+  influencerLabel: string
+  onRequestRemove: (ciId: string, campaignName: string, influencerLabel: string) => void
+}
+
+function CampaignExpansionPanel({ campaigns, workspaceSlug, canEdit, removingCiId, influencerLabel, onRequestRemove }: CampaignExpansionPanelProps) {
+  const shouldReduceMotion = useReducedMotion()
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: 'auto', opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+      className="overflow-hidden"
+    >
+      <div className="border-t border-border/40 px-3 py-2">
+        {campaigns.map((c) => (
+          <CampaignCard
+            key={c.campaign_influencer_id}
+            entry={c}
+            workspaceSlug={workspaceSlug}
+            canEdit={canEdit}
+            isRemoving={removingCiId === c.campaign_influencer_id}
+            influencerLabel={influencerLabel}
+            onRequestRemove={onRequestRemove}
+          />
+        ))}
+      </div>
+    </motion.div>
   )
 }
 
@@ -98,6 +204,12 @@ export function InfluencerListTable({
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [removingCiId, setRemovingCiId] = useState<string | null>(null)
+
+  // Remove from workspace confirmation state
+  const [removeConfirmInfluencer, setRemoveConfirmInfluencer] = useState<{ id: string; label: string; campaigns: CampaignEntry[] } | null>(null)
+
+  // Remove from campaign confirmation state
+  const [removeCampaignConfirm, setRemoveCampaignConfirm] = useState<{ ciId: string; campaignName: string; influencerLabel: string } | null>(null)
 
   // Add to campaign dialog state
   const [addToCampaignInfluencer, setAddToCampaignInfluencer] = useState<InfluencerWithCampaigns | null>(null)
@@ -136,9 +248,12 @@ export function InfluencerListTable({
   })
 
   // ── Mutations ──────────────────────────────────────────────────────────────
-  function handleRemoveFromWorkspace(influencerId: string, label: string) {
+  function handleRemoveFromWorkspace() {
+    if (!removeConfirmInfluencer) return
+    const { id, label } = removeConfirmInfluencer
+    setRemoveConfirmInfluencer(null)
     startTransition(async () => {
-      const result = await removeInfluencerFromWorkspace(influencerId, workspaceId)
+      const result = await removeInfluencerFromWorkspace(id, workspaceId)
       if (result?.error) { toast.error(result.error); return }
       toast.success(`@${label} removed from workspace`)
     })
@@ -154,15 +269,23 @@ export function InfluencerListTable({
     })
   }
 
-  function handleRemoveFromCampaign(campaignInfluencerId: string, campaignName: string) {
-    setRemovingCiId(campaignInfluencerId)
+  function confirmRemoveFromCampaign() {
+    if (!removeCampaignConfirm) return
+    const { ciId, campaignName } = removeCampaignConfirm
+    setRemoveCampaignConfirm(null)
+    setRemovingCiId(ciId)
     startTransition(async () => {
-      const result = await removeInfluencerFromCampaign(campaignInfluencerId)
+      const result = await removeInfluencerFromCampaign(ciId)
       setRemovingCiId(null)
       if (result?.error) { toast.error(result.error); return }
       toast.success(`Removed from "${campaignName}"`)
     })
   }
+
+  // ── Derived ────────────────────────────────────────────────────────────────
+  const activeCampaignName = campaignFilter
+    ? workspaceCampaigns.find((c) => c.id === campaignFilter)?.name ?? null
+    : null
 
   // ── Pagination ─────────────────────────────────────────────────────────────
   const totalPages = Math.ceil(totalCount / pageSize)
@@ -189,15 +312,20 @@ export function InfluencerListTable({
       {/* ── Filter bar ─────────────────────────────────────────────────────── */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
         {/* Search */}
-        <div className="relative">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or handle…"
-            className="h-8 w-56 rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40"
-          />
+        <div className="flex flex-col gap-0.5">
+          <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or handle…"
+              className="h-8 w-56 rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40"
+            />
+          </div>
+          {search && (
+            <span className="pl-1 text-[11px] text-foreground-muted">Searching this page only</span>
+          )}
         </div>
 
         {/* Campaign filter */}
@@ -211,6 +339,18 @@ export function InfluencerListTable({
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
+
+        {/* Active filter chip */}
+        {activeCampaignName && (
+          <button
+            type="button"
+            onClick={() => handleCampaignFilter('')}
+            className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-medium text-brand transition-colors hover:bg-brand/20"
+          >
+            {activeCampaignName}
+            <X size={10} />
+          </button>
+        )}
 
         {/* Count */}
         {totalCount > 0 && (
@@ -244,7 +384,9 @@ export function InfluencerListTable({
                   <td colSpan={canEdit ? 4 : 3} className="px-5 py-12 text-center text-[13px] text-foreground-lighter">
                     {search
                       ? `No influencers match "${search}"`
-                      : 'No influencers in this campaign yet'}
+                      : campaignFilter
+                        ? 'No influencers in this campaign'
+                        : 'No influencers yet'}
                   </td>
                 </tr>
               )}
@@ -282,21 +424,21 @@ export function InfluencerListTable({
                         <div className="flex items-center gap-2">
                           {inf.ig_handle && (
                             <Tooltip content={`@${inf.ig_handle}`} side="top">
-                              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-background-muted">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-background-muted">
                                 <PlatformIcon platform="instagram" size={13} />
                               </span>
                             </Tooltip>
                           )}
                           {inf.tiktok_handle && (
                             <Tooltip content={`@${inf.tiktok_handle}`} side="top">
-                              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-background-muted">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-background-muted">
                                 <PlatformIcon platform="tiktok" size={13} />
                               </span>
                             </Tooltip>
                           )}
                           {inf.youtube_handle && (
                             <Tooltip content={`@${inf.youtube_handle}`} side="top">
-                              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-background-muted">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-background-muted">
                                 <PlatformIcon platform="youtube" size={13} />
                               </span>
                             </Tooltip>
@@ -313,16 +455,27 @@ export function InfluencerListTable({
                           <button
                             type="button"
                             onClick={() => setExpandedId(isExpanded ? null : inf.id)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:bg-accent/20"
+                            aria-expanded={isExpanded}
+                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} campaigns`}
+                            className={cn(
+                              'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5',
+                              'text-[11px] font-semibold transition-colors',
+                              'bg-accent/10 text-accent hover:bg-accent/20',
+                              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+                              isExpanded && 'bg-accent/20 ring-1 ring-accent/30'
+                            )}
                           >
-                            {isExpanded
-                              ? <ChevronDown size={11} />
-                              : <ChevronRight size={11} />
-                            }
+                            <motion.span
+                              animate={{ rotate: isExpanded ? 90 : 0 }}
+                              transition={{ duration: 0.2, ease: 'easeInOut' }}
+                              className="flex"
+                            >
+                              <ChevronRight size={11} />
+                            </motion.span>
                             {activeCampaigns.length}
                           </button>
                         ) : (
-                          <span className="text-[12px] text-foreground-muted">0</span>
+                          <span className="text-[12px] text-foreground-muted">—</span>
                         )}
                       </td>
 
@@ -330,7 +483,7 @@ export function InfluencerListTable({
                       {canEdit && (
                         <td className="px-3 py-3">
                           <DropdownMenu>
-                            <DropdownMenuTrigger>
+                            <DropdownMenuTrigger asChild>
                               <button
                                 type="button"
                                 className="rounded-md p-1 text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground"
@@ -351,8 +504,7 @@ export function InfluencerListTable({
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 variant="destructive"
-                                onClick={() => handleRemoveFromWorkspace(inf.id, label)}
-                                disabled={isPending}
+                                onClick={() => setRemoveConfirmInfluencer({ id: inf.id, label, campaigns: activeCampaigns })}
                               >
                                 <Trash2 size={13} />
                                 Remove from workspace
@@ -364,36 +516,24 @@ export function InfluencerListTable({
                     </tr>
 
                     {/* ── Expanded row ── */}
-                    {isExpanded && (
-                      <tr className="border-b border-border/50 bg-background-muted/20">
-                        <td colSpan={canEdit ? 4 : 3} className="px-5 py-3">
-                          <div className="space-y-2">
-                            {activeCampaigns.map((c) => (
-                              <div key={c.campaign_influencer_id} className="flex items-center gap-3">
-                                <Link
-                                  href={`/${workspaceSlug}/campaigns/${c.campaign_id}`}
-                                  className="flex items-center gap-1.5 text-[12px] font-medium text-foreground hover:text-brand hover:underline"
-                                >
-                                  {c.name}
-                                  <ExternalLink size={11} className="text-foreground-muted" />
-                                </Link>
-                                <MonitoringBadge status={c.monitoring_status} />
-                                {canEdit && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveFromCampaign(c.campaign_influencer_id, c.name)}
-                                    disabled={removingCiId === c.campaign_influencer_id}
-                                    className="ml-auto text-[11px] text-foreground-muted transition-colors hover:text-destructive disabled:opacity-50"
-                                  >
-                                    Remove
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
+                    <AnimatePresence initial={false}>
+                      {isExpanded && activeCampaigns.length > 0 && (
+                        <tr key={`${inf.id}-exp`}>
+                          <td colSpan={canEdit ? 4 : 3} className="border-b border-border/50 p-0">
+                            <CampaignExpansionPanel
+                              campaigns={activeCampaigns}
+                              workspaceSlug={workspaceSlug}
+                              canEdit={canEdit}
+                              removingCiId={removingCiId}
+                              influencerLabel={label}
+                              onRequestRemove={(ciId, campaignName, influencerLabel) =>
+                                setRemoveCampaignConfirm({ ciId, campaignName, influencerLabel })
+                              }
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </AnimatePresence>
                   </React.Fragment>
                 )
               })}
@@ -407,7 +547,7 @@ export function InfluencerListTable({
             <span className="text-[12px] text-foreground-lighter">
               Page {page} of {totalPages}
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => handlePageChange(page - 1)}
@@ -416,6 +556,30 @@ export function InfluencerListTable({
               >
                 <ChevronLeft size={13} />
               </button>
+              {totalPages > 2 && (() => {
+                const half = 2
+                let start = Math.max(1, page - half)
+                const end = Math.min(totalPages, start + 4)
+                start = Math.max(1, end - 4)
+                return Array.from({ length: end - start + 1 }, (_, i) => {
+                  const p = start + i
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => handlePageChange(p)}
+                      className={cn(
+                        'flex h-7 w-7 items-center justify-center rounded-md text-[12px] transition-colors',
+                        page === p
+                          ? 'bg-brand/10 font-semibold text-brand'
+                          : 'text-foreground-muted hover:bg-background-muted hover:text-foreground'
+                      )}
+                    >
+                      {p}
+                    </button>
+                  )
+                })
+              })()}
               <button
                 type="button"
                 onClick={() => handlePageChange(page + 1)}
@@ -429,6 +593,109 @@ export function InfluencerListTable({
         )}
       </div>
 
+      {/* Remove from workspace confirmation dialog */}
+      <Dialog
+        open={!!removeConfirmInfluencer}
+        onOpenChange={(v) => { if (!v) setRemoveConfirmInfluencer(null) }}
+      >
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>Remove from workspace?</DialogTitle>
+          </DialogHeader>
+          <DialogBody className="space-y-3">
+            <p className="text-[13px] text-foreground-light">
+              <span className="font-medium text-foreground">@{removeConfirmInfluencer?.label}</span> will be permanently removed from this workspace. This cannot be undone.
+            </p>
+            <ul className="space-y-1.5 text-[12px] text-foreground-light">
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-destructive">•</span>
+                Removed from all campaigns immediately
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-destructive">•</span>
+                All scraped posts and performance data will be deleted
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-destructive">•</span>
+                Post monitoring will stop and cannot be recovered
+              </li>
+            </ul>
+            {removeConfirmInfluencer && removeConfirmInfluencer.campaigns.length > 0 && (
+              <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2">
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-destructive/70">
+                  Active in {removeConfirmInfluencer.campaigns.length} campaign{removeConfirmInfluencer.campaigns.length !== 1 ? 's' : ''}
+                </p>
+                <ul className="space-y-0.5">
+                  {removeConfirmInfluencer.campaigns.map((c) => (
+                    <li key={c.campaign_id} className="text-[12px] text-foreground-light">
+                      {c.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="secondary" size="md" onClick={() => setRemoveConfirmInfluencer(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="md"
+              loading={isPending}
+              onClick={handleRemoveFromWorkspace}
+            >
+              Remove influencer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove from campaign confirmation dialog */}
+      <Dialog
+        open={!!removeCampaignConfirm}
+        onOpenChange={(v) => { if (!v) setRemoveCampaignConfirm(null) }}
+      >
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>Remove from campaign?</DialogTitle>
+          </DialogHeader>
+          <DialogBody className="space-y-3">
+            <p className="text-[13px] text-foreground-light">
+              <span className="font-medium text-foreground">@{removeCampaignConfirm?.influencerLabel}</span> will be removed from{' '}
+              <span className="font-medium text-foreground">{removeCampaignConfirm?.campaignName}</span>.
+            </p>
+            <ul className="space-y-1.5 text-[12px] text-foreground-light">
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-destructive">•</span>
+                Post monitoring for this campaign will stop immediately
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-destructive">•</span>
+                Posts already scraped for this campaign will be deleted
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-foreground-muted">•</span>
+                The influencer stays in your workspace and other campaigns
+              </li>
+            </ul>
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="secondary" size="md" onClick={() => setRemoveCampaignConfirm(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="md"
+              loading={isPending}
+              onClick={confirmRemoveFromCampaign}
+            >
+              Remove from campaign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Add to campaign dialog */}
       {(() => {
         const alreadyInCampaignIds = new Set(addToCampaignInfluencer?.campaigns.map(c => c.campaign_id) ?? [])
@@ -440,7 +707,7 @@ export function InfluencerListTable({
           >
             <DialogContent size="sm">
               <DialogHeader>
-                <DialogTitle>Add to campaign</DialogTitle>
+                <DialogTitle>{availableCampaigns.length === 0 ? 'Manage campaigns' : 'Add to campaign'}</DialogTitle>
               </DialogHeader>
               <DialogBody className="space-y-3">
                 <div className="space-y-1">
@@ -475,23 +742,25 @@ export function InfluencerListTable({
                     className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
                   />
                   <p className="text-[11px] text-foreground-subtle">
-                    When the product was delivered — limits how far back TikTok is scraped.
+                    When the product was sent. Used to set the start date for post detection.
                   </p>
                 </div>
               </DialogBody>
               <DialogFooter>
                 <Button variant="secondary" size="md" onClick={() => setAddToCampaignInfluencer(null)}>
-                  Cancel
+                  {availableCampaigns.length === 0 ? 'Close' : 'Cancel'}
                 </Button>
-                <Button
-                  variant="primary"
-                  size="md"
-                  disabled={!addCampaignId || availableCampaigns.length === 0}
-                  loading={isAddingToCampaign}
-                  onClick={handleAddToCampaign}
-                >
-                  Add to campaign
-                </Button>
+                {availableCampaigns.length > 0 && (
+                  <Button
+                    variant="primary"
+                    size="md"
+                    disabled={!addCampaignId}
+                    loading={isAddingToCampaign}
+                    onClick={handleAddToCampaign}
+                  >
+                    Add to campaign
+                  </Button>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useTransition } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Settings, LogOut } from 'lucide-react'
@@ -8,6 +8,8 @@ import type { User } from '@supabase/supabase-js'
 import { signOut } from '@/lib/actions/auth'
 import { getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 interface UserMenuProps {
   user: User
@@ -17,6 +19,8 @@ interface UserMenuProps {
 
 export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
   const [open, setOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const ref = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const pathname = usePathname()
@@ -123,19 +127,39 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
               Settings
             </a>
 
-            <form action={signOut}>
-              <button
-                type="submit"
-                role="menuitem"
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] text-destructive transition-colors hover:bg-destructive-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50"
-              >
-                <LogOut size={13} />
-                Sign out
-              </button>
-            </form>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => { setOpen(false); setShowLogoutConfirm(true) }}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] text-destructive transition-colors hover:bg-destructive-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50"
+            >
+              <LogOut size={13} />
+              Sign out
+            </button>
           </div>
         </div>
       )}
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>Sign out?</DialogTitle>
+            <DialogDescription>You'll be redirected to the login page.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" size="sm" onClick={() => setShowLogoutConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              loading={isPending}
+              onClick={() => startTransition(async () => { await signOut() })}
+            >
+              Sign out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

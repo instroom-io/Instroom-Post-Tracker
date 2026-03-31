@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Inbox } from 'lucide-react'
+import { Download, Inbox, Layers, HardDriveDownload, Eye, TrendingUp } from 'lucide-react'
 import { CampaignPostsTable } from './campaign-posts-table'
 import { CampaignPostsGallery } from './campaign-posts-gallery'
 import { CampaignInfluencersList } from './campaign-influencers-list'
@@ -148,15 +148,25 @@ export function CampaignTabs({
             {/* Summary metric cards */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
-                <p className="text-[11px] font-medium text-foreground-lighter">Posts detected</p>
-                <p className="mt-1 font-display text-[22px] font-extrabold text-foreground">
+                <div className="flex items-start justify-between">
+                  <p className="text-[11px] font-medium text-foreground-lighter">Posts detected</p>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10">
+                    <Layers size={14} className="text-brand" />
+                  </div>
+                </div>
+                <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
                   {posts.length}
                 </p>
                 <p className="mt-0.5 text-[11px] text-foreground-muted">via Ensemble</p>
               </div>
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
-                <p className="text-[11px] font-medium text-foreground-lighter">Downloaded</p>
-                <p className="mt-1 font-display text-[22px] font-extrabold text-foreground">
+                <div className="flex items-start justify-between">
+                  <p className="text-[11px] font-medium text-foreground-lighter">Downloaded</p>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
+                    <HardDriveDownload size={14} className="text-info" />
+                  </div>
+                </div>
+                <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
                   {downloadedPosts.length}
                 </p>
                 <p className="mt-0.5 text-[11px] text-foreground-muted">
@@ -166,15 +176,25 @@ export function CampaignTabs({
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
-                <p className="text-[11px] font-medium text-foreground-lighter">Total views</p>
-                <p className="mt-1 font-display text-[22px] font-extrabold text-foreground">
+                <div className="flex items-start justify-between">
+                  <p className="text-[11px] font-medium text-foreground-lighter">Total views</p>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10">
+                    <Eye size={14} className="text-warning" />
+                  </div>
+                </div>
+                <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
                   {formatNumber(totalViews)}
                 </p>
                 <p className="mt-0.5 text-[11px] text-foreground-muted">across all posts</p>
               </div>
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
-                <p className="text-[11px] font-medium text-foreground-lighter">Total EMV</p>
-                <p className="mt-1 font-display text-[22px] font-extrabold text-foreground">
+                <div className="flex items-start justify-between">
+                  <p className="text-[11px] font-medium text-foreground-lighter">Total EMV</p>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10">
+                    <TrendingUp size={14} className="text-warning" />
+                  </div>
+                </div>
+                <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
                   {formatEMV(totalEmv)}
                 </p>
                 <p className="mt-0.5 text-[11px] text-foreground-muted">estimated value</p>
@@ -244,16 +264,18 @@ export function CampaignTabs({
               </p>
             </div>
             {downloadedPosts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
-                  <Download size={18} className="text-foreground-muted" />
+              <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-background-muted">
+                  <Download size={22} className="text-foreground-muted" />
                 </div>
-                <p className="font-display text-[14px] font-bold text-foreground">
-                  No downloads yet
-                </p>
-                <p className="max-w-xs text-[13px] text-foreground-lighter">
-                  Enable usage rights for an influencer to allow their posts to be downloaded to Drive.
-                </p>
+                <div>
+                  <p className="font-display text-[14px] font-bold text-foreground">
+                    No downloads yet
+                  </p>
+                  <p className="mt-1 max-w-xs text-[13px] text-foreground-lighter">
+                    Enable usage rights for an influencer to allow their posts to be downloaded to Drive.
+                  </p>
+                </div>
               </div>
             ) : (
               <CampaignPostsTable posts={downloadedPosts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />
