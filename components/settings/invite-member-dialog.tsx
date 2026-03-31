@@ -12,8 +12,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import { inviteMember } from '@/lib/actions/workspace'
 import type { WorkspaceRole } from '@/lib/types'
 
@@ -67,16 +68,32 @@ export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogP
               placeholder="instroom@colleague.com"
               disabled={isPending}
             />
-            <Select
-              label="Role"
-              value={role}
-              onChange={(e) => setRole(e.target.value as typeof role)}
-              options={[
-                { value: 'admin', label: 'Admin — full access' },
-                { value: 'editor', label: 'Editor — can edit data' },
-                { value: 'viewer', label: 'Viewer — read-only' },
-              ]}
-            />
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[12px] font-medium text-foreground-light">Role</span>
+              <div className="flex gap-2">
+                {([
+                  { value: 'admin', label: 'Admin', description: 'Full access' },
+                  { value: 'editor', label: 'Editor', description: 'Can edit data' },
+                  { value: 'viewer', label: 'Viewer', description: 'Read-only' },
+                ] as const).map(({ value, label, description }) => (
+                  <Tooltip key={value} content={description} side="bottom">
+                    <button
+                      type="button"
+                      onClick={() => setRole(value)}
+                      disabled={isPending}
+                      className={cn(
+                        'flex-1 h-9 rounded-lg border text-[13px] font-medium transition-colors',
+                        role === value
+                          ? 'border-brand bg-brand/10 text-brand'
+                          : 'border-border bg-background-surface text-foreground-light hover:border-border-strong hover:text-foreground'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
             {error && (
               <p className="text-[11px] text-destructive">{error}</p>
             )}
