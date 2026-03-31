@@ -20,8 +20,8 @@ export const AGENCY_STEPS: TourStep[] = [
   },
   {
     id: 'agency-invite-brand',
-    title: 'Invite a Brand',
-    description: "Send a branded invite link to onboard a new client. They fill in their details and a workspace is created automatically — no account needed on their end.",
+    title: 'Request Access',
+    description: "Request access to onboard a new client. They fill in their details and a workspace is created automatically — no account needed on their end.",
     side: 'bottom',
   },
   {

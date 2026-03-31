@@ -438,7 +438,7 @@ export function AddInfluencerDialog({
                   loading={isValidating}
                   onClick={handleValidate}
                 >
-                  Validate {parsedHandles.length} handle{parsedHandles.length !== 1 ? 's' : ''}
+                  Verify {parsedHandles.length} handle{parsedHandles.length !== 1 ? 's' : ''}
                 </Button>
               )}
 

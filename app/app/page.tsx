@@ -10,7 +10,7 @@ export default async function AppPage() {
   // Case 1: Platform admin
   const { data: profile } = await supabase
     .from('users')
-    .select('is_platform_admin')
+    .select('is_platform_admin, onboarding_completed')
     .eq('id', user.id)
     .single()
 
@@ -24,7 +24,11 @@ export default async function AppPage() {
     .eq('status', 'active')
     .maybeSingle()
 
-  if (agency) redirect(`/agency/${agency.slug}/dashboard`)
+  if (agency) {
+    // New agency owners must complete onboarding survey first
+    if (!profile?.onboarding_completed) redirect('/onboarding/welcome')
+    redirect(`/agency/${agency.slug}/dashboard`)
+  }
 
   // Case 3 & 4: Workspace member (brand portal or regular dashboard)
   const { data: memberships } = await supabase

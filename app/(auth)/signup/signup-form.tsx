@@ -12,6 +12,7 @@ const initialState = undefined
 export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [state, action, isPending] = useActionState(signUp, initialState)
   const [showPassword, setShowPassword] = useState(false)
+  const [accountType, setAccountType] = useState<'agency' | 'brand'>('agency')
 
   if (state && 'success' in state && state.success) {
     return (
@@ -51,6 +52,33 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   return (
     <form action={action} className="flex flex-col gap-4">
       {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
+      <input type="hidden" name="account_type" value={accountType} />
+
+      <div className="flex rounded-lg border border-border bg-background-muted p-0.5">
+        <button
+          type="button"
+          onClick={() => setAccountType('agency')}
+          className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            accountType === 'agency'
+              ? 'bg-brand text-white shadow-sm'
+              : 'text-foreground-muted hover:text-foreground'
+          }`}
+        >
+          Agency
+        </button>
+        <button
+          type="button"
+          onClick={() => setAccountType('brand')}
+          className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            accountType === 'brand'
+              ? 'bg-brand text-white shadow-sm'
+              : 'text-foreground-muted hover:text-foreground'
+          }`}
+        >
+          Brand
+        </button>
+      </div>
+
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="email"

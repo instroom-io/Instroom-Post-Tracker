@@ -49,16 +49,16 @@ export function BrandOnboardForm({ token }: BrandOnboardFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         label="Website URL"
-        type="url"
+        type="text"
         value={websiteUrl}
         onChange={(e) => setWebsiteUrl(e.target.value)}
-        placeholder="https://yourbrand.com"
+        placeholder="www.yourbrand.com"
         required
         error={undefined}
       />
       <Input
         label="Brand logo URL (optional)"
-        type="url"
+        type="text"
         value={logoUrl}
         onChange={(e) => setLogoUrl(e.target.value)}
         placeholder="https://yourbrand.com/logo.png"

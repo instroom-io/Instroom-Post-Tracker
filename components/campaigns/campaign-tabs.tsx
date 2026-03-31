@@ -184,7 +184,7 @@ export function CampaignTabs({
             <div className="rounded-xl border border-border bg-background-surface shadow-sm">
               <div data-tour="campaign-tracking-config" className="border-b border-border px-5 py-3.5">
                 <h2 className="font-display text-[15px] font-bold text-foreground">
-                  Tracking config
+                  Tracking
                 </h2>
               </div>
               <TrackingConfigPanel

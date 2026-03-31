@@ -1,6 +1,13 @@
 import { z } from 'zod'
 import { extractDriveFolderId } from '@/lib/utils'
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Accepts full URLs or www. prefixed domains — auto-prepends https:// when needed */
+const websiteUrl = z.string()
+  .transform((v) => (v && /^www\./i.test(v) ? `https://${v}` : v))
+  .pipe(z.string().url('Please enter a valid URL'))
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const signInSchema = z.object({
@@ -12,6 +19,7 @@ export const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   full_name: z.string().min(2).max(100).optional(),
+  account_type: z.enum(['brand', 'agency']).default('agency'),
 })
 
 export const forgotPasswordSchema = z.object({
@@ -25,6 +33,17 @@ export const resetPasswordSchema = z.object({
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 })
+
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+
+export const onboardingAnswersSchema = z.object({
+  referral_source: z.string().optional(),
+  agency_size: z.string().optional(),
+  platforms: z.array(z.string()).optional(),
+  main_challenge: z.string().optional(),
+})
+
+export type OnboardingAnswers = z.infer<typeof onboardingAnswersSchema>
 
 // ─── Workspace ────────────────────────────────────────────────────────────────
 
@@ -167,7 +186,7 @@ export type ContactInquiryInput = z.infer<typeof contactInquirySchema>
 
 export const agencyRequestSchema = z.object({
   agency_name: z.string().min(2, 'Agency name must be at least 2 characters').max(100),
-  website_url: z.string().url('Please enter a valid URL'),
+  website_url: websiteUrl,
   contact_name: z.string().min(2, 'Contact name must be at least 2 characters').max(100),
   contact_email: z.string().email('Please enter a valid email address'),
   description: z.string().max(500).optional(),

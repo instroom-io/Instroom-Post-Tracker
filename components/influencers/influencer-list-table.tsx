@@ -11,6 +11,7 @@ import {
   Users,
   ExternalLink,
   ChevronLeft,
+  FolderPlus,
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -20,9 +21,18 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { PlatformIcon } from '@/components/ui/platform-icon'
 import { Tooltip } from '@/components/ui/tooltip'
-import { removeInfluencerFromWorkspace, removeInfluencerFromCampaign } from '@/lib/actions/influencers'
+import { removeInfluencerFromWorkspace, removeInfluencerFromCampaign, addInfluencerToCampaign } from '@/lib/actions/influencers'
 import { getInfluencerLabel, getInitials, cn } from '@/lib/utils'
 import type { CampaignStatus, MonitoringStatus } from '@/lib/types'
 
@@ -89,6 +99,12 @@ export function InfluencerListTable({
   const [isPending, startTransition] = useTransition()
   const [removingCiId, setRemovingCiId] = useState<string | null>(null)
 
+  // Add to campaign dialog state
+  const [addToCampaignInfluencer, setAddToCampaignInfluencer] = useState<InfluencerWithCampaigns | null>(null)
+  const [addCampaignId, setAddCampaignId] = useState('')
+  const [addProductSentAt, setAddProductSentAt] = useState('')
+  const [isAddingToCampaign, startAddTransition] = useTransition()
+
   // ── URL helpers ────────────────────────────────────────────────────────────
   function buildUrl(updates: Record<string, string>) {
     const params = new URLSearchParams(searchParams.toString())
@@ -125,6 +141,16 @@ export function InfluencerListTable({
       const result = await removeInfluencerFromWorkspace(influencerId, workspaceId)
       if (result?.error) { toast.error(result.error); return }
       toast.success(`@${label} removed from workspace`)
+    })
+  }
+
+  function handleAddToCampaign() {
+    if (!addToCampaignInfluencer || !addCampaignId) return
+    startAddTransition(async () => {
+      const result = await addInfluencerToCampaign(workspaceId, addCampaignId, addToCampaignInfluencer.id, addProductSentAt || null)
+      if (result?.error) { toast.error(result.error); return }
+      toast.success('Added to campaign')
+      setAddToCampaignInfluencer(null)
     })
   }
 
@@ -314,6 +340,16 @@ export function InfluencerListTable({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
+                                onClick={() => {
+                                  setAddToCampaignInfluencer(inf)
+                                  setAddCampaignId('')
+                                  setAddProductSentAt('')
+                                }}
+                              >
+                                <FolderPlus size={13} />
+                                Add to campaign
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 variant="destructive"
                                 onClick={() => handleRemoveFromWorkspace(inf.id, label)}
                                 disabled={isPending}
@@ -392,6 +428,75 @@ export function InfluencerListTable({
           </div>
         )}
       </div>
+
+      {/* Add to campaign dialog */}
+      {(() => {
+        const alreadyInCampaignIds = new Set(addToCampaignInfluencer?.campaigns.map(c => c.campaign_id) ?? [])
+        const availableCampaigns = workspaceCampaigns.filter(c => !alreadyInCampaignIds.has(c.id))
+        return (
+          <Dialog
+            open={!!addToCampaignInfluencer}
+            onOpenChange={(v) => { if (!v) setAddToCampaignInfluencer(null) }}
+          >
+            <DialogContent size="sm">
+              <DialogHeader>
+                <DialogTitle>Add to campaign</DialogTitle>
+              </DialogHeader>
+              <DialogBody className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                    Campaign
+                  </label>
+                  {availableCampaigns.length === 0 ? (
+                    <p className="text-[12px] text-foreground-lighter">
+                      This influencer is already in all campaigns.
+                    </p>
+                  ) : (
+                    <select
+                      value={addCampaignId}
+                      onChange={(e) => setAddCampaignId(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
+                    >
+                      <option value="">Select a campaign</option>
+                      {availableCampaigns.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                    Product sent date <span className="normal-case text-foreground-subtle">(optional)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={addProductSentAt}
+                    onChange={(e) => setAddProductSentAt(e.target.value)}
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
+                  />
+                  <p className="text-[11px] text-foreground-subtle">
+                    When the product was delivered — limits how far back TikTok is scraped.
+                  </p>
+                </div>
+              </DialogBody>
+              <DialogFooter>
+                <Button variant="secondary" size="md" onClick={() => setAddToCampaignInfluencer(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  disabled={!addCampaignId || availableCampaigns.length === 0}
+                  loading={isAddingToCampaign}
+                  onClick={handleAddToCampaign}
+                >
+                  Add to campaign
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )
+      })()}
     </div>
   )
 }

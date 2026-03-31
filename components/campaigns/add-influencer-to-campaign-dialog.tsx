@@ -335,20 +335,20 @@ export function AddInfluencerToCampaignDialog({
               <DialogBody className="space-y-4">
                 {/* Platform tabs — filtered to campaign platforms */}
                 {batchTabs.length > 1 && (
-                  <div className="flex gap-0 rounded-lg border border-border overflow-hidden">
+                  <div className="flex gap-1.5">
                     {batchTabs.map((tab) => (
                       <button
                         key={tab.key}
                         type="button"
                         onClick={() => setBatchPlatform(tab.key)}
                         className={cn(
-                          'flex-1 py-2 text-[12px] font-medium transition-colors',
+                          'flex items-center justify-center rounded-lg border px-2.5 py-1.5 transition-colors',
                           batchPlatform === tab.key
-                            ? 'bg-brand text-white'
-                            : 'text-foreground-muted hover:text-foreground hover:bg-background-muted'
+                            ? 'border-brand/40 bg-brand/10'
+                            : 'border-border bg-background-surface text-foreground-muted hover:text-foreground hover:bg-background-muted'
                         )}
                       >
-                        <PlatformIcon platform={tab.key} size={15} />
+                        <PlatformIcon platform={tab.key} size={14} />
                       </button>
                     ))}
                   </div>
@@ -418,7 +418,7 @@ export function AddInfluencerToCampaignDialog({
                   loading={isPending}
                   onClick={handleValidate}
                 >
-                  Validate {parsedHandles.length > 0 ? parsedHandles.length : ''} handle{parsedHandles.length !== 1 ? 's' : ''}
+                  Verify {parsedHandles.length > 0 ? parsedHandles.length : ''} handle{parsedHandles.length !== 1 ? 's' : ''}
                 </Button>
               </DialogFooter>
             </>

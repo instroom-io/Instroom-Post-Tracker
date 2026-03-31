@@ -55,7 +55,7 @@ export function TrackingConfigPanel({
       if (result?.error) {
         toast.error(result.error)
       } else {
-        toast.success(`${platform} tracking config saved`)
+        toast.success(`${platform} tracking saved`)
       }
     })
   }
@@ -128,7 +128,7 @@ export function TrackingConfigPanel({
             loading={isPending}
             onClick={() => handleSave(activeTab)}
           >
-            Save {activeTab} config
+            Save
           </Button>
         )}
       </div>

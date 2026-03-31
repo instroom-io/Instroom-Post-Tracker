@@ -66,7 +66,7 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
       <DialogTrigger asChild>
         <Button variant="primary" size="sm" data-tour="agency-invite-brand">
           <Plus size={13} />
-          Invite brand
+          Request access
         </Button>
       </DialogTrigger>
 
@@ -74,7 +74,7 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
         {inviteLink ? (
           <>
             <DialogHeader>
-              <DialogTitle>Invite created</DialogTitle>
+              <DialogTitle>Request sent</DialogTitle>
               <DialogDescription>
                 {emailSent
                   ? 'An email was sent to the brand. You can also share this link directly.'
@@ -109,9 +109,9 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Invite brand</DialogTitle>
+              <DialogTitle>Request access</DialogTitle>
               <DialogDescription>
-                An invite link will be created and emailed to the brand contact.
+                A request link will be created and emailed to the brand contact.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
@@ -142,7 +142,7 @@ export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
                   Cancel
                 </Button>
                 <Button type="submit" variant="primary" size="md" loading={isPending}>
-                  Send invite
+                  Send request
                 </Button>
               </DialogFooter>
             </form>

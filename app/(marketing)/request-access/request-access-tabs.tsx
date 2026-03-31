@@ -69,7 +69,7 @@ export function RequestAccessTabs() {
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="website_url" className={labelClass}>Website URL</label>
-        <input id="website_url" name="website_url" type="url" required placeholder="https://acmeagency.com" className={inputClass} />
+        <input id="website_url" name="website_url" type="text" required placeholder="www.acmeagency.com" className={inputClass} />
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="contact_name" className={labelClass}>Contact name</label>

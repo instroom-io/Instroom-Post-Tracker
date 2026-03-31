@@ -48,6 +48,7 @@ export async function signUp(
     email: formData.get('email'),
     password: formData.get('password'),
     full_name: formData.get('full_name') ?? undefined,
+    account_type: formData.get('account_type') ?? 'agency',
   })
 
   if (!parsed.success) {
@@ -72,6 +73,7 @@ export async function signUp(
     options: {
       data: {
         full_name: parsed.data.full_name,
+        account_type: parsed.data.account_type,
       },
       emailRedirectTo,
     },

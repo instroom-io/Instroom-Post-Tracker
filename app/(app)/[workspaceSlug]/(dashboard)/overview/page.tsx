@@ -7,10 +7,8 @@ import { StatCards } from '@/components/dashboard/stat-cards'
 import { StatCardsSkeleton } from '@/components/dashboard/stat-cards-skeleton'
 import { CampaignsTable } from '@/components/dashboard/campaigns-table'
 import { RecentPostsGrid } from '@/components/dashboard/recent-posts-grid'
-import { UsageRightsPanel } from '@/components/dashboard/usage-rights-panel'
 import { OverviewBottomSkeleton } from '@/components/dashboard/overview-bottom-skeleton'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
-import type { WorkspaceRole } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
@@ -19,24 +17,14 @@ interface PageProps {
 async function OverviewBottom({
   workspaceId,
   workspaceSlug,
-  canEdit,
 }: {
   workspaceId: string
   workspaceSlug: string
-  canEdit: boolean
 }) {
   const supabase = await createClient()
 
-  // Resolve active campaign IDs first (needed by campaign_influencers query)
-  const { data: activeCampaigns } = await supabase
-    .from('campaigns')
-    .select('id')
-    .eq('workspace_id', workspaceId)
-    .eq('status', 'active')
-  const activeCampaignIds = activeCampaigns?.map((c) => c.id) ?? []
-
-  // Fetch campaigns, usage rights, recent posts in parallel
-  const [{ data: campaigns }, { data: usageRightsItems }, { data: recentPosts }] =
+  // Fetch campaigns and recent posts in parallel
+  const [{ data: campaigns }, { data: recentPosts }] =
     await Promise.all([
       supabase
         .from('campaigns')
@@ -44,15 +32,6 @@ async function OverviewBottom({
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false })
         .limit(5),
-      supabase
-        .from('campaign_influencers')
-        .select(
-          'id, usage_rights, influencer:influencers(tiktok_handle, ig_handle, youtube_handle, profile_pic_url), campaign:campaigns(name)'
-        )
-        .in('campaign_id', activeCampaignIds)
-        .neq('monitoring_status', 'removed')
-        .order('added_at', { ascending: false })
-        .limit(20),
       supabase
         .from('posts')
         .select(
@@ -85,38 +64,15 @@ async function OverviewBottom({
 
   return (
     <>
-      {/* Campaigns + Usage rights */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-        <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-          <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-            <h2 className="font-display text-[15px] font-bold text-foreground">Campaigns</h2>
-            <Link href={`/${workspaceSlug}/campaigns`} className="text-[12px] text-brand hover:underline">
-              View all
-            </Link>
-          </div>
-          <CampaignsTable campaigns={enrichedCampaigns} workspaceSlug={workspaceSlug} />
+      {/* Campaigns */}
+      <div className="rounded-xl border border-border bg-background-surface shadow-sm">
+        <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+          <h2 className="font-display text-[15px] font-bold text-foreground">Campaigns</h2>
+          <Link href={`/${workspaceSlug}/campaigns`} className="text-[12px] text-brand hover:underline">
+            View all
+          </Link>
         </div>
-
-        <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-          <div className="border-b border-border px-5 py-3.5">
-            <h2 className="font-display text-[15px] font-bold text-foreground">Usage rights</h2>
-            <p className="text-[11px] text-foreground-lighter">Active campaigns</p>
-          </div>
-          <UsageRightsPanel
-            items={(usageRightsItems ?? []).map((item) => ({
-              id: item.id,
-              usage_rights: item.usage_rights,
-              influencer: item.influencer as unknown as {
-                tiktok_handle: string | null
-                ig_handle: string | null
-                youtube_handle: string | null
-                profile_pic_url: string | null
-              } | null,
-              campaign: item.campaign as unknown as { name: string } | null,
-            }))}
-            canEdit={canEdit}
-          />
-        </div>
+        <CampaignsTable campaigns={enrichedCampaigns} workspaceSlug={workspaceSlug} />
       </div>
 
       {/* Recent posts grid */}
@@ -164,16 +120,6 @@ export default async function OverviewPage({ params }: PageProps) {
 
   if (!workspace) redirect('/app')
 
-  const { data: member } = await supabase
-    .from('workspace_members')
-    .select('role')
-    .eq('workspace_id', workspace.id)
-    .eq('user_id', user.id)
-    .single()
-
-  const role = (member?.role ?? 'viewer') as WorkspaceRole
-  const canEdit = ['owner', 'admin', 'editor'].includes(role)
-
   return (
     <div>
       <PageHeader title="Overview" />
@@ -192,7 +138,6 @@ export default async function OverviewPage({ params }: PageProps) {
             <OverviewBottom
               workspaceId={workspace.id}
               workspaceSlug={workspaceSlug}
-              canEdit={canEdit}
             />
           </Suspense>
         </SectionErrorBoundary>

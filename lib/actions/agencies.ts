@@ -88,7 +88,9 @@ export async function acceptBrandInvite(
   token: string,
   data: { logoUrl?: string; websiteUrl: string }
 ): Promise<{ error: string } | void> {
-  const websiteSchema = z.string().url('Please enter a valid website URL')
+  const websiteSchema = z.string()
+    .transform((v) => (v && /^www\./i.test(v) ? `https://${v}` : v))
+    .pipe(z.string().url('Please enter a valid website URL'))
   const websiteParsed = websiteSchema.safeParse(data.websiteUrl)
   if (!websiteParsed.success) return { error: websiteParsed.error.errors[0].message }
 
