@@ -57,6 +57,7 @@ export async function processPostDownload(
       platform_post_id,
       platform,
       post_url,
+      media_url,
       workspace_id,
       campaign:campaigns(name),
       influencer:influencers(ig_handle, tiktok_handle, youtube_handle),
@@ -73,6 +74,7 @@ export async function processPostDownload(
   const campaign = post.campaign as unknown as { name: string } | null
   const influencer = post.influencer as unknown as { ig_handle: string | null; tiktok_handle: string | null; youtube_handle: string | null } | null
   const workspace = post.workspace as unknown as { name: string } | null
+  const storedMediaUrl = post.media_url as string | null
 
   let rootFolderId: string | undefined = memberDriveFolderId ?? undefined
 
@@ -87,7 +89,16 @@ export async function processPostDownload(
     rootFolderId = ownerMember?.drive_folder_id ?? undefined
   }
 
-  const mediaUrl = await fetchFreshMediaUrl(post.platform, post.platform_post_id, post.post_url)
+  // Use stored media URL first to avoid burning EnsembleData units.
+  // Fall back to a fresh EnsembleData fetch only if stored URL is absent or expired.
+  let mediaUrl: string | null = null
+  if (storedMediaUrl) {
+    const probe = await fetch(storedMediaUrl, { method: 'HEAD' }).catch(() => null)
+    if (probe?.ok) mediaUrl = storedMediaUrl
+  }
+  if (!mediaUrl) {
+    mediaUrl = await fetchFreshMediaUrl(post.platform, post.platform_post_id, post.post_url)
+  }
   if (!mediaUrl) {
     throw new Error(`Could not resolve media URL for ${post.platform} post ${post.platform_post_id}`)
   }

@@ -11,6 +11,7 @@ interface NormalizedPost {
   post_url: string
   caption: string | null
   thumbnail_url: string | null
+  media_url: string | null
   posted_at: string
 }
 
@@ -93,6 +94,7 @@ function parseIgItem(
     post_url: `https://www.instagram.com/${urlType}/${shortcode}/`,
     caption,
     thumbnail_url: (p.thumbnail_url ?? p.display_url) as string | null ?? null,
+    media_url: (p.video_url ?? p.display_url) as string | null ?? null,
     posted_at: postedAt,
   }
 }
@@ -180,6 +182,9 @@ function parseTikTokItem(item: Record<string, unknown>, handle: string): Normali
   const authorHandle = (item.author as Record<string, unknown> | undefined)?.unique_id as string | undefined
   const shareUrl = item.share_url as string | undefined
   const postUrl = shareUrl ?? `https://www.tiktok.com/@${authorHandle ?? handle}/video/${awemeId}`
+  const playAddr = video?.play_addr_h264 as Record<string, unknown> | undefined
+  const mediaUrl = (playAddr?.url_list as string[] | undefined)?.[0] ?? null
+
   return {
     ensemble_post_id: awemeId,
     post_url: postUrl,
@@ -187,6 +192,7 @@ function parseTikTokItem(item: Record<string, unknown>, handle: string): Normali
       ?? ((item.contents as Array<{ desc?: string }> | undefined)?.[0]?.desc)
       ?? null,
     thumbnail_url: cover,
+    media_url: mediaUrl,
     posted_at: postedAt,
   }
 }
@@ -274,6 +280,7 @@ async function scrapeYouTube(channelHandle: string, cachedChannelId?: string | n
       post_url: (v.url as string | undefined) ?? `https://www.youtube.com/watch?v=${videoId}`,
       caption,
       thumbnail_url: (v.thumbnail ?? v.thumbnail_url) as string | null ?? null,
+      media_url: null, // YouTube has no direct download URL
       posted_at: postedAt,
     })
   }
@@ -433,6 +440,7 @@ async function main() {
           platform_post_id: post.ensemble_post_id,
           caption: post.caption,
           thumbnail_url: post.thumbnail_url,
+          media_url: post.media_url,
           posted_at: post.posted_at,
           download_status: row.usage_rights ? 'pending' : 'blocked',
           blocked_reason: row.usage_rights ? null : 'no_usage_rights',
