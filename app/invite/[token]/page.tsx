@@ -61,8 +61,8 @@ export default async function InvitePage({ params }: PageProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm text-center">
-          <div className="mx-auto mb-4">
-            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={160} height={32} className="h-8 w-auto" />
+          <div className="flex justify-center mb-4">
+            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={180} height={40} priority />
           </div>
           <h1 className="font-display text-[22px] font-extrabold text-foreground mb-2">
             You've been invited
@@ -95,8 +95,8 @@ export default async function InvitePage({ params }: PageProps) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4">
-            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={160} height={32} className="h-8 w-auto" />
+          <div className="flex justify-center mb-4">
+            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={180} height={40} priority />
           </div>
           <h1 className="font-display text-[22px] font-extrabold text-foreground mb-1">
             Accept invitation
