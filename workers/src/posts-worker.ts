@@ -43,8 +43,8 @@ function matchesTrackingConfig(
   const testMention = (keyword: string): boolean => {
     const k = esc(keyword)
     return (
-      new RegExp(`@${k}${after}`).test(lower) ||
-      new RegExp(`(?:^|[^a-z0-9_#@])${k}${after}`).test(lower)
+      new RegExp(`@${k}`).test(lower) ||
+      new RegExp(`(?:^|[^a-z0-9_#@])${k}`).test(lower)
     )
   }
   return (
