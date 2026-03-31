@@ -20,7 +20,7 @@ export default async function SignupPage({ searchParams }: PageProps) {
             Create your account
           </h1>
           <p className="mt-1 text-[13px] text-foreground-lighter">
-            Start tracking influencer campaigns
+            Automate influencer post monitoring
           </p>
           <div className="mt-3 flex justify-center">
             <Link href="/" className="inline-flex items-center gap-1 text-[12px] text-foreground-muted transition-colors hover:text-foreground">
