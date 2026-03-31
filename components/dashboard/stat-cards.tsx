@@ -1,4 +1,4 @@
-import { Layers, HardDriveDownload, TrendingUp, Megaphone } from 'lucide-react'
+import { Stack, HardDrives, TrendUp, Megaphone } from '@phosphor-icons/react/dist/ssr'
 import { createClient } from '@/lib/supabase/server'
 import { formatNumber, formatEMV } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -48,7 +48,7 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       label: 'Total posts',
       value: formatNumber(totalPosts ?? 0),
       sub: 'detected via Ensemble',
-      icon: Layers,
+      icon: Stack,
       iconBg: 'bg-brand/10',
       iconColor: 'text-brand',
     },
@@ -58,7 +58,7 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       sub: totalPosts
         ? `${downloadRate}% of ${totalPosts} downloaded`
         : 'no posts yet',
-      icon: HardDriveDownload,
+      icon: HardDrives,
       iconBg: 'bg-info/10',
       iconColor: 'text-info',
     },
@@ -66,7 +66,7 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       label: 'Total EMV',
       value: formatEMV(totalEmv),
       sub: 'estimated media value',
-      icon: TrendingUp,
+      icon: TrendUp,
       iconBg: 'bg-warning/10',
       iconColor: 'text-warning',
     },
@@ -94,7 +94,7 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
               {stat.label}
             </p>
             <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', stat.iconBg)}>
-              <stat.icon size={14} className={stat.iconColor} />
+              <stat.icon size={14} weight="duotone" className={stat.iconColor} />
             </div>
           </div>
           <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">

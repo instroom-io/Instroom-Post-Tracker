@@ -1,4 +1,4 @@
-import { Building2, Users, HardDriveDownload, TrendingUp } from 'lucide-react'
+import { Buildings, Users, HardDrives, TrendUp } from '@phosphor-icons/react/dist/ssr'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 
@@ -27,7 +27,7 @@ export async function AdminStatCards() {
       label: 'Active Agencies',
       value: agencyCount ?? 0,
       sub: 'on the platform',
-      icon: Building2,
+      icon: Buildings,
       iconBg: 'bg-brand/10',
       iconColor: 'text-brand',
     },
@@ -43,7 +43,7 @@ export async function AdminStatCards() {
       label: 'Posts Downloaded',
       value: (postCount ?? 0).toLocaleString(),
       sub: 'to Google Drive',
-      icon: HardDriveDownload,
+      icon: HardDrives,
       iconBg: 'bg-info/10',
       iconColor: 'text-info',
     },
@@ -51,7 +51,7 @@ export async function AdminStatCards() {
       label: 'Platform EMV',
       value: formattedEmv,
       sub: 'estimated media value',
-      icon: TrendingUp,
+      icon: TrendUp,
       iconBg: 'bg-warning/10',
       iconColor: 'text-warning',
     },
@@ -66,7 +66,7 @@ export async function AdminStatCards() {
           <div className="flex items-start justify-between">
             <p className="text-[12px] font-medium text-foreground-lighter">{stat.label}</p>
             <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', stat.iconBg)}>
-              <stat.icon size={14} className={stat.iconColor} />
+              <stat.icon size={14} weight="duotone" className={stat.iconColor} />
             </div>
           </div>
           <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{stat.value}</p>

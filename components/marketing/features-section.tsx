@@ -2,14 +2,14 @@
 
 import { motion } from 'framer-motion'
 import {
-  Radar,
+  Crosshair,
   Shield,
-  CloudDownload,
+  CloudArrowDown,
   Lock,
-  Sparkles,
-  LayoutGrid,
-  type LucideIcon,
-} from 'lucide-react'
+  Sparkle,
+  SquaresFour,
+  type Icon,
+} from '@phosphor-icons/react'
 
 const containerVariants = {
   hidden: {},
@@ -21,9 +21,9 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 }
 
-const features: { icon: LucideIcon; title: string; description: string }[] = [
+const features: { icon: Icon; title: string; description: string }[] = [
   {
-    icon: Radar,
+    icon: Crosshair,
     title: 'Automatic Post Detection',
     description:
       'Every influencer post across Instagram, TikTok, and YouTube is detected the moment it goes live. Matched to the right campaign automatically.',
@@ -35,7 +35,7 @@ const features: { icon: LucideIcon; title: string; description: string }[] = [
       'Content downloads are gated behind a per-influencer, per-campaign usage rights toggle. No rights, no download — protecting your agency and your clients.',
   },
   {
-    icon: CloudDownload,
+    icon: CloudArrowDown,
     title: 'Watermark-Free Downloads',
     description:
       'Original-quality content downloaded directly to a structured Google Drive folder. No screen recording. No watermarks. No manual work.',
@@ -47,13 +47,13 @@ const features: { icon: LucideIcon; title: string; description: string }[] = [
       'Engagement data captured exactly 7 days after publish — then locked forever. Honest metrics that can\'t be inflated or cherry-picked.',
   },
   {
-    icon: Sparkles,
+    icon: Sparkle,
     title: 'EMV Calculation',
     description:
       'Estimated Media Value calculated per post using configurable CPM rates per platform. One clean number for every client report.',
   },
   {
-    icon: LayoutGrid,
+    icon: SquaresFour,
     title: 'Multi-Brand Workspaces',
     description:
       'One workspace per brand client. The agency sees everything. Each brand sees only their own world. Clean multi-tenant hierarchy.',

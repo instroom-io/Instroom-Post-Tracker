@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { removeMember } from '@/lib/actions/workspace'
 import { getInitials } from '@/lib/utils'
-import { HardDrive, MoreHorizontal } from 'lucide-react'
+import { HardDrive, DotsThree } from '@phosphor-icons/react'
 import { SetMemberDriveFolderDialog } from '@/components/settings/set-member-drive-dialog'
 import type { WorkspaceRole } from '@/lib/types'
 
@@ -156,7 +156,7 @@ export function MemberTable({
                             className="inline-flex h-7 w-7 items-center justify-center rounded-md text-foreground-muted hover:bg-background-muted hover:text-foreground transition-colors"
                             disabled={isPending}
                           >
-                            <MoreHorizontal size={14} />
+                            <DotsThree size={14} />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">

@@ -1,4 +1,4 @@
-import { Inbox, ImageOff } from 'lucide-react'
+import { Tray, ImageBroken } from '@phosphor-icons/react/dist/ssr'
 import { Badge } from '@/components/ui/badge'
 import { formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
@@ -26,7 +26,7 @@ export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
-          <Inbox size={18} className="text-foreground-muted" />
+          <Tray size={18} className="text-foreground-muted" />
         </div>
         <p className="font-display text-[14px] font-bold text-foreground">No posts detected</p>
         <p className="max-w-xs text-[13px] text-foreground-lighter">
@@ -58,7 +58,7 @@ export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
               />
             ) : (
               <div className="flex h-full items-center justify-center">
-                <ImageOff size={20} className="text-foreground-muted" aria-label="No thumbnail" />
+                <ImageBroken size={20} className="text-foreground-muted" aria-label="No thumbnail" />
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { ExternalLink, ImageOff, Lock } from 'lucide-react'
+import { ArrowSquareOut, ImageBroken, Lock } from '@phosphor-icons/react'
 import {
   Dialog,
   DialogContent,
@@ -101,7 +101,7 @@ function ModalDownloadButton({ post, memberDriveUrl }: { post: PostRow; workspac
           rel="noopener noreferrer"
           className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-background-muted transition-colors"
         >
-          <ExternalLink size={12} />
+          <ArrowSquareOut size={12} />
           Open in Drive
         </a>
       )
@@ -157,7 +157,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-[11px] font-medium text-brand hover:underline"
                       >
-                        <ExternalLink size={11} />
+                        <ArrowSquareOut size={11} />
                         Open post
                       </a>
                     )}
@@ -185,7 +185,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <ImageOff size={24} className="text-foreground-muted" />
+                        <ImageBroken size={24} className="text-foreground-muted" />
                       )}
                     </div>
                   </div>
@@ -257,7 +257,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                           <div className="rounded-lg bg-background-muted p-3 h-full flex flex-col justify-between hover:bg-background-muted/70 transition-colors cursor-pointer">
                             <p className="text-[10px] font-medium uppercase tracking-wide text-foreground-muted">Source</p>
                             <div className="mt-1 flex items-center gap-1 text-brand">
-                              <ExternalLink size={13} />
+                              <ArrowSquareOut size={13} />
                               <span className="font-display text-[15px] font-extrabold">Open</span>
                             </div>
                           </div>

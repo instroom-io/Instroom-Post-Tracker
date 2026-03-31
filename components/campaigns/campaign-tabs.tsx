@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Inbox, Layers, HardDriveDownload, Eye, TrendingUp } from 'lucide-react'
+import { DownloadSimple, Tray, Stack, HardDrives, Eye, TrendUp } from '@phosphor-icons/react'
 import { CampaignPostsTable } from './campaign-posts-table'
 import { CampaignPostsGallery } from './campaign-posts-gallery'
 import { CampaignInfluencersList } from './campaign-influencers-list'
@@ -151,7 +151,7 @@ export function CampaignTabs({
                 <div className="flex items-start justify-between">
                   <p className="text-[11px] font-medium text-foreground-lighter">Posts detected</p>
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10">
-                    <Layers size={14} className="text-brand" />
+                    <Stack size={14} className="text-brand" />
                   </div>
                 </div>
                 <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
@@ -163,7 +163,7 @@ export function CampaignTabs({
                 <div className="flex items-start justify-between">
                   <p className="text-[11px] font-medium text-foreground-lighter">Downloaded</p>
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
-                    <HardDriveDownload size={14} className="text-info" />
+                    <HardDrives size={14} className="text-info" />
                   </div>
                 </div>
                 <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
@@ -191,7 +191,7 @@ export function CampaignTabs({
                 <div className="flex items-start justify-between">
                   <p className="text-[11px] font-medium text-foreground-lighter">Total EMV</p>
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10">
-                    <TrendingUp size={14} className="text-warning" />
+                    <TrendUp size={14} className="text-warning" />
                   </div>
                 </div>
                 <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
@@ -266,7 +266,7 @@ export function CampaignTabs({
             {downloadedPosts.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-background-muted">
-                  <Download size={22} className="text-foreground-muted" />
+                  <DownloadSimple size={22} className="text-foreground-muted" />
                 </div>
                 <div>
                   <p className="font-display text-[14px] font-bold text-foreground">

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useTransition } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Settings, LogOut } from 'lucide-react'
+import { GearSix, SignOut } from '@phosphor-icons/react'
 import type { User } from '@supabase/supabase-js'
 import { signOut } from '@/lib/actions/auth'
 import { getInitials } from '@/lib/utils'
@@ -123,7 +123,7 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
               onClick={() => close()}
               className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
             >
-              <Settings size={13} />
+              <GearSix size={13} />
               Settings
             </a>
 
@@ -133,7 +133,7 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
               onClick={() => { setOpen(false); setShowLogoutConfirm(true) }}
               className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] text-destructive transition-colors hover:bg-destructive-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50"
             >
-              <LogOut size={13} />
+              <SignOut size={13} />
               Sign out
             </button>
           </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Inbox, ImageOff } from 'lucide-react'
+import { Tray, ImageBroken } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { PostsFilterBar } from './posts-filter-bar'
 import { DownloadStatusBadge } from './download-status-badge'
@@ -80,7 +80,7 @@ function ThumbnailCell({ thumbnailUrl, mediaUrl, platform }: {
         />
       ) : (
         <div className="flex h-full items-center justify-center">
-          <ImageOff size={14} className="text-foreground-muted" aria-label="No thumbnail" />
+          <ImageBroken size={14} className="text-foreground-muted" aria-label="No thumbnail" />
         </div>
       )}
       {canPreview && (
@@ -196,7 +196,7 @@ export function PostsTable({
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-24 text-center rounded-xl border border-border bg-background-surface">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-background-muted">
-            <Inbox size={22} className="text-foreground-muted" />
+            <Tray size={22} className="text-foreground-muted" />
           </div>
           <div>
             <p className="font-display text-[14px] font-bold text-foreground">No posts detected</p>

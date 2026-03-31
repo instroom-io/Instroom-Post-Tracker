@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check } from 'lucide-react'
+import { Check } from '@phosphor-icons/react'
 import { useMarketingContact } from '@/components/marketing/marketing-contact-provider'
 import { cn } from '@/lib/utils'
 

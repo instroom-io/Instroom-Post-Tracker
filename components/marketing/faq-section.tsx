@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown } from 'lucide-react'
+import { CaretDown } from '@phosphor-icons/react'
 
 const faqs = [
   {
@@ -46,7 +46,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
       >
         <span className="font-display text-sm font-semibold text-foreground pr-4">{question}</span>
         <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={16} className="text-foreground-muted shrink-0" />
+          <CaretDown size={16} className="text-foreground-muted shrink-0" />
         </motion.span>
       </button>
 

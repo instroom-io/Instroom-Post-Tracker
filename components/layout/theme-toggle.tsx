@@ -1,6 +1,6 @@
 'use client'
 
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon } from '@phosphor-icons/react'
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useTheme } from 'next-themes'

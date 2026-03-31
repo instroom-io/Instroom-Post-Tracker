@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { HelpCircle } from 'lucide-react'
+import { Question } from '@phosphor-icons/react'
 import { TourProvider } from '@/components/tour/tour-provider'
 import { useTour } from '@/lib/hooks/use-tour'
 
@@ -22,7 +22,7 @@ export function CampaignsListTourButton() {
       onClick={() => startTour('campaigns-list')}
       className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground"
     >
-      <HelpCircle size={13} />
+      <Question size={13} />
       Take a tour
     </button>
   )

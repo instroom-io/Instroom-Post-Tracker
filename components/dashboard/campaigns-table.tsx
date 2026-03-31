@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Megaphone, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { Megaphone, MagnifyingGlass, ArrowsDownUp, ArrowUp, ArrowDown } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { AnimatedBadge } from '@/components/ui/animated-badge'
 import { formatDateRange } from '@/lib/utils'
@@ -32,7 +32,7 @@ type SortKey = 'name' | 'status' | 'post_count' | 'start_date'
 type SortDir = 'asc' | 'desc'
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
-  if (!active) return <ArrowUpDown size={12} className="text-foreground-muted" />
+  if (!active) return <ArrowsDownUp size={12} className="text-foreground-muted" />
   return dir === 'asc'
     ? <ArrowUp size={12} className="text-foreground" />
     : <ArrowDown size={12} className="text-foreground" />
@@ -82,7 +82,7 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
       {/* Search bar */}
       <div className="border-b border-border px-5 py-3">
         <div className="relative max-w-xs">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
+          <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
           <input
             type="text"
             value={search}

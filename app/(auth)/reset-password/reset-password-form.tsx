@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useActionState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { updatePassword } from '@/lib/actions/auth'
 
 const initialState = undefined
@@ -39,7 +39,7 @@ export function ResetPasswordForm() {
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted hover:text-foreground transition-colors"
           >
-            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+            {showPassword ? <EyeSlash size={15} /> : <Eye size={15} />}
           </button>
         </div>
       </div>
@@ -67,7 +67,7 @@ export function ResetPasswordForm() {
             aria-label={showConfirm ? 'Hide password' : 'Show password'}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted hover:text-foreground transition-colors"
           >
-            {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+            {showConfirm ? <EyeSlash size={15} /> : <Eye size={15} />}
           </button>
         </div>
       </div>

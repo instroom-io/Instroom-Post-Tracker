@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Copy, Check } from 'lucide-react'
+import { Plus, Copy, Check } from '@phosphor-icons/react'
 import {
   Dialog,
   DialogTrigger,

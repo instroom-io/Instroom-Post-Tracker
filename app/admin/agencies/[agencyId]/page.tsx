@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Users, Layers } from 'lucide-react'
+import { Users, Stack } from '@phosphor-icons/react/dist/ssr'
 import { createServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -51,7 +51,7 @@ export default async function AgencyDetailPage({ params }: PageProps) {
     {
       label: 'Total Posts',
       value: totalPostCount,
-      icon: Layers,
+      icon: Stack,
       iconBg: 'bg-brand/10',
       iconColor: 'text-brand',
       sub: 'downloaded',
@@ -79,7 +79,7 @@ export default async function AgencyDetailPage({ params }: PageProps) {
             <div className="flex items-start justify-between">
               <p className="text-[12px] font-medium text-foreground-lighter">{stat.label}</p>
               <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', stat.iconBg)}>
-                <stat.icon size={14} className={stat.iconColor} />
+                <stat.icon size={14} weight="duotone" className={stat.iconColor} />
               </div>
             </div>
             <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{stat.value}</p>

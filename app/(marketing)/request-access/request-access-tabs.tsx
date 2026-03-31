@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle } from '@phosphor-icons/react'
 import { submitAgencyRequest } from '@/lib/actions/agencies'
 import { Button } from '@/components/ui/button'
 
@@ -14,7 +14,7 @@ function SuccessState({ title, body }: { title: string; body: string }) {
   return (
     <div className="flex flex-col items-center gap-4 py-8 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
-        <CheckCircle2 size={24} className="text-success" />
+        <CheckCircle size={24} className="text-success" />
       </div>
       <div>
         <h2 className="font-display text-[18px] font-bold text-foreground">{title}</h2>

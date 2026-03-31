@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ChevronDown } from 'lucide-react'
+import { CaretDown } from '@phosphor-icons/react'
 import { HeroVideo } from '@/components/marketing/hero-video'
 
 function smoothScroll(e: React.MouseEvent<HTMLAnchorElement>) {
@@ -82,7 +82,7 @@ export function HeroSection() {
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
       >
-        <ChevronDown size={20} className="text-foreground-muted" />
+        <CaretDown size={20} className="text-foreground-muted" />
       </motion.div>
     </section>
   )

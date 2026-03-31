@@ -1,4 +1,4 @@
-import { Building2, Layers } from 'lucide-react'
+import { Buildings, Stack } from '@phosphor-icons/react/dist/ssr'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { InviteBrandDialog } from '@/components/agency/invite-brand-dialog'
@@ -43,7 +43,7 @@ export default async function AgencyDashboardPage({ params }: PageProps) {
           <div className="flex items-start justify-between">
             <p className="text-[12px] font-medium text-foreground-lighter">Workspaces</p>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10">
-              <Building2 size={14} className="text-brand" />
+              <Buildings size={14} weight="duotone" className="text-brand" />
             </div>
           </div>
           <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{workspaceCount ?? 0}</p>
@@ -53,7 +53,7 @@ export default async function AgencyDashboardPage({ params }: PageProps) {
           <div className="flex items-start justify-between">
             <p className="text-[12px] font-medium text-foreground-lighter">Total Posts</p>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
-              <Layers size={14} className="text-info" />
+              <Stack size={14} weight="duotone" className="text-info" />
             </div>
           </div>
           <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{postCount ?? 0}</p>

@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition, useState } from 'react'
 import { toast } from 'sonner'
-import { MoreHorizontal, Trash2, AlertCircle, Users, RefreshCw, Search } from 'lucide-react'
+import { DotsThree, Trash, WarningCircle, Users, ArrowClockwise, MagnifyingGlass } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { PlatformLogo } from '@/components/ui/platform-icon'
@@ -86,7 +86,7 @@ function AvatarCell({ row, workspaceId }: { row: InfluencerRow; workspaceId: str
         title="Fetch profile picture"
         className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-background-surface border border-border text-foreground-muted transition-colors hover:text-foreground disabled:opacity-50"
       >
-        <RefreshCw size={7} className={isRefreshing ? 'animate-spin' : ''} />
+        <ArrowClockwise size={7} className={isRefreshing ? 'animate-spin' : ''} />
       </button>
     </div>
   )
@@ -232,7 +232,7 @@ export function CampaignInfluencersList({
     <div>
       <div className="px-5 py-3 border-b border-border">
         <div className="relative w-48">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted pointer-events-none" />
+          <MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted pointer-events-none" />
           <Input
             type="text"
             placeholder="Search influencers..."
@@ -306,7 +306,7 @@ export function CampaignInfluencersList({
                       {item.monitoring_status === 'active' &&
                         (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0 && (
                           <span title="No matching posts yet — check captions for tracking keywords">
-                            <AlertCircle size={13} className="flex-shrink-0 text-warning" />
+                            <WarningCircle size={13} className="flex-shrink-0 text-warning" />
                           </span>
                         )}
                     </div>
@@ -314,7 +314,7 @@ export function CampaignInfluencersList({
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
                       {!item.usage_rights && (
-                        <AlertCircle size={13} className="text-warning flex-shrink-0" />
+                        <WarningCircle size={13} className="text-warning flex-shrink-0" />
                       )}
                       <Switch
                         size="md"
@@ -347,7 +347,7 @@ export function CampaignInfluencersList({
                             type="button"
                             className="rounded-md p-1 text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground"
                           >
-                            <MoreHorizontal size={14} />
+                            <DotsThree size={14} />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -357,7 +357,7 @@ export function CampaignInfluencersList({
                               handleRemove(item.id, `@${getInfluencerLabel(item.influencer)}`)
                             }
                           >
-                            <Trash2 size={13} />
+                            <Trash size={13} />
                             Remove from campaign
                           </DropdownMenuItem>
                         </DropdownMenuContent>

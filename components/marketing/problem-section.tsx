@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { X, Check } from 'lucide-react'
+import { X, Check } from '@phosphor-icons/react'
 
 const containerVariants = {
   hidden: {},

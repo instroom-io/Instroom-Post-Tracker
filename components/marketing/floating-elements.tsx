@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Instagram, Music, Play } from 'lucide-react'
+import { InstagramLogo, MusicNote, Play } from '@phosphor-icons/react'
 
 export function RadarPulse() {
   const sizes = [40, 60, 80]
@@ -34,7 +34,7 @@ export function PlatformOrbs() {
         animate={{ y: [0, -15, 0], x: [0, 8, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <Instagram className="w-5 h-5 text-platform-instagram" />
+        <InstagramLogo className="w-5 h-5 text-platform-instagram" />
       </motion.div>
 
       <motion.div
@@ -42,7 +42,7 @@ export function PlatformOrbs() {
         animate={{ y: [0, 12, 0], x: [0, -10, 0] }}
         transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <Music className="w-5 h-5 text-platform-tiktok" />
+        <MusicNote className="w-5 h-5 text-platform-tiktok" />
       </motion.div>
 
       <motion.div

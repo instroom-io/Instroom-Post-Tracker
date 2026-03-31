@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ArrowRight, Search, Users, Share2, BarChart3, Download, FileText } from 'lucide-react'
+import { Check, ArrowRight, MagnifyingGlass, Users, ShareNetwork, ChartBar, DownloadSimple, FileText } from '@phosphor-icons/react'
 import { PlatformIcon } from '@/components/ui/platform-icon'
 import { completeOnboarding } from '@/lib/actions/onboarding'
 
@@ -15,10 +15,10 @@ const STEPS = [
     field: 'referral_source' as const,
     type: 'single' as const,
     options: [
-      { value: 'google', label: 'Google Search', icon: Search },
-      { value: 'social_media', label: 'Social Media', icon: Share2 },
+      { value: 'google', label: 'Google Search', icon: MagnifyingGlass },
+      { value: 'social_media', label: 'Social Media', icon: ShareNetwork },
       { value: 'referral', label: 'Referral / Word of Mouth', icon: Users },
-      { value: 'event', label: 'Event / Conference', icon: BarChart3 },
+      { value: 'event', label: 'Event / Conference', icon: ChartBar },
     ],
   },
   {
@@ -49,9 +49,9 @@ const STEPS = [
     field: 'main_challenge' as const,
     type: 'single' as const,
     options: [
-      { value: 'tracking_posts', label: 'Tracking influencer posts', icon: Search },
-      { value: 'measuring_roi', label: 'Measuring ROI & EMV', icon: BarChart3 },
-      { value: 'managing_downloads', label: 'Managing content downloads', icon: Download },
+      { value: 'tracking_posts', label: 'Tracking influencer posts', icon: MagnifyingGlass },
+      { value: 'measuring_roi', label: 'Measuring ROI & EMV', icon: ChartBar },
+      { value: 'managing_downloads', label: 'Managing content downloads', icon: DownloadSimple },
       { value: 'reporting', label: 'Reporting to clients', icon: FileText },
     ],
   },

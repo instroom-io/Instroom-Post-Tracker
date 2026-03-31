@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useActionState } from 'react'
 import Link from 'next/link'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { signUp } from '@/lib/actions/auth'
 import { signInWithGoogle } from '@/lib/supabase/client'
 
@@ -120,7 +120,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted hover:text-foreground transition-colors"
           >
-            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+            {showPassword ? <EyeSlash size={15} /> : <Eye size={15} />}
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays } from 'lucide-react'
+import { CalendarDots } from '@phosphor-icons/react'
 import { Select } from '@/components/ui/select'
 import type { Platform } from '@/lib/types'
 
@@ -37,7 +37,7 @@ export function AnalyticsFilterBar({
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="relative">
-        <CalendarDays size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
+        <CalendarDots size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
         <input
           type="date"
           value={filters.from}
@@ -50,7 +50,7 @@ export function AnalyticsFilterBar({
       <span className="text-[11px] text-foreground-muted">to</span>
 
       <div className="relative">
-        <CalendarDays size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
+        <CalendarDots size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
         <input
           type="date"
           value={filters.to}

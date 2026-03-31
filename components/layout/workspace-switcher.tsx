@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { Check, CaretUpDown } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/utils'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
@@ -130,7 +130,7 @@ export function WorkspaceSwitcher({
           </span>
         )}
 
-        <ChevronsUpDown size={13} className="flex-shrink-0 text-foreground-muted" />
+        <CaretUpDown size={13} className="flex-shrink-0 text-foreground-muted" />
       </button>
 
       {/* ── Dropdown ───────────────────────────────────────────────────── */}

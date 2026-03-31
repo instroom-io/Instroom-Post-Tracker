@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Info } from 'lucide-react'
+import { Plus, Info } from '@phosphor-icons/react'
 import { PlatformIcon } from '@/components/ui/platform-icon'
 import { toast } from 'sonner'
 import {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Inbox, ImageOff, Eye, Percent, DollarSign, ExternalLink, Lock } from 'lucide-react'
+import { Tray, ImageBroken, Eye, Percent, CurrencyDollar, ArrowSquareOut, Lock } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, cn, getInfluencerLabel } from '@/lib/utils'
@@ -118,7 +118,7 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
         />
       ) : (
         <div className="flex h-full items-center justify-center">
-          <ImageOff size={20} className="text-foreground-muted" />
+          <ImageBroken size={20} className="text-foreground-muted" />
         </div>
       )}
       {canPreview && (
@@ -172,7 +172,7 @@ function PostDownloadButton({
         title="View in Google Drive"
         className="flex h-6 w-6 items-center justify-center rounded-md text-brand transition-colors hover:bg-brand/10"
       >
-        <ExternalLink size={12} />
+        <ArrowSquareOut size={12} />
       </a>
     )
   }
@@ -192,7 +192,7 @@ export function CampaignPostsGallery({
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
-          <Inbox size={18} className="text-foreground-muted" />
+          <Tray size={18} className="text-foreground-muted" />
         </div>
         <p className="font-display text-[14px] font-bold text-foreground">No posts detected</p>
         <p className="max-w-xs text-[13px] text-foreground-lighter">
@@ -253,7 +253,7 @@ export function CampaignPostsGallery({
                           value={post.metrics ? formatPercent(post.metrics.engagement_rate) : '—'}
                         />
                         <MetricChip
-                          icon={DollarSign}
+                          icon={CurrencyDollar}
                           value={post.metrics ? formatEMV(post.metrics.emv) : '—'}
                         />
                       </div>

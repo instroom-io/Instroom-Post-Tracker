@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { MoreHorizontal, Trash2, Users, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { DotsThree, Trash, Users, MagnifyingGlass, ArrowsDownUp, ArrowUp, ArrowDown } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
   DropdownMenu,
@@ -31,7 +31,7 @@ type SortKey = 'name' | 'campaign_count'
 type SortDir = 'asc' | 'desc'
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
-  if (!active) return <ArrowUpDown size={12} className="text-foreground-muted" />
+  if (!active) return <ArrowsDownUp size={12} className="text-foreground-muted" />
   return dir === 'asc'
     ? <ArrowUp size={12} className="text-foreground" />
     : <ArrowDown size={12} className="text-foreground" />
@@ -87,7 +87,7 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
       {/* Search bar */}
       <div className="border-b border-border px-5 py-3">
         <div className="relative max-w-xs">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
+          <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
           <input
             type="text"
             value={search}
@@ -184,7 +184,7 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
                             type="button"
                             className="rounded-md p-1 text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground"
                           >
-                            <MoreHorizontal size={14} />
+                            <DotsThree size={14} />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -199,7 +199,7 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
                             }}
                             disabled={isPending}
                           >
-                            <Trash2 size={13} />
+                            <Trash size={13} />
                             Remove from workspace
                           </DropdownMenuItem>
                         </DropdownMenuContent>

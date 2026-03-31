@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition } from 'react'
 import { toast } from 'sonner'
-import { AlertCircle, Users } from 'lucide-react'
+import { WarningCircle, Users } from '@phosphor-icons/react'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
 import { getInfluencerLabel } from '@/lib/utils'
 import { Switch } from '@/components/ui/switch'
@@ -86,7 +86,7 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
 
           <div className="ml-4 flex items-center gap-2">
             {!item.usage_rights && (
-              <AlertCircle size={13} className="text-warning flex-shrink-0" />
+              <WarningCircle size={13} className="text-warning flex-shrink-0" />
             )}
             <Switch
               size="sm"

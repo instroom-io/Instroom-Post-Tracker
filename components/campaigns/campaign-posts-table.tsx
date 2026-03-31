@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Inbox, ImageOff, ExternalLink } from 'lucide-react'
+import { Tray, ImageBroken, ArrowSquareOut } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, getInfluencerLabel } from '@/lib/utils'
@@ -61,7 +61,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
-          <Inbox size={18} className="text-foreground-muted" />
+          <Tray size={18} className="text-foreground-muted" />
         </div>
         <p className="font-display text-[14px] font-bold text-foreground">No posts detected</p>
         <p className="max-w-xs text-[13px] text-foreground-lighter">
@@ -125,7 +125,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center">
-                        <ImageOff size={14} className="text-foreground-muted" aria-label="No thumbnail" />
+                        <ImageBroken size={14} className="text-foreground-muted" aria-label="No thumbnail" />
                       </div>
                     )}
                   </div>
@@ -171,7 +171,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
                       className="inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
                     >
                       View in Drive
-                      <ExternalLink size={11} />
+                      <ArrowSquareOut size={11} />
                     </a>
                   ) : (
                     <span className="text-[12px] text-foreground-muted">—</span>

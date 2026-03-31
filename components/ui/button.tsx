@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { Loader2 } from 'lucide-react'
+import { CircleNotch } from '@phosphor-icons/react/dist/ssr'
 import { cn } from '@/lib/utils'
 
 type ButtonVariant =
@@ -67,7 +67,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        {loading && <Loader2 size={14} className="animate-spin" />}
+        {loading && <CircleNotch size={14} className="animate-spin" />}
         {children}
       </button>
     )

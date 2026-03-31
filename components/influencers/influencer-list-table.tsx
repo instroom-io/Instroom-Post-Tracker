@@ -4,16 +4,16 @@ import React, { useState, useTransition } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
-  ChevronRight,
-  MoreHorizontal,
-  Trash2,
-  Search,
+  CaretRight,
+  DotsThree,
+  Trash,
+  MagnifyingGlass,
   Users,
-  ExternalLink,
-  ChevronLeft,
+  ArrowSquareOut,
+  CaretLeft,
   FolderPlus,
   X,
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
@@ -122,7 +122,7 @@ function CampaignCard({ entry, workspaceSlug, canEdit, isRemoving, influencerLab
         className="flex min-w-0 flex-1 items-center gap-1 text-[12px] font-medium text-foreground-light transition-colors hover:text-foreground"
       >
         <span className="truncate">{entry.name}</span>
-        <ExternalLink
+        <ArrowSquareOut
           size={9}
           className="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-40"
         />
@@ -314,7 +314,7 @@ export function InfluencerListTable({
         {/* Search */}
         <div className="flex flex-col gap-0.5">
           <div className="relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
+            <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
             <input
               type="text"
               value={search}
@@ -470,7 +470,7 @@ export function InfluencerListTable({
                               transition={{ duration: 0.2, ease: 'easeInOut' }}
                               className="flex"
                             >
-                              <ChevronRight size={11} />
+                              <CaretRight size={11} />
                             </motion.span>
                             {activeCampaigns.length}
                           </button>
@@ -488,7 +488,7 @@ export function InfluencerListTable({
                                 type="button"
                                 className="rounded-md p-1 text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground"
                               >
-                                <MoreHorizontal size={14} />
+                                <DotsThree size={14} />
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -506,7 +506,7 @@ export function InfluencerListTable({
                                 variant="destructive"
                                 onClick={() => setRemoveConfirmInfluencer({ id: inf.id, label, campaigns: activeCampaigns })}
                               >
-                                <Trash2 size={13} />
+                                <Trash size={13} />
                                 Remove from workspace
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -554,7 +554,7 @@ export function InfluencerListTable({
                 disabled={page <= 1}
                 className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground disabled:opacity-40"
               >
-                <ChevronLeft size={13} />
+                <CaretLeft size={13} />
               </button>
               {totalPages > 2 && (() => {
                 const half = 2
@@ -586,7 +586,7 @@ export function InfluencerListTable({
                 disabled={page >= totalPages}
                 className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground disabled:opacity-40"
               >
-                <ChevronRight size={13} />
+                <CaretRight size={13} />
               </button>
             </div>
           </div>

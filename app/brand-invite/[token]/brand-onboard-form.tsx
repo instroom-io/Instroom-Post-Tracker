@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle } from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { acceptBrandInvite } from '@/lib/actions/agencies'

@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from '@phosphor-icons/react/dist/ssr'
 import { SignupForm } from './signup-form'
 
 interface PageProps {

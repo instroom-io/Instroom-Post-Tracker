@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, X } from 'lucide-react'
+import { List, X } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMarketingContact } from '@/components/marketing/marketing-contact-provider'
 
@@ -82,7 +82,7 @@ export function MarketingNav() {
 
         {/* Mobile hamburger */}
         <button className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-          <Menu size={20} className="text-foreground-lighter" />
+          <List size={20} className="text-foreground-lighter" />
         </button>
       </div>
 

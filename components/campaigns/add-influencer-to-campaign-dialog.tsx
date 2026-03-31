@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { UserPlus, ArrowLeft, CheckCircle2, AlertTriangle, XCircle, Upload } from 'lucide-react'
+import { UserPlus, ArrowLeft, CheckCircle, Warning, XCircle, UploadSimple } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -381,7 +381,7 @@ export function AddInfluencerToCampaignDialog({
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-medium text-foreground-light">Handles</span>
                     <label className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-[11px] text-foreground-lighter hover:bg-background-muted transition-colors">
-                      <Upload size={11} />
+                      <UploadSimple size={11} />
                       Upload CSV
                       <input
                         type="file"
@@ -477,13 +477,13 @@ export function AddInfluencerToCampaignDialog({
                           {/* Status badge */}
                           {r.status === 'valid' && (
                             <span className="flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium text-brand">
-                              <CheckCircle2 size={10} />
+                              <CheckCircle size={10} />
                               Verified
                             </span>
                           )}
                           {r.status === 'private' && (
                             <span className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">
-                              <AlertTriangle size={10} />
+                              <Warning size={10} />
                               Private
                             </span>
                           )}
@@ -502,7 +502,7 @@ export function AddInfluencerToCampaignDialog({
                 {/* Warning banner if any issues */}
                 {warningResults.length > 0 && (
                   <div className="flex gap-2.5 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2.5">
-                    <AlertTriangle size={13} className="mt-0.5 flex-shrink-0 text-warning" />
+                    <Warning size={13} className="mt-0.5 flex-shrink-0 text-warning" />
                     <p className="text-[11px] leading-relaxed text-foreground-light">
                       {warningResults.filter((r) => r.status === 'private').length > 0 && (
                         <span>Private accounts may not return posts. </span>

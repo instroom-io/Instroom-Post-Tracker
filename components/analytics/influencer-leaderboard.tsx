@@ -1,4 +1,4 @@
-import { BarChart2 } from 'lucide-react'
+import { ChartBar } from '@phosphor-icons/react/dist/ssr'
 import { formatNumber, formatEMV, formatPercent } from '@/lib/utils'
 
 interface LeaderboardRow {
@@ -20,7 +20,7 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
-          <BarChart2 size={18} className="text-foreground-muted" />
+          <ChartBar size={18} className="text-foreground-muted" />
         </div>
         <p className="font-display text-[14px] font-bold text-foreground">No data yet</p>
         <p className="max-w-xs text-[13px] text-foreground-lighter">

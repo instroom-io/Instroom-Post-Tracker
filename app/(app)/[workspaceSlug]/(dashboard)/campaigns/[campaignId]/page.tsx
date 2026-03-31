@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { CaretLeft } from '@phosphor-icons/react/dist/ssr'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/layout/page-header'
 import { Badge } from '@/components/ui/badge'
@@ -207,7 +207,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
         href={`/${workspaceSlug}/campaigns`}
         className="flex items-center gap-1 px-5 pt-4 pb-1 text-[12px] text-foreground-muted hover:text-foreground transition-colors w-fit"
       >
-        <ChevronLeft size={13} />
+        <CaretLeft size={13} />
         Campaigns
       </Link>
       <PageHeader

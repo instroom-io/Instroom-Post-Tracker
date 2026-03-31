@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check } from 'lucide-react'
+import { Check } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import type { TourRect } from './tour-spotlight'
 

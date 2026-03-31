@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { updateCollabStatus } from '@/lib/actions/posts'
-import { ChevronDown } from 'lucide-react'
+import { CaretDown } from '@phosphor-icons/react'
 import type { CollabStatus, Platform } from '@/lib/types'
 
 interface CollabStatusSelectProps {
@@ -76,7 +76,7 @@ export function CollabStatusSelect({
           <Badge variant={statusVariant[optimisticStatus as Exclude<CollabStatus, 'n/a'>]}>
             {optimisticStatus}
           </Badge>
-          <ChevronDown size={11} className="text-foreground-muted" />
+          <CaretDown size={11} className="text-foreground-muted" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">

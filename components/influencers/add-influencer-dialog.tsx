@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { Plus, Upload, CheckCircle2, XCircle, Lock, FileText } from 'lucide-react'
+import { Plus, UploadSimple, CheckCircle, XCircle, Lock, FileText } from '@phosphor-icons/react'
 import { PlatformIcon } from '@/components/ui/platform-icon'
 import { toast } from 'sonner'
 import {
@@ -387,7 +387,7 @@ export function AddInfluencerDialog({
                     </>
                   ) : (
                     <>
-                      <Upload size={18} className="text-foreground-muted" />
+                      <UploadSimple size={18} className="text-foreground-muted" />
                       <span className="text-[12px] text-foreground-light">Click to upload a CSV or TXT file</span>
                       <span className="text-[11px] text-foreground-muted">One handle per row · @ symbol optional</span>
                     </>
@@ -408,7 +408,7 @@ export function AddInfluencerDialog({
                   <p className="text-[11px] font-semibold text-foreground-light uppercase tracking-wide mb-2">Validation results</p>
                   {validCount > 0 && (
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 size={13} className="text-brand flex-shrink-0" />
+                      <CheckCircle size={13} className="text-brand flex-shrink-0" />
                       <span className="text-[12px] text-foreground">{validCount} valid — will be imported</span>
                     </div>
                   )}

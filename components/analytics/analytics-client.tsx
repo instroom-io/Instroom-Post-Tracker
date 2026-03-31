@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BarChart3, Eye, Percent, TrendingUp } from 'lucide-react'
+import { ChartBar, Eye, Percent, TrendUp } from '@phosphor-icons/react'
 import { AnalyticsFilterBar, type AnalyticsFilters } from '@/components/analytics/analytics-filter-bar'
 import { PostVolumeChart } from '@/components/analytics/post-volume-chart'
 import { PlatformBreakdown } from '@/components/analytics/platform-breakdown'
@@ -159,10 +159,10 @@ export function AnalyticsClient({
   const multiPlatform = filters.platform === 'all'
 
   const statCards = [
-    { label: 'Posts', value: totalPosts.toLocaleString(), icon: BarChart3, iconBg: 'bg-brand/10', iconColor: 'text-brand' },
+    { label: 'Posts', value: totalPosts.toLocaleString(), icon: ChartBar, iconBg: 'bg-brand/10', iconColor: 'text-brand' },
     { label: 'Total Views', value: formatNumber(totalViews), icon: Eye, iconBg: 'bg-info/10', iconColor: 'text-info' },
     { label: 'Avg ER', value: avgEr > 0 ? formatPercent(avgEr) : '—', icon: Percent, iconBg: 'bg-warning/10', iconColor: 'text-warning' },
-    { label: 'Total EMV', value: formatEMV(totalEmv), icon: TrendingUp, iconBg: 'bg-warning/10', iconColor: 'text-warning' },
+    { label: 'Total EMV', value: formatEMV(totalEmv), icon: TrendUp, iconBg: 'bg-warning/10', iconColor: 'text-warning' },
   ]
 
   return (

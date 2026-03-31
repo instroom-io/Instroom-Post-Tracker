@@ -6,16 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
-import {
-  LayoutDashboard,
-  Megaphone,
-  Users,
-  BarChart2,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  HelpCircle,
-} from 'lucide-react'
+import { CaretLeft, CaretRight, Question, SquaresFour, Megaphone, Users, ChartBar, GearSix } from '@phosphor-icons/react'
 import { useTour } from '@/lib/hooks/use-tour'
 import { TourProvider } from '@/components/tour/tour-provider'
 import { cn } from '@/lib/utils'
@@ -32,11 +23,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview',     href: (s) => `/${s}/overview`,     icon: LayoutDashboard, tourId: 'ws-overview'     },
-  { label: 'Campaigns',    href: (s) => `/${s}/campaigns`,    icon: Megaphone,       tourId: 'ws-campaigns'    },
-  { label: 'Influencers',  href: (s) => `/${s}/influencers`,  icon: Users,           tourId: 'ws-influencers'  },
-  { label: 'Analytics',    href: (s) => `/${s}/analytics`,    icon: BarChart2,       tourId: 'ws-analytics'    },
-  { label: 'Settings',     href: (s) => `/${s}/settings`,     icon: Settings,        tourId: 'ws-settings'     },
+  { label: 'Overview',     href: (s) => `/${s}/overview`,     icon: SquaresFour, tourId: 'ws-overview'     },
+  { label: 'Campaigns',    href: (s) => `/${s}/campaigns`,    icon: Megaphone,   tourId: 'ws-campaigns'    },
+  { label: 'Influencers',  href: (s) => `/${s}/influencers`,  icon: Users,       tourId: 'ws-influencers'  },
+  { label: 'Analytics',    href: (s) => `/${s}/analytics`,    icon: ChartBar,    tourId: 'ws-analytics'    },
+  { label: 'Settings',     href: (s) => `/${s}/settings`,     icon: GearSix,     tourId: 'ws-settings'     },
 ]
 
 interface AppShellProps {
@@ -88,8 +79,8 @@ export function AppShell({
           className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-background-surface shadow-sm transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
         >
           {collapsed
-            ? <ChevronRight size={10} className="text-foreground-lighter" />
-            : <ChevronLeft size={10} className="text-foreground-lighter" />
+            ? <CaretRight size={10} className="text-foreground-lighter" />
+            : <CaretLeft size={10} className="text-foreground-lighter" />
           }
         </button>
 
@@ -119,7 +110,7 @@ export function AppShell({
                   collapsed ? 'justify-center gap-0' : 'gap-1.5'
                 )}
               >
-                <ChevronLeft size={12} className="shrink-0" />
+                <CaretLeft size={12} className="shrink-0" />
                 <AnimatePresence>
                   {!collapsed && (
                     <motion.span
@@ -154,6 +145,7 @@ export function AppShell({
                 >
                   <item.icon
                     size={14}
+                    weight="regular"
                     className={cn(isActive ? 'text-foreground' : '')}
                   />
                   <AnimatePresence>
@@ -182,7 +174,7 @@ export function AppShell({
                 collapsed ? 'justify-center gap-0' : 'gap-2'
               )}
             >
-              <HelpCircle size={14} className="flex-shrink-0" />
+              <Question size={14} className="flex-shrink-0" />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span

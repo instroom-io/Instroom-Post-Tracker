@@ -8,7 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react'
-import { X } from 'lucide-react'
+import { X } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
