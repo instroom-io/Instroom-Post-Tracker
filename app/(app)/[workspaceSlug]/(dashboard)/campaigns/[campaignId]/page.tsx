@@ -79,7 +79,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     supabase
       .from('posts')
       .select(
-        'id, influencer_id, thumbnail_url, platform, posted_at, download_status, drive_file_id, collab_status, caption, post_url, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), metrics:post_metrics(views, likes, comments, shares, saves, follower_count, engagement_rate, emv)'
+        'id, influencer_id, thumbnail_url, media_url, platform, posted_at, download_status, drive_file_id, collab_status, caption, post_url, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), metrics:post_metrics(views, likes, comments, shares, saves, follower_count, engagement_rate, emv)'
       )
       .eq('campaign_id', campaignId)
       .order('posted_at', { ascending: false })
@@ -157,6 +157,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
     return {
       id: p.id,
       thumbnail_url: p.thumbnail_url,
+      media_url: (p as unknown as { media_url: string | null }).media_url,
       caption: p.caption,
       post_url: p.post_url,
       platform: p.platform as Platform,

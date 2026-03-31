@@ -13,6 +13,7 @@ import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } f
 interface PostRow {
   id: string
   thumbnail_url: string | null
+  media_url: string | null
   caption: string | null
   post_url: string | null
   platform: Platform

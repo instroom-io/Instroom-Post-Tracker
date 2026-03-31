@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Inbox, ImageOff } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { PostsFilterBar } from './posts-filter-bar'
 import { DownloadStatusBadge } from './download-status-badge'
 import { CollabStatusSelect } from './collab-status-select'
@@ -12,6 +13,7 @@ import type { Platform, DownloadStatus, CollabStatus } from '@/lib/types'
 interface PostRow {
   id: string
   thumbnail_url: string | null
+  media_url: string | null
   platform: Platform
   posted_at: string
   download_status: DownloadStatus
@@ -38,6 +40,58 @@ interface PostsTableProps {
   campaigns: Campaign[]
   showCampaignColumn?: boolean
   canEdit?: boolean
+}
+
+function ThumbnailCell({ thumbnailUrl, mediaUrl, platform }: {
+  thumbnailUrl: string | null
+  mediaUrl: string | null
+  platform: Platform
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [hovering, setHovering] = useState(false)
+  const canPreview = !!mediaUrl && platform !== 'youtube'
+
+  function onEnter() {
+    if (!canPreview) return
+    setHovering(true)
+    videoRef.current?.play()
+  }
+  function onLeave() {
+    if (!canPreview) return
+    setHovering(false)
+    if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0 }
+  }
+
+  return (
+    <div
+      className="relative h-10 w-10 overflow-hidden rounded-md bg-background-muted flex-shrink-0"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+    >
+      {thumbnailUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={thumbnailUrl}
+          alt=""
+          className={cn('h-full w-full object-cover transition-opacity duration-200', hovering && canPreview && 'opacity-0')}
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center">
+          <ImageOff size={14} className="text-foreground-muted" aria-label="No thumbnail" />
+        </div>
+      )}
+      {canPreview && (
+        <video
+          ref={videoRef}
+          src={mediaUrl}
+          muted
+          loop
+          playsInline
+          className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
+        />
+      )}
+    </div>
+  )
 }
 
 const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
@@ -191,20 +245,11 @@ export function PostsTable({
                   className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/30"
                 >
                   <td className="px-5 py-3">
-                    <div className="h-10 w-10 overflow-hidden rounded-md bg-background-muted flex-shrink-0">
-                      {post.thumbnail_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={post.thumbnail_url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center">
-                          <ImageOff size={14} className="text-foreground-muted" aria-label="No thumbnail" />
-                        </div>
-                      )}
-                    </div>
+                    <ThumbnailCell
+                      thumbnailUrl={post.thumbnail_url}
+                      mediaUrl={post.media_url}
+                      platform={post.platform}
+                    />
                   </td>
 
                   <td className="px-5 py-3">

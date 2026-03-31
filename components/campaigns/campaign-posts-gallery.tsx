@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Inbox, ImageOff, Eye, Percent, DollarSign, ExternalLink, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
@@ -10,6 +10,7 @@ import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } f
 interface PostRow {
   id: string
   thumbnail_url: string | null
+  media_url: string | null
   caption: string | null
   post_url: string | null
   platform: Platform
@@ -83,6 +84,64 @@ function groupByMonth(posts: PostRow[]): { label: string; posts: PostRow[] }[] {
     ;(map[key] ??= []).push(post)
   }
   return Object.entries(map).map(([label, posts]) => ({ label, posts }))
+}
+
+function GalleryThumbnail({ post }: { post: PostRow }) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [hovering, setHovering] = useState(false)
+  const src = getThumbnailSrc(post)
+  const canPreview = !!post.media_url && post.platform !== 'youtube'
+
+  function onEnter() {
+    if (!canPreview) return
+    setHovering(true)
+    videoRef.current?.play()
+  }
+  function onLeave() {
+    if (!canPreview) return
+    setHovering(false)
+    if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0 }
+  }
+
+  return (
+    <div
+      className="relative aspect-square bg-background-muted overflow-hidden"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+    >
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt=""
+          className={cn('h-full w-full object-cover transition-opacity duration-200', hovering && canPreview ? 'opacity-0' : 'group-hover:scale-[1.03] transition-transform duration-300')}
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center">
+          <ImageOff size={20} className="text-foreground-muted" />
+        </div>
+      )}
+      {canPreview && (
+        <video
+          ref={videoRef}
+          src={post.media_url!}
+          muted
+          loop
+          playsInline
+          className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
+        />
+      )}
+      {/* Platform badge — top left */}
+      <div className="absolute left-2 top-2">
+        <Badge variant={platformVariant[post.platform]}>{post.platform}</Badge>
+      </div>
+      {/* Download status dot — top right */}
+      <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/40 px-1.5 py-0.5 backdrop-blur-sm">
+        <span className={cn('h-1.5 w-1.5 rounded-full', downloadDotClass[post.download_status])} />
+        <span className="text-[9px] font-semibold text-white capitalize">{post.download_status}</span>
+      </div>
+    </div>
+  )
 }
 
 function PostDownloadButton({
@@ -170,39 +229,8 @@ export function CampaignPostsGallery({
                   onKeyDown={(e) => e.key === 'Enter' && setSelectedPost(post)}
                   className="group rounded-xl overflow-hidden border border-border bg-background-surface shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-border-strong text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                 >
-                  {/* Thumbnail */}
-                  <div className="relative aspect-square bg-background-muted overflow-hidden">
-                    {getThumbnailSrc(post) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={getThumbnailSrc(post) ?? ''}
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <ImageOff size={20} className="text-foreground-muted" />
-                      </div>
-                    )}
-
-                    {/* Platform badge — top left */}
-                    <div className="absolute left-2 top-2">
-                      <Badge variant={platformVariant[post.platform]}>{post.platform}</Badge>
-                    </div>
-
-                    {/* Download status dot — top right */}
-                    <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/40 px-1.5 py-0.5 backdrop-blur-sm">
-                      <span
-                        className={cn(
-                          'h-1.5 w-1.5 rounded-full',
-                          downloadDotClass[post.download_status]
-                        )}
-                      />
-                      <span className="text-[9px] font-semibold text-white capitalize">
-                        {post.download_status}
-                      </span>
-                    </div>
-                  </div>
+                  {/* Thumbnail + badges */}
+                  <GalleryThumbnail post={post} />
 
                   {/* Info panel */}
                   <div className="p-3 flex flex-col gap-1">
