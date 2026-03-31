@@ -1,8 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
-import { ExternalLink, ImageOff, Download, Loader2, Lock } from 'lucide-react'
-import { toast } from 'sonner'
+import { ExternalLink, ImageOff, Lock } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -12,7 +10,6 @@ import {
   DialogBody,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { triggerPostDownload } from '@/lib/actions/download'
 import { cn, formatNumber, formatEMV, formatPercent, formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
 import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } from '@/lib/types'
 
@@ -80,9 +77,7 @@ function MetricCell({ label, value }: { label: string; value: string }) {
   )
 }
 
-function ModalDownloadButton({ post, workspaceId, memberDriveUrl }: { post: PostRow; workspaceId: string; memberDriveUrl?: string }) {
-  const [isPending, startTransition] = useTransition()
-
+function ModalDownloadButton({ post, memberDriveUrl }: { post: PostRow; workspaceId: string; memberDriveUrl?: string }) {
   if (post.download_status === 'blocked') {
     return (
       <button
@@ -113,34 +108,7 @@ function ModalDownloadButton({ post, workspaceId, memberDriveUrl }: { post: Post
     }
   }
 
-  function handleDownload() {
-    startTransition(async () => {
-      const result = await triggerPostDownload(post.id, workspaceId)
-      if ('error' in result) {
-        toast.error(result.error)
-      } else {
-        toast.success('Saved to Drive')
-        window.open(result.driveUrl, '_blank')
-      }
-    })
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleDownload}
-      disabled={isPending}
-      className={cn(
-        'inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium transition-colors',
-        isPending
-          ? 'cursor-wait text-foreground-muted'
-          : 'text-foreground hover:bg-background-muted'
-      )}
-    >
-      {isPending ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
-      {post.download_status === 'failed' ? 'Retry download' : 'Download'}
-    </button>
-  )
+  return null
 }
 
 export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, memberDriveUrl }: PostDetailModalProps) {

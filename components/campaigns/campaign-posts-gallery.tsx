@@ -1,12 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { Inbox, ImageOff, Eye, Percent, DollarSign, Download, Loader2, ExternalLink, Lock } from 'lucide-react'
+import { useState } from 'react'
+import { Inbox, ImageOff, Eye, Percent, DollarSign, ExternalLink, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, cn, getInfluencerLabel } from '@/lib/utils'
-import { triggerPostDownload } from '@/lib/actions/download'
-import { toast } from 'sonner'
 import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } from '@/lib/types'
 
 interface PostRow {
@@ -89,13 +87,10 @@ function groupByMonth(posts: PostRow[]): { label: string; posts: PostRow[] }[] {
 
 function PostDownloadButton({
   post,
-  workspaceId,
 }: {
   post: PostRow
   workspaceId: string
 }) {
-  const [isPending, startTransition] = useTransition()
-
   if (post.download_status === 'blocked') {
     return (
       <span title="No usage rights granted">
@@ -123,36 +118,7 @@ function PostDownloadButton({
     )
   }
 
-  // pending or failed — show download trigger
-  function handleDownload(e: React.MouseEvent) {
-    e.stopPropagation()
-    startTransition(async () => {
-      const result = await triggerPostDownload(post.id, workspaceId)
-      if ('error' in result) {
-        toast.error(result.error)
-      } else {
-        toast.success('Saved to Drive')
-        window.open(result.driveUrl, '_blank')
-      }
-    })
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleDownload}
-      disabled={isPending}
-      title={post.download_status === 'failed' ? 'Retry download' : 'Download to Drive'}
-      className={cn(
-        'flex h-6 w-6 items-center justify-center rounded-md transition-colors',
-        isPending
-          ? 'cursor-wait text-foreground-muted'
-          : 'text-foreground-muted hover:bg-background-muted hover:text-foreground'
-      )}
-    >
-      {isPending ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
-    </button>
-  )
+  return null
 }
 
 export function CampaignPostsGallery({
