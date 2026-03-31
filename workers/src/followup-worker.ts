@@ -1,6 +1,6 @@
 import { createServiceClient } from './lib/supabase'
 import { differenceInDays } from 'date-fns'
-import { sendEmail, escapeHtml } from '@/lib/email'
+import { sendEmail, escapeHtml } from '../../lib/email/index'
 
 async function main() {
   const supabase = createServiceClient()
