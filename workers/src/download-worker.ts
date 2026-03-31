@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServiceClient } from './lib/supabase'
-import { processPostDownload } from '../../lib/downloads/process-download'
+import { processPostDownload } from './lib/process-download'
 
 async function processJob(
   supabase: SupabaseClient,
