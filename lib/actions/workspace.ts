@@ -112,10 +112,6 @@ export async function inviteMember(
   const parsed = inviteMemberSchema.safeParse(data)
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
-  if (isPersonalEmail(parsed.data.email)) {
-    return { error: 'Please use a work email address.' }
-  }
-
   const supabase = await createClient()
   const {
     data: { user },
