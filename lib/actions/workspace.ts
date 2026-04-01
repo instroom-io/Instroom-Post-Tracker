@@ -9,7 +9,7 @@ import {
   inviteMemberSchema,
   updateAssignedMemberSchema,
 } from '@/lib/validations'
-import { toSlug, extractDriveFolderId, isPersonalEmail } from '@/lib/utils'
+import { toSlug, isPersonalEmail } from '@/lib/utils'
 import { sendEmail, escapeHtml } from '@/lib/email'
 import { teamInviteEmail } from '@/lib/email/templates/team-invite'
 import type { WorkspaceRole } from '@/lib/types'
@@ -235,52 +235,6 @@ export async function acceptInvitation(
 
   const workspace = invitation.workspaces as { slug: string } | null
   redirect(`/${workspace?.slug ?? ''}/overview`)
-}
-
-export async function setMemberDriveFolder(
-  workspaceId: string,
-  memberId: string,
-  rawFolderId: string | null
-): Promise<{ error: string } | void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  // Caller must be the member themselves OR an owner/admin
-  const [{ data: callerMember }, { data: targetMember }] = await Promise.all([
-    supabase
-      .from('workspace_members')
-      .select('role, user_id')
-      .eq('workspace_id', workspaceId)
-      .eq('user_id', user.id)
-      .single(),
-    supabase
-      .from('workspace_members')
-      .select('user_id')
-      .eq('id', memberId)
-      .eq('workspace_id', workspaceId)
-      .single(),
-  ])
-
-  const isSelf = callerMember?.user_id === targetMember?.user_id
-  const isAdmin = ['owner', 'admin'].includes(callerMember?.role ?? '')
-  if (!isSelf && !isAdmin) return { error: 'Insufficient permissions.' }
-
-  const folderId = rawFolderId ? extractDriveFolderId(rawFolderId) : null
-
-  // Use service client — RLS only allows admins to UPDATE workspace_members,
-  // but members should be able to update their own drive_folder_id.
-  // Authorization is enforced above (isSelf || isAdmin).
-  const { error } = await createServiceClient()
-    .from('workspace_members')
-    .update({ drive_folder_id: folderId })
-    .eq('id', memberId)
-
-  if (error) return { error: 'Failed to save Drive folder.' }
-
-  revalidatePath('/', 'layout')
 }
 
 export async function updateAssignedMember(

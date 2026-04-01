@@ -31,7 +31,7 @@ async function MembersSection({
   const supabase = await createClient()
   const { data: members } = await supabase
     .from('workspace_members')
-    .select('id, user_id, role, drive_folder_id, user:users!workspace_members_user_id_fkey(full_name, email, avatar_url)')
+    .select('id, user_id, role, user:users!workspace_members_user_id_fkey(full_name, email, avatar_url)')
     .eq('workspace_id', workspaceId)
     .order('joined_at')
 
@@ -39,7 +39,6 @@ async function MembersSection({
     id: m.id,
     user_id: m.user_id,
     role: m.role,
-    drive_folder_id: m.drive_folder_id,
     user: Array.isArray(m.user) ? (m.user[0] ?? null) : m.user,
   }))
 
