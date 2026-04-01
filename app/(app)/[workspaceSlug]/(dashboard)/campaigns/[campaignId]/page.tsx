@@ -15,6 +15,7 @@ import type { WorkspaceRole, CampaignStatus, Platform, DownloadStatus, CollabSta
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string; campaignId: string }>
+  searchParams: Promise<{ tab?: string }>
 }
 
 const statusVariant: Record<CampaignStatus, 'active' | 'draft' | 'ended'> = {
@@ -23,8 +24,13 @@ const statusVariant: Record<CampaignStatus, 'active' | 'draft' | 'ended'> = {
   ended: 'ended',
 }
 
-export default async function CampaignDetailPage({ params }: PageProps) {
+const VALID_TABS = ['overview', 'influencers', 'posts', 'downloads'] as const
+type Tab = typeof VALID_TABS[number]
+
+export default async function CampaignDetailPage({ params, searchParams }: PageProps) {
   const { workspaceSlug, campaignId } = await params
+  const { tab } = await searchParams
+  const defaultTab: Tab = VALID_TABS.includes(tab as Tab) ? (tab as Tab) : 'overview'
   const supabase = await createClient()
 
   const {
@@ -271,6 +277,7 @@ export default async function CampaignDetailPage({ params }: PageProps) {
           canEdit={canEdit}
           postCountsByInfluencerId={postCountsByInfluencerId}
           memberDriveUrl={memberDriveUrl}
+          defaultTab={defaultTab}
         />
       </div>
     </div>

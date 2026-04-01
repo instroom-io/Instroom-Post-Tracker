@@ -87,9 +87,14 @@ async function OverviewBottom({
       <div className="rounded-xl border border-border bg-background-surface shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
           <h2 className="font-display text-[15px] font-bold text-foreground">Recent posts</h2>
-          <Link href={`/${workspaceSlug}/posts`} className="text-[12px] text-brand hover:underline">
-            View all
-          </Link>
+          {(campaigns ?? []).length > 0 && (
+            <Link
+              href={`/${workspaceSlug}/campaigns/${(campaigns ?? [])[0].id}?tab=posts`}
+              className="text-[12px] text-brand hover:underline"
+            >
+              View all
+            </Link>
+          )}
         </div>
         <div className="p-5">
           <RecentPostsGrid

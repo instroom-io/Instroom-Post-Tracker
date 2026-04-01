@@ -70,6 +70,7 @@ interface CampaignTabsProps {
   canEdit: boolean
   postCountsByInfluencerId: Record<string, number>
   memberDriveUrl?: string
+  defaultTab?: Tab
 }
 
 type Tab = 'overview' | 'influencers' | 'posts' | 'downloads'
@@ -86,8 +87,9 @@ export function CampaignTabs({
   canEdit,
   postCountsByInfluencerId,
   memberDriveUrl,
+  defaultTab,
 }: CampaignTabsProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [activeTab, setActiveTab] = useState<Tab>(defaultTab ?? 'overview')
 
   // Compute summary metrics from already-fetched posts
   const totalViews = posts.reduce((sum, p) => sum + (p.metrics?.views ?? 0), 0)
