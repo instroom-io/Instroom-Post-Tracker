@@ -13,7 +13,7 @@ export async function GET() {
     client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!,
     redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/google-drive/callback`,
     response_type: 'code',
-    scope: 'https://www.googleapis.com/auth/drive',
+    scope: 'https://www.googleapis.com/auth/drive email profile',
     access_type: 'offline',
     prompt: 'consent',
   })

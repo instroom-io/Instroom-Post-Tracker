@@ -11,7 +11,7 @@ export default async function AccountSettingsPage() {
   const [{ data: profile }, { data: memberships }] = await Promise.all([
     supabase
       .from('users')
-      .select('preferred_language, timezone, google_connected_email')
+      .select('preferred_language, timezone, google_connected_email, google_refresh_token')
       .eq('id', user.id)
       .single(),
     supabase
@@ -37,7 +37,7 @@ export default async function AccountSettingsPage() {
         timezone={profile?.timezone ?? 'UTC'}
       />
       <GoogleDriveCard
-        connectedEmail={(profile as unknown as { google_connected_email: string | null } | null)?.google_connected_email ?? null}
+        connectedEmail={(profile as unknown as { google_connected_email: string | null; google_refresh_token: string | null } | null)?.google_connected_email ?? ((profile as unknown as { google_refresh_token: string | null } | null)?.google_refresh_token ? user.email ?? 'Connected' : null)}
         workspaceFolders={workspaceFolders}
       />
     </div>
