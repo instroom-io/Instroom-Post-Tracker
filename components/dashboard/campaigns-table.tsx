@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Megaphone, MagnifyingGlass, ArrowsDownUp, ArrowUp, ArrowDown } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { AnimatedBadge } from '@/components/ui/animated-badge'
@@ -39,6 +39,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 }
 
 export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps) {
+  const router = useRouter()
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('start_date')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -150,15 +151,13 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
               filtered.map((campaign) => (
                 <tr
                   key={campaign.id}
-                  className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/40"
+                  onClick={() => router.push(`/${workspaceSlug}/campaigns/${campaign.id}`)}
+                  className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/40 cursor-pointer"
                 >
                   <td className="px-5 py-3.5">
-                    <Link
-                      href={`/${workspaceSlug}/campaigns/${campaign.id}`}
-                      className="text-[12px] font-medium text-foreground hover:text-brand"
-                    >
+                    <span className="text-[12px] font-medium text-foreground">
                       {campaign.name}
-                    </Link>
+                    </span>
                   </td>
                   <td className="px-5 py-3.5">
                     {campaign.status === 'active' ? (

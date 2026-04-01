@@ -313,7 +313,6 @@ export async function removeMember(
   revalidatePath('/', 'layout')
 }
 
-<<<<<<< HEAD
 export async function uploadWorkspaceLogo(
   workspaceId: string,
   formData: FormData
