@@ -18,10 +18,11 @@ import { inviteBrand } from '@/lib/actions/agencies'
 
 interface InviteBrandDialogProps {
   agencyId: string
+  defaultOpen?: boolean
 }
 
-export function InviteBrandDialog({ agencyId }: InviteBrandDialogProps) {
-  const [open, setOpen] = useState(false)
+export function InviteBrandDialog({ agencyId, defaultOpen = false }: InviteBrandDialogProps) {
+  const [open, setOpen] = useState(defaultOpen)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState('')
