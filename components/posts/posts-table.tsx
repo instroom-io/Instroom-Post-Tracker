@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Tray, ImageBroken } from '@phosphor-icons/react'
+import { Tray, ImageBroken, CloudArrowUp, ArrowClockwise } from '@phosphor-icons/react'
+import { toast } from 'sonner'
+import { savePostToUserDrive } from '@/lib/actions/posts'
 import { cn } from '@/lib/utils'
 import { PostsFilterBar } from './posts-filter-bar'
 import { DownloadStatusBadge } from './download-status-badge'
@@ -40,6 +42,53 @@ interface PostsTableProps {
   campaigns: Campaign[]
   showCampaignColumn?: boolean
   canEdit?: boolean
+  workspaceId?: string
+}
+
+function SaveToDriveButton({ postId, workspaceId, driveFileId }: {
+  postId: string
+  workspaceId: string
+  driveFileId: string | null
+}) {
+  const [isPending, setIsPending] = useState(false)
+
+  async function handleClick() {
+    if (isPending) return
+    setIsPending(true)
+    const result = await savePostToUserDrive(postId, workspaceId)
+    setIsPending(false)
+
+    if ('error' in result) {
+      if (result.error === 'connect_required') {
+        toast.error('Connect Google Drive in Account Settings to use this feature.', {
+          action: { label: 'Settings', onClick: () => window.open('/account/settings', '_blank') },
+        })
+      } else if (result.error === 'not_downloaded') {
+        toast.error('This post has not been downloaded yet.')
+      } else {
+        toast.error(result.error)
+      }
+      return
+    }
+
+    window.open(result.url, '_blank')
+    toast.success('Saved to your Google Drive.')
+  }
+
+  return (
+    <button
+      type="button"
+      title={driveFileId ? 'Save to My Drive' : 'Not yet downloaded'}
+      disabled={isPending || !driveFileId}
+      onClick={handleClick}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {isPending
+        ? <ArrowClockwise size={13} className="animate-spin" />
+        : <CloudArrowUp size={13} />
+      }
+    </button>
+  )
 }
 
 function ThumbnailCell({ thumbnailUrl, mediaUrl, platform }: {
@@ -109,6 +158,7 @@ export function PostsTable({
   campaigns,
   showCampaignColumn = false,
   canEdit = false,
+  workspaceId,
 }: PostsTableProps) {
   const [filters, setFilters] = useState({
     platform: 'all' as Platform | 'all',
@@ -242,6 +292,9 @@ export function PostsTable({
                 <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
                   Collab
                 </th>
+                {workspaceId && (
+                  <th className="w-10 px-2 py-2.5" />
+                )}
               </tr>
             </thead>
             <tbody>
@@ -315,6 +368,15 @@ export function PostsTable({
                       canEdit={canEdit}
                     />
                   </td>
+                  {workspaceId && (
+                    <td className="px-2 py-3">
+                      <SaveToDriveButton
+                        postId={post.id}
+                        workspaceId={workspaceId}
+                        driveFileId={post.drive_file_id}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
