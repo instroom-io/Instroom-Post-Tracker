@@ -34,7 +34,11 @@ export async function getFreshAccessToken(userId: string): Promise<string | null
     }),
   })
 
-  if (!res.ok) return null
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}))
+    console.error('[google-tokens] refresh failed', res.status, errBody)
+    return null
+  }
 
   const tokens = await res.json() as { access_token: string; expires_in: number }
   const newExpiry = new Date(Date.now() + tokens.expires_in * 1000).toISOString()
