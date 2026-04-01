@@ -86,7 +86,7 @@ export async function inviteBrand(
  */
 export async function acceptBrandInvite(
   token: string,
-  data: { logoUrl?: string; websiteUrl: string }
+  data: { logoFile: File | null; websiteUrl: string }
 ): Promise<{ error: string } | void> {
   const websiteSchema = z.string()
     .transform((v) => (v && /^www\./i.test(v) ? `https://${v}` : v))
@@ -119,12 +119,30 @@ export async function acceptBrandInvite(
       name: invite.workspace_name,
       slug,
       agency_id: invite.agency_id,
-      logo_url: data.logoUrl || null,
+      logo_url: null,
     })
     .select('id, slug')
     .single()
 
   if (wsError || !workspace) return { error: 'Failed to create workspace.' }
+
+  // Upload logo if provided
+  if (data.logoFile) {
+    const file = data.logoFile
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
+    if (file.size <= 2 * 1024 * 1024 && allowedTypes.includes(file.type)) {
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `${workspace.id}/${Date.now()}.${ext}`
+      const bytes = await file.arrayBuffer()
+      const { error: uploadError } = await serviceClient.storage
+        .from('workspace-logos')
+        .upload(path, bytes, { contentType: file.type, upsert: false })
+      if (!uploadError) {
+        const { data: { publicUrl } } = serviceClient.storage.from('workspace-logos').getPublicUrl(path)
+        await serviceClient.from('workspaces').update({ logo_url: publicUrl }).eq('id', workspace.id)
+      }
+    }
+  }
 
   // Agency owner becomes workspace owner
   await serviceClient

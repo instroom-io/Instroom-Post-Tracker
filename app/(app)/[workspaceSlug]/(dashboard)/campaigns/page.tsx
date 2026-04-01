@@ -8,6 +8,7 @@ import type { WorkspaceRole, CampaignStatus } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
+  searchParams: Promise<{ new?: string }>
 }
 
 const statusVariant: Record<CampaignStatus, 'active' | 'draft' | 'ended'> = {
@@ -16,8 +17,9 @@ const statusVariant: Record<CampaignStatus, 'active' | 'draft' | 'ended'> = {
   ended: 'ended',
 }
 
-export default async function CampaignsPage({ params }: PageProps) {
+export default async function CampaignsPage({ params, searchParams }: PageProps) {
   const { workspaceSlug } = await params
+  const { new: openNew } = await searchParams
   const supabase = await createClient()
 
   const {
@@ -77,7 +79,7 @@ export default async function CampaignsPage({ params }: PageProps) {
               <CampaignsListTourButton />
               {canEdit && (
                 <div data-tour="campaigns-new-btn">
-                  <CreateCampaignDialog workspaceId={workspace.id} />
+                  <CreateCampaignDialog workspaceId={workspace.id} defaultOpen={openNew === '1'} />
                 </div>
               )}
             </div>

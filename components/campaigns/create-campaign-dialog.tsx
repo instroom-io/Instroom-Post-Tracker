@@ -23,6 +23,7 @@ import type { Platform } from '@/lib/types'
 
 interface CreateCampaignDialogProps {
   workspaceId: string
+  defaultOpen?: boolean
 }
 
 const PLATFORMS: { value: Platform; label: string; color: string }[] = [
@@ -31,8 +32,8 @@ const PLATFORMS: { value: Platform; label: string; color: string }[] = [
   { value: 'youtube', label: 'YouTube', color: '#ef4444' },
 ]
 
-export function CreateCampaignDialog({ workspaceId }: CreateCampaignDialogProps) {
-  const [open, setOpen] = useState(false)
+export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: CreateCampaignDialogProps) {
+  const [open, setOpen] = useState(defaultOpen)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([])

@@ -357,3 +357,83 @@ export async function removeMember(
 
   revalidatePath('/', 'layout')
 }
+
+export async function uploadWorkspaceLogo(
+  workspaceId: string,
+  formData: FormData
+): Promise<{ error: string } | { url: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // Verify owner or admin
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin'].includes(member.role)) return { error: 'Unauthorized.' }
+
+  const file = formData.get('file') as File | null
+  if (!file) return { error: 'No file provided.' }
+  if (file.size > 2 * 1024 * 1024) return { error: 'File must be under 2 MB.' }
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
+  if (!allowedTypes.includes(file.type)) return { error: 'Only JPEG, PNG, and GIF files are allowed.' }
+
+  // Delete old file if it exists in workspace-logos bucket
+  const { data: ws } = await supabase.from('workspaces').select('logo_url').eq('id', workspaceId).single()
+  if (ws?.logo_url) {
+    const oldPath = ws.logo_url.split('/workspace-logos/')[1]
+    if (oldPath) await supabase.storage.from('workspace-logos').remove([oldPath])
+  }
+
+  // Upload new file
+  const ext = file.name.split('.').pop() ?? 'jpg'
+  const path = `${workspaceId}/${Date.now()}.${ext}`
+  const bytes = await file.arrayBuffer()
+  const { error: uploadError } = await supabase.storage
+    .from('workspace-logos')
+    .upload(path, bytes, { contentType: file.type, upsert: false })
+  if (uploadError) return { error: 'Failed to upload logo.' }
+
+  const { data: { publicUrl } } = supabase.storage.from('workspace-logos').getPublicUrl(path)
+
+  const { error: dbError } = await supabase
+    .from('workspaces')
+    .update({ logo_url: publicUrl })
+    .eq('id', workspaceId)
+  if (dbError) return { error: 'Failed to save logo URL.' }
+
+  revalidatePath('/[workspaceSlug]/(dashboard)/settings', 'page')
+  revalidatePath('/[workspaceSlug]/(dashboard)/overview', 'page')
+  return { url: publicUrl }
+}
+
+export async function removeWorkspaceLogo(
+  workspaceId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin'].includes(member.role)) return { error: 'Unauthorized.' }
+
+  const { data: ws } = await supabase.from('workspaces').select('logo_url').eq('id', workspaceId).single()
+  if (ws?.logo_url) {
+    const oldPath = ws.logo_url.split('/workspace-logos/')[1]
+    if (oldPath) await supabase.storage.from('workspace-logos').remove([oldPath])
+  }
+
+  const { error } = await supabase.from('workspaces').update({ logo_url: null }).eq('id', workspaceId)
+  if (error) return { error: 'Failed to remove logo.' }
+
+  revalidatePath('/[workspaceSlug]/(dashboard)/settings', 'page')
+  revalidatePath('/[workspaceSlug]/(dashboard)/overview', 'page')
+}

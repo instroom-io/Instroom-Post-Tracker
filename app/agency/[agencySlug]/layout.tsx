@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
 import { AgencyLogoImage } from '@/components/agency/agency-logo-image'
-import { AgencyNav } from '@/components/agency/agency-nav'
 import { AgencyTourWrapper, AgencyTourButton } from '@/components/agency/agency-tour-wrapper'
 
 interface LayoutProps {
@@ -35,7 +34,7 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex h-14 items-center justify-between border-b border-border px-6">
         <div className="flex items-center gap-4">
-          <Link href="/"><Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} priority /></Link>
+          <Link href={`/agency/${agencySlug}/dashboard`}><Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} priority /></Link>
           <span className="text-[12px] text-foreground-muted">/</span>
           <div className="flex items-center gap-2">
             {agency.logo_url && (
@@ -45,7 +44,6 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <AgencyNav agencySlug={agencySlug} />
           <UserMenu user={user} compact settingsHref={`/agency/${agencySlug}/settings`} />
           <AgencyTourButton />
           <ThemeToggle />

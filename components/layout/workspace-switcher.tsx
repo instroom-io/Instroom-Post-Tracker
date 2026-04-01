@@ -8,7 +8,6 @@ import { Check, CaretUpDown, SignOut } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/utils'
 import { signOut } from '@/lib/actions/auth'
-import { InviteBrandDialog } from '@/components/agency/invite-brand-dialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
@@ -63,9 +62,6 @@ export function WorkspaceSwitcher({
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
-  // Counter used as key to remount InviteBrandDialog with defaultOpen=true each time
-  const [inviteKey, setInviteKey] = useState(0)
-  const [showInvite, setShowInvite] = useState(false)
   const [isPending, startTransition] = useTransition()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -87,21 +83,11 @@ export function WorkspaceSwitcher({
 
   function handleInviteBrand() {
     close()
-    setInviteKey((k) => k + 1)
-    setShowInvite(true)
+    if (agency) router.push(`/agency/${agency.slug}/dashboard?invite=1`)
   }
 
   return (
     <div ref={containerRef} className="relative">
-
-      {/* ── Invite brand dialog (rendered outside dropdown so it survives dropdown close) ── */}
-      {agency && showInvite && (
-        <InviteBrandDialog
-          key={inviteKey}
-          agencyId={agency.id}
-          defaultOpen={true}
-        />
-      )}
 
       {/* ── Trigger button ─────────────────────────────────────────────── */}
       <button
@@ -252,7 +238,7 @@ export function WorkspaceSwitcher({
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                 >
                   <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border border-dashed border-brand/40 bg-brand/5 text-[11px] text-brand">+</div>
-                  <span className="text-[12px] font-medium text-brand">Invite brand</span>
+                  <span className="text-[12px] font-medium text-brand">Add Workspace</span>
                 </button>
               </div>
             )}

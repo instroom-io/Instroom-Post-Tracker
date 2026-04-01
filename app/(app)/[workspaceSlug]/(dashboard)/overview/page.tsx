@@ -68,9 +68,17 @@ async function OverviewBottom({
       <div className="rounded-xl border border-border bg-background-surface shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
           <h2 className="font-display text-[15px] font-bold text-foreground">Campaigns</h2>
-          <Link href={`/${workspaceSlug}/campaigns`} className="text-[12px] text-brand hover:underline">
-            View all
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/${workspaceSlug}/campaigns?new=1`}
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-background-muted px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-brand"
+            >
+              + Add Campaign
+            </Link>
+            <Link href={`/${workspaceSlug}/campaigns`} className="text-[12px] text-brand hover:underline">
+              View all
+            </Link>
+          </div>
         </div>
         <CampaignsTable campaigns={enrichedCampaigns} workspaceSlug={workspaceSlug} />
       </div>
