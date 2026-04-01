@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback, useTransition } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { GearSix, SignOut } from '@phosphor-icons/react'
+import { GearSix, SignOut, UserCircle } from '@phosphor-icons/react'
 import type { User } from '@supabase/supabase-js'
 import { signOut } from '@/lib/actions/auth'
 import { getInitials } from '@/lib/utils'
@@ -126,6 +127,16 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
               <GearSix size={13} />
               Settings
             </a>
+
+            <Link
+              href="/account/settings"
+              role="menuitem"
+              onClick={() => close()}
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            >
+              <UserCircle size={13} />
+              Account
+            </Link>
 
             <button
               type="button"
