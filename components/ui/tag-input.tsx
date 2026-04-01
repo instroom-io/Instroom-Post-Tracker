@@ -26,6 +26,7 @@ export function TagInput({
   disabled = false,
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   function addTag(raw: string) {
@@ -55,6 +56,7 @@ export function TagInput({
   }
 
   function handleBlur() {
+    setIsFocused(false)
     if (inputValue.trim()) addTag(inputValue)
   }
 
@@ -100,7 +102,7 @@ export function TagInput({
           </span>
         ))}
 
-        {prefix && (
+        {prefix && isFocused && (
           <span className="select-none text-[13px] font-medium text-foreground-muted">{prefix}</span>
         )}
         <input
@@ -108,6 +110,7 @@ export function TagInput({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
           onBlur={handleBlur}
           disabled={disabled}
           placeholder={tags.length === 0 ? (placeholder ?? 'Type and press Enter…') : ''}
