@@ -108,6 +108,9 @@ export async function listUserDriveFolders(
     fields: 'files(id,name)',
     orderBy: 'name',
     pageSize: '50',
+    supportsAllDrives: 'true',
+    includeItemsFromAllDrives: 'true',
+    corpora: 'user',
   })
 
   const res = await fetch(
