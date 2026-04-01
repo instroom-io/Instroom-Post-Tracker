@@ -99,9 +99,6 @@ export async function listUserDriveFolders(
 
   const accessToken = await getFreshAccessToken(user.id)
   if (!accessToken) return { error: 'not_connected' }
-  if (typeof accessToken === 'string' && accessToken.startsWith('__refresh_error__')) {
-    return { error: accessToken }
-  }
 
   const parent = parentId ?? 'root'
   const q = `'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`
@@ -121,10 +118,7 @@ export async function listUserDriveFolders(
     { headers: { Authorization: `Bearer ${accessToken}` } }
   )
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    return { error: `Drive API ${res.status}: ${JSON.stringify(body)}` }
-  }
+  if (!res.ok) return { error: 'Failed to fetch folders from Google Drive.' }
 
   const data = await res.json() as { files: DriveFolder[] }
   return { folders: data.files ?? [] }

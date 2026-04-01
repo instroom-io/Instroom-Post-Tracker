@@ -40,7 +40,7 @@ export function FolderPickerDialog({
     const result = await listUserDriveFolders(parentId)
     setLoading(false)
     if ('error' in result) {
-      toast.error(result.error)
+      toast.error('Failed to load folders from Google Drive.')
       return
     }
     setFolders(result.folders)
