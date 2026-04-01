@@ -19,15 +19,5 @@ export default async function AgencySettingsPage({ params }: PageProps) {
 
   if (!agency) redirect('/app')
 
-  return (
-    <div className="flex flex-col gap-6 max-w-lg">
-      <div>
-        <h1 className="text-xl font-bold text-foreground">Agency Settings</h1>
-        <p className="text-[12px] text-foreground-lighter mt-1">Slug: {agency.slug}</p>
-      </div>
-      <div className="rounded-xl border border-border bg-background-surface p-5">
-        <AgencySettingsForm agency={agency as Agency} />
-      </div>
-    </div>
-  )
+  return <AgencySettingsForm agency={agency as Agency} />
 }
