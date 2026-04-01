@@ -1,10 +1,16 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, CaretUpDown } from '@phosphor-icons/react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Check, CaretUpDown, SignOut } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/utils'
+import { signOut } from '@/lib/actions/auth'
+import { InviteBrandDialog } from '@/components/agency/invite-brand-dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
 
 function WorkspaceLogo({
@@ -42,6 +48,8 @@ interface WorkspaceSwitcherProps {
   currentRole: WorkspaceRole
   memberships: Array<{ role: WorkspaceRole; workspaces: Workspace }>
   align?: 'left' | 'right'
+  agency?: { id: string; name: string; slug: string } | null
+  user: { displayName: string; email: string; avatarUrl?: string | null }
 }
 
 export function WorkspaceSwitcher({
@@ -49,9 +57,16 @@ export function WorkspaceSwitcher({
   currentRole,
   memberships,
   align = 'left',
+  agency,
+  user,
 }: WorkspaceSwitcherProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  // Counter used as key to remount InviteBrandDialog with defaultOpen=true each time
+  const [inviteKey, setInviteKey] = useState(0)
+  const [showInvite, setShowInvite] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -68,8 +83,25 @@ export function WorkspaceSwitcher({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [open, close])
 
+  const userInitials = getInitials(user.displayName)
+
+  function handleInviteBrand() {
+    close()
+    setInviteKey((k) => k + 1)
+    setShowInvite(true)
+  }
+
   return (
     <div ref={containerRef} className="relative">
+
+      {/* ── Invite brand dialog (rendered outside dropdown so it survives dropdown close) ── */}
+      {agency && showInvite && (
+        <InviteBrandDialog
+          key={inviteKey}
+          agencyId={agency.id}
+          defaultOpen={true}
+        />
+      )}
 
       {/* ── Trigger button ─────────────────────────────────────────────── */}
       <button
@@ -94,7 +126,6 @@ export function WorkspaceSwitcher({
           ],
         )}
       >
-        {/* Workspace avatar — square with rounded corners (Shopify-style) */}
         {currentWorkspace.logo_url ? (
           <WorkspaceLogo
             name={currentWorkspace.name}
@@ -114,7 +145,6 @@ export function WorkspaceSwitcher({
           </div>
         )}
 
-        {/* Workspace name (+ role only in sidebar/left variant) */}
         {align === 'left' ? (
           <div className="min-w-0 flex-1 text-left">
             <p className="truncate text-[13px] font-semibold leading-tight text-white">
@@ -144,11 +174,35 @@ export function WorkspaceSwitcher({
             role="listbox"
             aria-label="Workspaces"
             className={cn(
-              'absolute top-full z-20 mt-1 w-56 overflow-hidden rounded-xl border border-border bg-background-surface shadow-lg',
+              'absolute top-full z-20 mt-1 w-60 overflow-hidden rounded-xl border border-border bg-background-surface shadow-lg',
               align === 'right' ? 'right-0' : 'left-0'
             )}
           >
-            <p className="px-3 pb-1 pt-2.5 text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
+
+            {/* ── Agency row (owners only) ── */}
+            {agency && (
+              <>
+                <div className="px-1.5 pt-1.5">
+                  <Link
+                    href={`/agency/${agency.slug}/settings`}
+                    onClick={close}
+                    className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                  >
+                    <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md bg-foreground text-[8px] font-bold text-background">
+                      {agency.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12px] font-semibold text-foreground">{agency.name}</p>
+                      <p className="text-[10px] text-foreground-muted">Agency settings →</p>
+                    </div>
+                  </Link>
+                </div>
+                <div className="mx-1.5 my-1 h-px bg-border" />
+              </>
+            )}
+
+            {/* ── Workspaces ── */}
+            <p className="px-3 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
               Workspaces
             </p>
 
@@ -190,9 +244,81 @@ export function WorkspaceSwitcher({
               </button>
             ))}
 
+            {/* ── Invite brand ── */}
+            {agency && (
+              <div className="px-1.5 pb-1.5">
+                <button
+                  onClick={handleInviteBrand}
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                >
+                  <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border border-dashed border-brand/40 bg-brand/5 text-[11px] text-brand">+</div>
+                  <span className="text-[12px] font-medium text-brand">Invite brand</span>
+                </button>
+              </div>
+            )}
+
+            {/* ── Divider ── */}
+            <div className="mx-1.5 my-1 h-px bg-border" />
+
+            {/* ── User profile row ── */}
+            <div className="px-1.5">
+              <Link
+                href="/account/settings"
+                onClick={close}
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+              >
+                <div className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-full overflow-hidden border border-border">
+                  {user.avatarUrl ? (
+                    <Image src={user.avatarUrl} alt={user.displayName} width={26} height={26} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-background-muted text-[9px] font-bold text-foreground-light">
+                      {userInitials}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[12px] font-semibold text-foreground">{user.displayName}</p>
+                  <p className="truncate text-[10px] text-foreground-muted">{user.email}</p>
+                </div>
+              </Link>
+            </div>
+
+            {/* ── Log out ── */}
+            <div className="px-1.5 pb-1.5">
+              <button
+                onClick={() => { close(); setShowLogoutConfirm(true) }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-destructive/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50"
+              >
+                <SignOut size={13} className="flex-shrink-0 text-destructive" />
+                <span className="text-[12px] font-medium text-destructive">Log out</span>
+              </button>
+            </div>
+
           </div>
         </>
       )}
+
+      {/* ── Logout confirmation dialog ── */}
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>Sign out?</DialogTitle>
+            <DialogDescription>You&apos;ll be redirected to the login page.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" size="sm" onClick={() => setShowLogoutConfirm(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              loading={isPending}
+              onClick={() => startTransition(async () => { await signOut() })}
+            >
+              Sign out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 }

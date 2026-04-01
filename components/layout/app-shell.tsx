@@ -12,7 +12,6 @@ import { TourProvider } from '@/components/tour/tour-provider'
 import { cn } from '@/lib/utils'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
 import { WorkspaceSwitcher } from './workspace-switcher'
-import { UserMenu } from './user-menu'
 import { ThemeToggle } from './theme-toggle'
 
 interface NavItem {
@@ -37,7 +36,7 @@ interface AppShellProps {
   currentRole: WorkspaceRole
   allMemberships: Array<{ role: WorkspaceRole; workspaces: Workspace }>
   workspaceSlug: string
-  agency?: { name: string; slug: string } | null
+  agency?: { id: string; name: string; slug: string } | null
 }
 
 export function AppShell({
@@ -52,6 +51,9 @@ export function AppShell({
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const { startTour } = useTour()
+
+  const displayName = (user.user_metadata?.full_name as string | undefined) ?? user.email?.split('@')[0] ?? ''
+  const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null
 
   // Auto-collapse sidebar on small screens
   useEffect(() => {
@@ -91,41 +93,16 @@ export function AppShell({
             collapsed ? 'justify-center px-0' : 'px-4'
           )}
         >
-          {collapsed
-            ? <Image src="/INSTROOM_LOGO.svg" alt="Instroom" width={32} height={32} />
-            : <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={140} height={32} />
-          }
+          <Link href={`/${workspaceSlug}/overview`} className="opacity-100 transition-opacity hover:opacity-75">
+            {collapsed
+              ? <Image src="/INSTROOM_LOGO.svg" alt="Instroom" width={32} height={32} />
+              : <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={140} height={32} />
+            }
+          </Link>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-2 pt-3">
-
-          {/* Agency back-link — only visible to agency owners */}
-          {agency && (
-            <div className="mb-2">
-              <Link
-                href={`/agency/${agency.slug}/dashboard`}
-                className={cn(
-                  'flex items-center rounded-lg px-2.5 py-[7px] text-[11px] text-foreground-muted transition-colors hover:bg-brand-muted hover:text-brand',
-                  collapsed ? 'justify-center gap-0' : 'gap-1.5'
-                )}
-              >
-                <CaretLeft size={12} className="shrink-0" />
-                <AnimatePresence>
-                  {!collapsed && (
-                    <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: 'auto' }}
-                      exit={{ opacity: 0, width: 0 }}
-                      className="overflow-hidden truncate whitespace-nowrap"
-                    >
-                      {agency.name}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Link>
-            </div>
-          )}
 
           {NAV_ITEMS.map((item) => {
             const href = item.href(workspaceSlug)
@@ -192,20 +169,6 @@ export function AppShell({
 
         </nav>
 
-        {/* User menu — hidden when collapsed */}
-        <AnimatePresence>
-          {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              data-tour="ws-user-menu"
-              className="border-t border-border p-2.5"
-            >
-              <UserMenu user={user} />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </aside>
 
       {/* ── Main content column ──────────────────────────────────────────────── */}
@@ -219,6 +182,8 @@ export function AppShell({
             currentRole={currentRole}
             memberships={allMemberships}
             align="right"
+            agency={agency ?? null}
+            user={{ displayName, email: user.email ?? '', avatarUrl }}
           />
         </div>
 

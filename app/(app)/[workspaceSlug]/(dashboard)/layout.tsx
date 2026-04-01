@@ -46,7 +46,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
     workspace.agency_id
       ? supabase
           .from('agencies')
-          .select('name, slug')
+          .select('id, name, slug')
           .eq('id', workspace.agency_id)
           .eq('owner_id', user.id)
           .maybeSingle()
