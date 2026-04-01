@@ -8,6 +8,7 @@ import {
   updateWorkspaceSchema,
   inviteMemberSchema,
   updateAssignedMemberSchema,
+  updateWorkspaceStorageFolderSchema,
 } from '@/lib/validations'
 import { toSlug, isPersonalEmail } from '@/lib/utils'
 import { sendEmail, escapeHtml } from '@/lib/email'
@@ -308,6 +309,38 @@ export async function removeMember(
     .eq('id', memberId)
 
   if (error) return { error: 'Failed to remove member.' }
+
+  revalidatePath('/', 'layout')
+}
+
+export async function updateWorkspaceStorageFolder(
+  workspaceId: string,
+  rawFolderId: string | null
+): Promise<{ error: string } | void> {
+  const parsed = updateWorkspaceStorageFolderSchema.safeParse({ drive_folder_id: rawFolderId })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
+  const { error } = await supabase
+    .from('workspaces')
+    .update({ drive_folder_id: parsed.data.drive_folder_id })
+    .eq('id', workspaceId)
+
+  if (error) return { error: 'Failed to update storage folder.' }
 
   revalidatePath('/', 'layout')
 }
