@@ -634,6 +634,9 @@ export type Database = {
           full_name: string | null
           id: string
           is_platform_admin: boolean
+          onboarding_completed: boolean
+          preferred_language: string
+          timezone: string
         }
         Insert: {
           avatar_url?: string | null
@@ -642,6 +645,9 @@ export type Database = {
           full_name?: string | null
           id: string
           is_platform_admin?: boolean
+          onboarding_completed?: boolean
+          preferred_language?: string
+          timezone?: string
         }
         Update: {
           avatar_url?: string | null
@@ -650,6 +656,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_platform_admin?: boolean
+          onboarding_completed?: boolean
+          preferred_language?: string
+          timezone?: string
         }
         Relationships: []
       }
