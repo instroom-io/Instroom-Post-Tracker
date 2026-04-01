@@ -36,6 +36,10 @@ export async function createClient() {
  * ONLY allowed in:
  *   - app/api/webhooks/ensemble/route.ts
  *   - lib/actions/workspace.ts (createWorkspace, acceptInvitation)
+ *   - lib/actions/agencies.ts (agency creation, brand invite acceptance)
+ *   - lib/actions/account.ts (Google OAuth token storage, member folder self-update)
+ *   - lib/google/tokens.ts (token refresh — no session cookie available)
+ *   - app/api/auth/google-drive/callback/route.ts (OAuth callback token storage)
  *   - app/api/cron/download-worker/route.ts
  *   - app/api/cron/metrics-worker/route.ts
  * NEVER use in components that render UI.
