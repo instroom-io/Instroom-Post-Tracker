@@ -373,3 +373,106 @@ export async function getActiveAgenciesPublic(): Promise<Pick<Agency, 'id' | 'na
     .order('name')
   return (data ?? []) as Pick<Agency, 'id' | 'name'>[]
 }
+
+/**
+ * Upload an agency logo to Supabase Storage.
+ * Agency owner only. Old logo is deleted before new one is uploaded.
+ */
+export async function uploadAgencyLogo(
+  agencyId: string,
+  formData: FormData
+): Promise<{ error: string } | { url: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // Verify ownership
+  const { data: agency } = await supabase
+    .from('agencies')
+    .select('owner_id, logo_url')
+    .eq('id', agencyId)
+    .single()
+  if (!agency || agency.owner_id !== user.id) return { error: 'Unauthorized.' }
+
+  const file = formData.get('file') as File | null
+  if (!file) return { error: 'No file provided.' }
+
+  // Validate size (2 MB)
+  if (file.size > 2 * 1024 * 1024) return { error: 'File must be under 2 MB.' }
+
+  // Validate type
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
+  if (!allowedTypes.includes(file.type)) {
+    return { error: 'Only JPEG, PNG, and GIF files are allowed.' }
+  }
+
+  // Delete old file if it exists
+  if (agency.logo_url) {
+    const oldPath = agency.logo_url.split('/agency-logos/')[1]
+    if (oldPath) {
+      await supabase.storage.from('agency-logos').remove([oldPath])
+    }
+  }
+
+  // Upload new file
+  const ext = file.name.split('.').pop() ?? 'jpg'
+  const path = `${agencyId}/${Date.now()}.${ext}`
+  const bytes = await file.arrayBuffer()
+  const { error: uploadError } = await supabase.storage
+    .from('agency-logos')
+    .upload(path, bytes, { contentType: file.type, upsert: false })
+  if (uploadError) return { error: 'Failed to upload logo.' }
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('agency-logos')
+    .getPublicUrl(path)
+
+  // Save to DB
+  const { error: dbError } = await supabase
+    .from('agencies')
+    .update({ logo_url: publicUrl })
+    .eq('id', agencyId)
+  if (dbError) return { error: 'Failed to save logo URL.' }
+
+  revalidatePath('/agency/[agencySlug]/settings', 'page')
+  revalidatePath('/agency/[agencySlug]/dashboard', 'page')
+  return { url: publicUrl }
+}
+
+/**
+ * Remove the agency logo from Supabase Storage and clear logo_url.
+ * Agency owner only.
+ */
+export async function removeAgencyLogo(
+  agencyId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: agency } = await supabase
+    .from('agencies')
+    .select('owner_id, logo_url')
+    .eq('id', agencyId)
+    .single()
+  if (!agency || agency.owner_id !== user.id) return { error: 'Unauthorized.' }
+
+  // Delete file from storage
+  if (agency.logo_url) {
+    const oldPath = agency.logo_url.split('/agency-logos/')[1]
+    if (oldPath) {
+      await supabase.storage.from('agency-logos').remove([oldPath])
+    }
+  }
+
+  // Clear DB
+  const { error } = await supabase
+    .from('agencies')
+    .update({ logo_url: null })
+    .eq('id', agencyId)
+  if (error) return { error: 'Failed to remove logo.' }
+
+  revalidatePath('/agency/[agencySlug]/settings', 'page')
+  revalidatePath('/agency/[agencySlug]/dashboard', 'page')
+}
