@@ -212,8 +212,12 @@ export type AgencyInput = z.infer<typeof agencySchema>
 // ─── Agency Settings ──────────────────────────────────────────────────────────
 
 export const updatePreferencesSchema = z.object({
-  preferred_language: z.string().min(2).max(10),
-  timezone: z.string().min(1).max(100),
+  preferred_language: z.string()
+    .min(2, 'Language code must be at least 2 characters')
+    .max(10, 'Language code must be under 10 characters'),
+  timezone: z.string()
+    .min(1, 'Timezone is required')
+    .max(100, 'Timezone must be under 100 characters'),
 })
 
 export const updatePasswordSchema = z.object({
@@ -224,3 +228,6 @@ export const updatePasswordSchema = z.object({
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 })
+
+export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>
