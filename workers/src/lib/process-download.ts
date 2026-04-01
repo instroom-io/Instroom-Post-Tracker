@@ -28,7 +28,16 @@ async function fetchFreshMediaUrl(
         `${ENSEMBLE_API_URL}/instagram/post/details?code=${encodeURIComponent(platformPostId)}&token=${ENSEMBLE_API_KEY}`
       )
       if (!res.ok) return null
-      const json = await res.json() as { data?: Record<string, unknown> }
+      // Use text() + manual parse to handle EnsembleData responses that contain
+      // literal control characters (e.g. in captions), which cause res.json() to throw.
+      const text = await res.text()
+      const sanitized = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+      let json: { data?: Record<string, unknown> }
+      try {
+        json = JSON.parse(sanitized) as { data?: Record<string, unknown> }
+      } catch {
+        return null
+      }
       const data = json.data
       return (data?.video_url ?? data?.display_url) as string | null ?? null
     }
