@@ -483,6 +483,38 @@ async function main() {
             errors.push(`[${platform}/@${handle}] queue: ${queueError.message}`)
           }
         }
+
+        // Re-queue any pending posts that lost their retry_queue entry.
+        // This handles cases where the initial insert was a duplicate (ignoreDuplicates)
+        // and the original queue entry was never created or was dropped.
+        const { data: allPending } = await supabase
+          .from('posts')
+          .select('id')
+          .eq('campaign_id', campaign.id)
+          .eq('influencer_id', influencer.id)
+          .eq('download_status', 'pending')
+
+        if (allPending && allPending.length > 0) {
+          const pendingIds = allPending.map((p) => p.id)
+          const { data: activeJobs } = await supabase
+            .from('retry_queue')
+            .select('post_id')
+            .in('post_id', pendingIds)
+            .in('status', ['pending', 'processing'])
+
+          const activeSet = new Set(activeJobs?.map((j) => j.post_id) ?? [])
+          const orphans = allPending.filter((p) => !activeSet.has(p.id))
+
+          if (orphans.length > 0) {
+            await supabase.from('retry_queue').insert(
+              orphans.map((p) => ({
+                post_id: p.id,
+                job_type: 'download',
+                status: 'pending',
+              }))
+            )
+          }
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error'
         errors.push(`[${platform}/@${handle}] ${message}`)
