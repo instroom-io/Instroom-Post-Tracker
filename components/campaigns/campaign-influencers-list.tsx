@@ -253,7 +253,7 @@ export function CampaignInfluencersList({
                 Platforms
               </th>
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
-                Monitoring
+                Status
               </th>
               <th data-tour="campaign-usage-rights" className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
                 Usage rights
