@@ -51,6 +51,9 @@ export interface User {
   email: string
   full_name: string | null
   avatar_url: string | null
+  // google_refresh_token / google_access_token / google_token_expiry are intentionally
+  // excluded — they are server-only credentials, never exposed to UI-layer types.
+  google_connected_email: string | null
   created_at: string
 }
 

@@ -632,6 +632,10 @@ export type Database = {
           created_at: string
           email: string
           full_name: string | null
+          google_access_token: string | null
+          google_connected_email: string | null
+          google_refresh_token: string | null
+          google_token_expiry: string | null
           id: string
           is_platform_admin: boolean
           onboarding_completed: boolean
@@ -643,6 +647,10 @@ export type Database = {
           created_at?: string
           email: string
           full_name?: string | null
+          google_access_token?: string | null
+          google_connected_email?: string | null
+          google_refresh_token?: string | null
+          google_token_expiry?: string | null
           id: string
           is_platform_admin?: boolean
           onboarding_completed?: boolean
@@ -654,6 +662,10 @@ export type Database = {
           created_at?: string
           email?: string
           full_name?: string | null
+          google_access_token?: string | null
+          google_connected_email?: string | null
+          google_refresh_token?: string | null
+          google_token_expiry?: string | null
           id?: string
           is_platform_admin?: boolean
           onboarding_completed?: boolean

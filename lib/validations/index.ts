@@ -78,6 +78,11 @@ export const updateAssignedMemberSchema = z.object({
 })
 export type UpdateAssignedMemberInput = z.infer<typeof updateAssignedMemberSchema>
 
+export const updateWorkspaceStorageFolderSchema = z.object({
+  drive_folder_id: z.string().max(200).nullable().transform((v) => v ? extractDriveFolderId(v) : v),
+})
+export type UpdateWorkspaceStorageFolderInput = z.infer<typeof updateWorkspaceStorageFolderSchema>
+
 // ─── Campaigns ────────────────────────────────────────────────────────────────
 
 export const createCampaignSchema = z.object({

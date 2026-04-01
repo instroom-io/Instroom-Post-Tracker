@@ -1,6 +1,9 @@
 'use client'
 
-import { ArrowSquareOut, ImageBroken, Lock } from '@phosphor-icons/react'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { ArrowSquareOut, ImageBroken, Lock, CloudArrowUp, ArrowClockwise } from '@phosphor-icons/react'
+import { savePostToUserDrive } from '@/lib/actions/posts'
 import {
   Dialog,
   DialogContent,
@@ -111,6 +114,53 @@ function ModalDownloadButton({ post, memberDriveUrl }: { post: PostRow; workspac
   return null
 }
 
+function ModalSaveToDriveButton({ postId, workspaceId, driveFileId }: {
+  postId: string
+  workspaceId: string
+  driveFileId: string | null
+}) {
+  const [isPending, setIsPending] = useState(false)
+
+  async function handleClick() {
+    if (isPending) return
+    setIsPending(true)
+    const result = await savePostToUserDrive(postId, workspaceId)
+    setIsPending(false)
+
+    if ('error' in result) {
+      if (result.error === 'connect_required') {
+        toast.error('Connect Google Drive in Account Settings to use this feature.', {
+          action: { label: 'Settings', onClick: () => window.open('/account/settings', '_blank') },
+        })
+      } else if (result.error === 'not_downloaded') {
+        toast.error('This post has not been downloaded yet.')
+      } else {
+        toast.error(result.error)
+      }
+      return
+    }
+
+    window.open(result.url, '_blank')
+    toast.success('Saved to your Google Drive.')
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={isPending || !driveFileId}
+      onClick={handleClick}
+      title={driveFileId ? 'Save to My Drive' : 'Not yet downloaded'}
+      className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-background-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {isPending
+        ? <ArrowClockwise size={12} className="animate-spin" />
+        : <CloudArrowUp size={12} />
+      }
+      Save to My Drive
+    </button>
+  )
+}
+
 export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, memberDriveUrl }: PostDetailModalProps) {
   // Detect which tracking hashtags/mentions appear in the caption
   const caption = post?.caption?.toLowerCase() ?? ''
@@ -150,6 +200,13 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
                     {workspaceId && <ModalDownloadButton post={post} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />}
+                    {workspaceId && (
+                      <ModalSaveToDriveButton
+                        postId={post.id}
+                        workspaceId={workspaceId}
+                        driveFileId={post.drive_file_id}
+                      />
+                    )}
                     {post.post_url && (
                       <a
                         href={post.post_url}

@@ -62,6 +62,7 @@ export default async function PostsPage({ params }: PageProps) {
         campaigns={campaigns ?? []}
         showCampaignColumn
         canEdit={canEdit}
+        workspaceId={workspace.id}
       />
     </div>
   )

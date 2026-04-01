@@ -6,6 +6,7 @@ import { WorkspaceSettingsForm } from '@/components/settings/workspace-settings-
 import { MemberTable } from '@/components/settings/member-table'
 import { InviteMemberDialog } from '@/components/settings/invite-member-dialog'
 import { EmvSettingsPanel } from '@/components/settings/emv-settings-panel'
+import { StorageCard } from '@/components/settings/storage-card'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
 import { MembersSkeleton } from '@/components/dashboard/members-skeleton'
 import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
@@ -31,7 +32,7 @@ async function MembersSection({
   const supabase = await createClient()
   const { data: members } = await supabase
     .from('workspace_members')
-    .select('id, user_id, role, drive_folder_id, user:users!workspace_members_user_id_fkey(full_name, email, avatar_url)')
+    .select('id, user_id, role, user:users!workspace_members_user_id_fkey(full_name, email, avatar_url)')
     .eq('workspace_id', workspaceId)
     .order('joined_at')
 
@@ -39,7 +40,6 @@ async function MembersSection({
     id: m.id,
     user_id: m.user_id,
     role: m.role,
-    drive_folder_id: m.drive_folder_id,
     user: Array.isArray(m.user) ? (m.user[0] ?? null) : m.user,
   }))
 
@@ -125,7 +125,7 @@ export default async function SettingsPage({ params }: PageProps) {
   const [{ data: workspace }, { data: { user } }] = await Promise.all([
     supabase
       .from('workspaces')
-      .select('id, name, slug, logo_url, agency_id, drive_connection_type, drive_oauth_token, created_at, assigned_member_id')
+      .select('id, name, slug, logo_url, agency_id, drive_connection_type, drive_oauth_token, created_at, assigned_member_id, drive_folder_id')
       .eq('slug', workspaceSlug)
       .single(),
     supabase.auth.getUser(),
@@ -143,6 +143,7 @@ export default async function SettingsPage({ params }: PageProps) {
 
   const currentRole = (currentMember?.role ?? 'viewer') as WorkspaceRole
   const canEdit = currentRole === 'owner' || currentRole === 'admin'
+  const canEditStorage = currentRole === 'owner' || currentRole === 'admin' || currentRole === 'editor'
 
   return (
     <div>
@@ -158,6 +159,13 @@ export default async function SettingsPage({ params }: PageProps) {
           </div>
           <GeneralSection workspace={workspace as unknown as Workspace} canEdit={canEdit} />
         </div>
+
+        {/* Storage — workspace Google Drive folder */}
+        <StorageCard
+          workspaceId={workspace.id}
+          currentFolderId={(workspace as unknown as { drive_folder_id: string | null }).drive_folder_id ?? null}
+          canEdit={canEditStorage}
+        />
 
         {/* Members — streams in independently */}
         <SectionErrorBoundary>
