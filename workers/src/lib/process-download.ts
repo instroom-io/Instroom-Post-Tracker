@@ -31,7 +31,7 @@ async function fetchFreshMediaUrl(
       // Use text() + manual parse to handle EnsembleData responses that contain
       // literal control characters (e.g. in captions), which cause res.json() to throw.
       const text = await res.text()
-      const sanitized = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+      const sanitized = text.replace(/[\x00-\x1F]/g, ' ')
       let json: { data?: Record<string, unknown> }
       try {
         json = JSON.parse(sanitized) as { data?: Record<string, unknown> }
@@ -99,26 +99,27 @@ export async function processPostDownload(
   }
 
   // Use stored media URL first to avoid burning EnsembleData units.
-  // Fall back to a fresh EnsembleData fetch only if stored URL is absent or expired.
-  let mediaUrl: string | null = null
+  // Skip HEAD probe (CDN may block HEAD from cloud IPs) — attempt GET directly.
+  // Fall back to a fresh EnsembleData fetch only if the stored URL is absent or the GET fails.
+  let response: Response | null = null
   if (storedMediaUrl) {
-    const probe = await fetch(storedMediaUrl, { method: 'HEAD' }).catch(() => null)
-    if (probe?.ok) mediaUrl = storedMediaUrl
+    const r = await fetch(storedMediaUrl).catch(() => null)
+    if (r?.ok) response = r
   }
-  if (!mediaUrl) {
-    mediaUrl = await fetchFreshMediaUrl(post.platform, post.platform_post_id, post.post_url)
-  }
-  if (!mediaUrl) {
-    throw new Error(`Could not resolve media URL for ${post.platform} post ${post.platform_post_id}`)
+  if (!response) {
+    const freshUrl = await fetchFreshMediaUrl(post.platform, post.platform_post_id, post.post_url)
+    if (!freshUrl) {
+      throw new Error(`Could not resolve media URL for ${post.platform} post ${post.platform_post_id}`)
+    }
+    const r = await fetch(freshUrl).catch(() => null)
+    if (!r?.ok) {
+      throw new Error(`Media download failed: ${r?.status ?? 'network error'}`)
+    }
+    response = r
   }
 
-  const response = await fetch(mediaUrl)
-  if (!response.ok) {
-    throw new Error(`Media download failed: ${response.status}`)
-  }
-
-  const fileBuffer = await response.arrayBuffer()
-  const contentType = response.headers.get('content-type') ?? 'video/mp4'
+  const fileBuffer = await (response as Response).arrayBuffer()
+  const contentType = (response as Response).headers.get('content-type') ?? 'video/mp4'
   const ext = contentType.includes('image') ? 'jpg' : 'mp4'
 
   const handle =
