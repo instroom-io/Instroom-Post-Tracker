@@ -75,15 +75,6 @@ export function AppShell({
           collapsed ? 'w-[56px]' : 'w-[220px]'
         )}
       >
-        {/* Toggle button — anchored to top of sidebar (logo row), sits outside on the border */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="absolute right-0 top-7 z-10 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-md border border-border bg-background-surface shadow-sm transition-all hover:bg-background-muted hover:text-foreground hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 text-foreground-muted"
-        >
-          <SidebarSimple size={13} weight={collapsed ? 'fill' : 'regular'} />
-        </button>
-
         {/* Logo area */}
         <div
           className={cn(
@@ -174,33 +165,42 @@ export function AppShell({
       {/* ── Main content column ──────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col overflow-hidden">
 
-        {/* Top bar — user avatar + theme toggle + workspace switcher right-aligned */}
-        <div className="flex h-14 flex-shrink-0 items-center justify-end gap-3 border-b border-border bg-background-surface px-6 shadow-xs">
-          <ThemeToggle />
-          {/* Agency logo / user avatar */}
-          <div
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg overflow-hidden bg-background-muted ring-1 ring-border"
-            title={agency?.name || displayName || user.email}
+        {/* Top bar — sidebar toggle left, controls right */}
+        <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border bg-background-surface px-4 shadow-xs">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
           >
-            {agency?.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-contain" />
-            ) : avatarUrl ? (
-              <Image src={avatarUrl} alt={displayName} width={32} height={32} className="rounded-lg object-cover" />
-            ) : (
-              <span className="text-[11px] font-semibold text-foreground-lighter">
-                {(agency?.name || displayName || user.email?.split('@')[0] || '?').charAt(0).toUpperCase()}
-              </span>
-            )}
+            <SidebarSimple size={16} weight={collapsed ? 'fill' : 'regular'} />
+          </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {/* Agency logo / user avatar */}
+            <div
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg overflow-hidden bg-background-muted ring-1 ring-border"
+              title={agency?.name || displayName || user.email}
+            >
+              {agency?.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-contain" />
+              ) : avatarUrl ? (
+                <Image src={avatarUrl} alt={displayName} width={32} height={32} className="rounded-lg object-cover" />
+              ) : (
+                <span className="text-[11px] font-semibold text-foreground-lighter">
+                  {(agency?.name || displayName || user.email?.split('@')[0] || '?').charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <WorkspaceSwitcher
+              currentWorkspace={currentWorkspace}
+              currentRole={currentRole}
+              memberships={allMemberships}
+              align="right"
+              agency={agency ?? null}
+              user={{ displayName, email: user.email ?? '', avatarUrl }}
+            />
           </div>
-          <WorkspaceSwitcher
-            currentWorkspace={currentWorkspace}
-            currentRole={currentRole}
-            memberships={allMemberships}
-            align="right"
-            agency={agency ?? null}
-            user={{ displayName, email: user.email ?? '', avatarUrl }}
-          />
         </div>
 
         {/* Page content */}
