@@ -179,7 +179,7 @@ export function WorkspaceSwitcher({
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[12px] font-semibold text-foreground">{agency.name}</p>
-                      <p className="text-[10px] text-foreground-muted">Agency</p>
+                      <p className="text-[10px] text-foreground-muted">Agency settings</p>
                     </div>
                   </Link>
                 </div>
@@ -264,7 +264,7 @@ export function WorkspaceSwitcher({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[12px] font-semibold text-foreground">{user.displayName}</p>
-                  <p className="truncate text-[10px] text-foreground-muted">Account settings</p>
+                  <p className="truncate text-[10px] text-foreground-muted">{user.email}</p>
                 </div>
               </Link>
             </div>
