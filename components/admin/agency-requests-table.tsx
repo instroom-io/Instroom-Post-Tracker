@@ -27,7 +27,7 @@ function LogoAvatar({ websiteUrl, agencyName }: { websiteUrl: string; agencyName
 
   return (
     <img
-      src={`https://logo.clearbit.com/${hostname}`}
+      src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=64`}
       alt=""
       width={36}
       height={36}
