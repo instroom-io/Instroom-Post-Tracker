@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
-import { CaretLeft, CaretRight, Question, SquaresFour, Megaphone, Users, ChartBar, GearSix } from '@phosphor-icons/react'
+import { Question, SquaresFour, Megaphone, Users, ChartBar, GearSix, SidebarSimple } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { useTour } from '@/lib/hooks/use-tour'
 import { TourProvider } from '@/components/tour/tour-provider'
@@ -75,37 +75,28 @@ export function AppShell({
           collapsed ? 'w-[56px]' : 'w-[220px]'
         )}
       >
-        {/* Logo area + toggle */}
+        {/* Toggle button — anchored to top of sidebar (logo row), sits outside on the border */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="absolute right-0 top-7 z-10 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-md border border-border bg-background-surface shadow-sm transition-all hover:bg-background-muted hover:text-foreground hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 text-foreground-muted"
+        >
+          <SidebarSimple size={13} weight={collapsed ? 'fill' : 'regular'} />
+        </button>
+
+        {/* Logo area */}
         <div
           className={cn(
             'flex h-14 flex-shrink-0 items-center border-b border-border',
-            collapsed ? 'justify-center px-2 gap-0' : 'px-3 gap-2'
+            collapsed ? 'justify-center px-0' : 'px-4'
           )}
         >
-          <Link href={`/${workspaceSlug}/overview`} className="flex-1 opacity-100 transition-opacity hover:opacity-75 overflow-hidden">
+          <Link href={`/${workspaceSlug}/overview`} className="opacity-100 transition-opacity hover:opacity-75">
             {collapsed
               ? <Image src="/INSTROOM_LOGO.svg" alt="Instroom" width={32} height={32} />
               : <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={140} height={32} />
             }
           </Link>
-          {!collapsed && (
-            <button
-              onClick={() => setCollapsed(true)}
-              aria-label="Collapse sidebar"
-              className="flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
-            >
-              <CaretLeft size={12} />
-            </button>
-          )}
-          {collapsed && (
-            <button
-              onClick={() => setCollapsed(false)}
-              aria-label="Expand sidebar"
-              className="flex h-6 w-6 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
-            >
-              <CaretRight size={12} />
-            </button>
-          )}
         </div>
 
         {/* Nav */}
