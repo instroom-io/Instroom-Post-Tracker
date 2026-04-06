@@ -186,7 +186,8 @@ export function AppShell({
             title={agency?.name || displayName || user.email}
           >
             {agency?.logo_url ? (
-              <Image src={agency.logo_url} alt={agency.name} width={32} height={32} className="h-full w-full object-contain" />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-contain" />
             ) : avatarUrl ? (
               <Image src={avatarUrl} alt={displayName} width={32} height={32} className="rounded-lg object-cover" />
             ) : (
