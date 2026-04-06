@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/select'
 import { updatePreferences, updatePassword, updateProfile } from '@/lib/actions/account'
 import { getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { GoogleDriveCard } from '@/components/account/google-drive-card'
 
 const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' },
@@ -80,7 +81,7 @@ const TIMEZONE_OPTIONS = [
   { value: 'Africa/Nairobi', label: 'Nairobi' },
 ]
 
-type Section = 'profile' | 'preferences' | 'security'
+type Section = 'profile' | 'preferences' | 'security' | 'integrations'
 
 interface AccountSettingsFormProps {
   preferredLanguage: string
@@ -88,9 +89,10 @@ interface AccountSettingsFormProps {
   displayName: string
   avatarUrl: string | null
   email: string
+  connectedEmail: string | null
 }
 
-export function AccountSettingsForm({ preferredLanguage, timezone, displayName, avatarUrl, email }: AccountSettingsFormProps) {
+export function AccountSettingsForm({ preferredLanguage, timezone, displayName, avatarUrl, email, connectedEmail }: AccountSettingsFormProps) {
   const [activeSection, setActiveSection] = useState<Section>('profile')
 
   // Profile state
@@ -160,6 +162,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
     { id: 'profile', label: 'Profile' },
     { id: 'preferences', label: 'Preferences' },
     { id: 'security', label: 'Security' },
+    { id: 'integrations', label: 'Integrations' },
   ]
 
   return (
@@ -328,6 +331,16 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
                 </div>
               </div>
             </div>
+          </>
+        )}
+
+        {activeSection === 'integrations' && (
+          <>
+            <div>
+              <h1 className="text-[18px] font-semibold text-foreground">Integrations</h1>
+              <p className="text-[12px] text-foreground-lighter mt-0.5">Connect third-party services to your account.</p>
+            </div>
+            <GoogleDriveCard connectedEmail={connectedEmail} />
           </>
         )}
 

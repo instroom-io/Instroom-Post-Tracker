@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { AccountSettingsForm } from '@/components/account/account-settings-form'
-import { GoogleDriveCard } from '@/components/account/google-drive-card'
 
 export default async function AccountSettingsPage() {
   const supabase = await createClient()
@@ -24,15 +23,13 @@ export default async function AccountSettingsPage() {
   const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null
 
   return (
-    <div className="space-y-5">
-      <AccountSettingsForm
-        preferredLanguage={profile?.preferred_language ?? 'en'}
-        timezone={profile?.timezone ?? 'UTC'}
-        displayName={displayName}
-        avatarUrl={avatarUrl}
-        email={user.email ?? ''}
-      />
-      <GoogleDriveCard connectedEmail={connectedEmail} />
-    </div>
+    <AccountSettingsForm
+      preferredLanguage={profile?.preferred_language ?? 'en'}
+      timezone={profile?.timezone ?? 'UTC'}
+      displayName={displayName}
+      avatarUrl={avatarUrl}
+      email={user.email ?? ''}
+      connectedEmail={connectedEmail}
+    />
   )
 }
