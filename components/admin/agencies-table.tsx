@@ -45,7 +45,7 @@ export function AgenciesTable({ agencies }: Props) {
       {agencies.map((agency) => (
         <a
           key={agency.id}
-          href={`/admin/agencies/${agency.id}`}
+          href={`/admin/agencies/${agency.slug}`}
           className="flex items-center justify-between rounded-lg border border-border bg-background-surface px-4 py-3 hover:border-foreground/20 transition-colors"
         >
           <div className="flex items-center gap-3">

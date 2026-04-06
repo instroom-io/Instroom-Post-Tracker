@@ -5,28 +5,31 @@ import { redirect } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 interface PageProps {
-  params: Promise<{ agencyId: string }>
+  params: Promise<{ agencySlug: string }>
 }
 
 export default async function AgencyDetailPage({ params }: PageProps) {
-  const { agencyId } = await params
+  const { agencySlug } = await params
   const supabase = createServiceClient()
 
-  const [{ data: agency }, { data: workspaces }] = await Promise.all([
-    supabase.from('agencies').select('*').eq('id', agencyId).single(),
-    supabase.from('workspaces').select('id, name, slug, created_at').eq('agency_id', agencyId),
-  ])
+  const { data: agency } = await supabase
+    .from('agencies')
+    .select('*')
+    .eq('slug', agencySlug)
+    .single()
 
   if (!agency) redirect('/admin/agencies')
 
+  const { data: workspaces } = await supabase
+    .from('workspaces')
+    .select('id, name, slug, created_at')
+    .eq('agency_id', agency.id)
+
   const workspaceIds = workspaces?.map((w) => w.id) ?? []
 
-  const [{ data: ownerUser }, { data: postRows }] = await Promise.all([
-    supabase.from('users').select('full_name, email').eq('id', agency.owner_id).single(),
-    workspaceIds.length > 0
-      ? supabase.from('posts').select('workspace_id').in('workspace_id', workspaceIds)
-      : Promise.resolve({ data: [] }),
-  ])
+  const { data: postRows } = workspaceIds.length > 0
+    ? await supabase.from('posts').select('workspace_id').in('workspace_id', workspaceIds)
+    : { data: [] }
 
   const totalPostCount = postRows?.length ?? 0
 
@@ -64,11 +67,11 @@ export default async function AgencyDetailPage({ params }: PageProps) {
         <Link href="/admin/agencies" className="text-[12px] text-foreground-lighter hover:text-foreground">← All agencies</Link>
         <h1 className="mt-1 text-xl font-bold text-foreground">{agency.name}</h1>
         <p className="text-[13px] text-foreground-lighter">
-          {agency.slug} · {agency.status} · joined {joinedDate}
+          {agency.status} · joined {joinedDate}
         </p>
-        {ownerUser && (
+        {(agency.contact_name || agency.contact_email) && (
           <p className="mt-0.5 text-[12px] text-foreground-muted">
-            {ownerUser.full_name ? `${ownerUser.full_name} · ` : ''}{ownerUser.email}
+            {agency.contact_name ? `${agency.contact_name} · ` : ''}{agency.contact_email}
           </p>
         )}
       </div>

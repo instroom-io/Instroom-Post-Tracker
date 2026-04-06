@@ -28,6 +28,8 @@ export interface Agency {
   owner_id: string
   status: AgencyStatus
   logo_url: string | null
+  contact_name: string | null
+  contact_email: string | null
   created_at: string
 }
 

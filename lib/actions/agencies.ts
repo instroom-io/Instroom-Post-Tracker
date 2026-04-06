@@ -248,6 +248,8 @@ export async function approveAgencyRequest(
       owner_id: agencyOwnerId,
       status: 'active',
       logo_url,
+      contact_name: request.contact_name,
+      contact_email: request.contact_email,
     })
     .select('id')
     .single()
