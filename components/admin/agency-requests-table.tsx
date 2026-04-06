@@ -38,7 +38,8 @@ function LogoAvatar({ websiteUrl, agencyName }: { websiteUrl: string; agencyName
 }
 
 export function AgencyRequestsTable({ requests }: Props) {
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
+  const [pendingId, setPendingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
@@ -52,6 +53,7 @@ export function AgencyRequestsTable({ requests }: Props) {
 
   function handleApprove(req: AgencyRequest) {
     setError(null)
+    setPendingId(`${req.id}-approve`)
     startTransition(async () => {
       const result = await approveAgencyRequest(req.id)
       if (result?.error) {
@@ -60,11 +62,13 @@ export function AgencyRequestsTable({ requests }: Props) {
         toast.success(`${req.agency_name} approved`)
         router.refresh()
       }
+      setPendingId(null)
     })
   }
 
   function handleReject(req: AgencyRequest) {
     setError(null)
+    setPendingId(`${req.id}-reject`)
     startTransition(async () => {
       const result = await rejectAgencyRequest(req.id)
       if (result?.error) {
@@ -73,6 +77,7 @@ export function AgencyRequestsTable({ requests }: Props) {
         toast.success(`${req.agency_name} rejected`)
         router.refresh()
       }
+      setPendingId(null)
     })
   }
 
@@ -100,7 +105,8 @@ export function AgencyRequestsTable({ requests }: Props) {
             <Button
               variant="primary"
               size="sm"
-              loading={isPending}
+              loading={pendingId === `${req.id}-approve`}
+              disabled={pendingId !== null}
               onClick={() => handleApprove(req)}
             >
               Approve
@@ -108,7 +114,8 @@ export function AgencyRequestsTable({ requests }: Props) {
             <Button
               variant="outline"
               size="sm"
-              loading={isPending}
+              loading={pendingId === `${req.id}-reject`}
+              disabled={pendingId !== null}
               onClick={() => handleReject(req)}
             >
               Reject
