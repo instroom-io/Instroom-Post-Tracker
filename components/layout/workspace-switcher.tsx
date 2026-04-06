@@ -47,7 +47,7 @@ interface WorkspaceSwitcherProps {
   currentRole: WorkspaceRole
   memberships: Array<{ role: WorkspaceRole; workspaces: Workspace }>
   align?: 'left' | 'right'
-  agency?: { id: string; name: string; slug: string } | null
+  agency?: { id: string; name: string; slug: string; logo_url?: string | null } | null
   user: { displayName: string; email: string; avatarUrl?: string | null }
 }
 
@@ -174,8 +174,15 @@ export function WorkspaceSwitcher({
                     onClick={close}
                     className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                   >
-                    <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md bg-foreground text-[8px] font-bold text-background">
-                      {agency.name.slice(0, 2).toUpperCase()}
+                    <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md overflow-hidden bg-background-muted border border-border">
+                      {agency.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-contain" />
+                      ) : (
+                        <span className="text-[8px] font-bold text-foreground-lighter">
+                          {agency.name.slice(0, 2).toUpperCase()}
+                        </span>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[12px] font-semibold text-foreground">{agency.name}</p>

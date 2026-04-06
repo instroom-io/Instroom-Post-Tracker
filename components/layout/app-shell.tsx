@@ -37,7 +37,7 @@ interface AppShellProps {
   currentRole: WorkspaceRole
   allMemberships: Array<{ role: WorkspaceRole; workspaces: Workspace }>
   workspaceSlug: string
-  agency?: { id: string; name: string; slug: string } | null
+  agency?: { id: string; name: string; slug: string; logo_url?: string | null } | null
 }
 
 export function AppShell({
@@ -180,15 +180,19 @@ export function AppShell({
         {/* Top bar — user avatar + theme toggle + workspace switcher right-aligned */}
         <div className="flex h-14 flex-shrink-0 items-center justify-end gap-3 border-b border-border bg-background-surface px-6 shadow-xs">
           <ThemeToggle />
-          {/* User avatar / initials */}
+          {/* Agency logo / user avatar */}
           <div
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand/10 text-[11px] font-semibold text-brand ring-2 ring-border"
-            title={displayName || user.email}
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg overflow-hidden bg-background-muted ring-1 ring-border"
+            title={agency?.name || displayName || user.email}
           >
-            {avatarUrl ? (
-              <Image src={avatarUrl} alt={displayName} width={32} height={32} className="rounded-full object-cover" />
+            {agency?.logo_url ? (
+              <Image src={agency.logo_url} alt={agency.name} width={32} height={32} className="h-full w-full object-contain" />
+            ) : avatarUrl ? (
+              <Image src={avatarUrl} alt={displayName} width={32} height={32} className="rounded-lg object-cover" />
             ) : (
-              (displayName || user.email?.split('@')[0] || '?').charAt(0).toUpperCase()
+              <span className="text-[11px] font-semibold text-foreground-lighter">
+                {(agency?.name || displayName || user.email?.split('@')[0] || '?').charAt(0).toUpperCase()}
+              </span>
             )}
           </div>
           <WorkspaceSwitcher
