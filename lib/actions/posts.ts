@@ -88,7 +88,11 @@ export async function savePostToUserDrive(
   )
 
   if (!copyRes.ok) {
-    console.error('[savePostToUserDrive] Drive copy error:', await copyRes.text())
+    const errText = await copyRes.text()
+    console.error('[savePostToUserDrive] Drive copy error:', copyRes.status, errText)
+    if (copyRes.status === 403 || copyRes.status === 404) {
+      return { error: 'no_shared_drive_access' }
+    }
     return { error: 'Failed to save to Google Drive. Please try again.' }
   }
 

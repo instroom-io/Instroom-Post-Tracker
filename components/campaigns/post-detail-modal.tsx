@@ -134,6 +134,8 @@ function ModalSaveToDriveButton({ postId, workspaceId, driveFileId }: {
         })
       } else if (result.error === 'not_downloaded') {
         toast.error('This post has not been downloaded yet.')
+      } else if (result.error === 'no_shared_drive_access') {
+        toast.error('You need access to the agency Shared Drive first. Ask your agency admin to add your Google account as a Viewer on the Shared Drive.')
       } else {
         toast.error(result.error)
       }
