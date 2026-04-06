@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { InviteBrandDialog } from '@/components/agency/invite-brand-dialog'
+import { ChevronRight } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ agencySlug: string }>
@@ -22,7 +23,7 @@ export default async function AgencyDashboardPage({ params, searchParams }: Page
 
   const { data: workspaces } = await supabase
     .from('workspaces')
-    .select('id, name, slug, logo_url, created_at')
+    .select('id, name, slug, logo_url, created_at, campaigns(count), posts(count)')
     .eq('agency_id', agency.id)
 
   return (
@@ -36,18 +37,26 @@ export default async function AgencyDashboardPage({ params, searchParams }: Page
           <p className="text-[13px] text-foreground-lighter">No workspaces yet.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {workspaces!.slice(0, 5).map((w) => (
-              <a key={w.id} href={`/${w.slug}/overview`} className="flex items-center gap-3 rounded-lg border border-border px-4 py-2 hover:border-foreground/20 transition-colors">
-                {w.logo_url ? (
-                  <img src={w.logo_url} alt={w.name} className="h-7 w-7 flex-shrink-0 rounded-md object-contain" />
-                ) : (
-                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-border bg-background-subtle text-[11px] font-semibold uppercase text-foreground-muted">
-                    {w.name.slice(0, 2)}
-                  </div>
-                )}
-                <p className="flex-1 text-[13px] font-medium text-foreground">{w.name}</p>
-              </a>
-            ))}
+            {workspaces!.slice(0, 5).map((w) => {
+              const campaignCount = (w.campaigns as unknown as { count: number }[])[0]?.count ?? 0
+              const postCount = (w.posts as unknown as { count: number }[])[0]?.count ?? 0
+              const campaignLabel = campaignCount === 1 ? '1 campaign' : `${campaignCount} campaigns`
+              const postLabel = postCount === 1 ? '1 post' : `${postCount} posts`
+              return (
+                <a key={w.id} href={`/${w.slug}/overview`} className="flex items-center gap-3 rounded-lg border border-border px-4 py-2.5 hover:border-foreground/20 transition-colors">
+                  {w.logo_url ? (
+                    <img src={w.logo_url} alt={w.name} className="h-7 w-7 flex-shrink-0 rounded-md object-contain" />
+                  ) : (
+                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-border bg-background-subtle text-[11px] font-semibold uppercase text-foreground-muted">
+                      {w.name.slice(0, 2)}
+                    </div>
+                  )}
+                  <p className="flex-1 text-[13px] font-medium text-foreground">{w.name}</p>
+                  <span className="flex-shrink-0 text-[11px] text-foreground-muted">{campaignLabel} · {postLabel}</span>
+                  <ChevronRight size={14} className="flex-shrink-0 text-foreground-lighter" />
+                </a>
+              )
+            })}
           </div>
         )}
       </div>
