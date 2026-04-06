@@ -5,7 +5,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { updatePreferences, updatePassword } from '@/lib/actions/account'
+import { updatePreferences, updatePassword, updateProfile } from '@/lib/actions/account'
+import { getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
 const LANGUAGE_OPTIONS = [
@@ -79,15 +80,23 @@ const TIMEZONE_OPTIONS = [
   { value: 'Africa/Nairobi', label: 'Nairobi' },
 ]
 
-type Section = 'preferences' | 'security'
+type Section = 'profile' | 'preferences' | 'security'
 
 interface AccountSettingsFormProps {
   preferredLanguage: string
   timezone: string
+  displayName: string
+  avatarUrl: string | null
+  email: string
 }
 
-export function AccountSettingsForm({ preferredLanguage, timezone }: AccountSettingsFormProps) {
-  const [activeSection, setActiveSection] = useState<Section>('preferences')
+export function AccountSettingsForm({ preferredLanguage, timezone, displayName, avatarUrl, email }: AccountSettingsFormProps) {
+  const [activeSection, setActiveSection] = useState<Section>('profile')
+
+  // Profile state
+  const [name, setName] = useState(displayName)
+  const [profileError, setProfileError] = useState<string | null>(null)
+  const [profilePending, startProfileTransition] = useTransition()
 
   // Preferences state
   const [language, setLanguage] = useState(preferredLanguage)
@@ -103,6 +112,15 @@ export function AccountSettingsForm({ preferredLanguage, timezone }: AccountSett
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordPending, startPasswordTransition] = useTransition()
+
+  function handleSaveProfile() {
+    setProfileError(null)
+    startProfileTransition(async () => {
+      const result = await updateProfile({ displayName: name })
+      if (result?.error) { setProfileError(result.error); return }
+      toast.success('Profile updated.')
+    })
+  }
 
   function handleSaveLanguage() {
     setLangError(null)
@@ -139,6 +157,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone }: AccountSett
   }
 
   const SIDEBAR_ITEMS: { id: Section; label: string }[] = [
+    { id: 'profile', label: 'Profile' },
     { id: 'preferences', label: 'Preferences' },
     { id: 'security', label: 'Security' },
   ]
@@ -169,6 +188,52 @@ export function AccountSettingsForm({ preferredLanguage, timezone }: AccountSett
 
       {/* Main content */}
       <div className="flex-1 flex flex-col gap-6 max-w-lg">
+
+        {activeSection === 'profile' && (
+          <>
+            <div>
+              <h1 className="text-[18px] font-semibold text-foreground">Profile</h1>
+              <p className="text-[12px] text-foreground-lighter mt-0.5">Your name as shown to teammates.</p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-background-surface p-5">
+              <h2 className="text-[13px] font-semibold text-foreground mb-4">Display Name</h2>
+              <div className="flex flex-col gap-4">
+                {/* Current identity — read-only */}
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 flex-shrink-0 rounded-full overflow-hidden border border-border">
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-brand/10 text-[13px] font-semibold text-brand">
+                        {getInitials(name)}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-semibold text-foreground">{name}</p>
+                    <p className="text-[11px] text-foreground-muted">{email}</p>
+                  </div>
+                </div>
+
+                <Input
+                  label="Display name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={profilePending}
+                  autoComplete="name"
+                />
+                {profileError && <p className="text-[11px] text-destructive">{profileError}</p>}
+                <div>
+                  <Button variant="primary" size="sm" loading={profilePending} onClick={handleSaveProfile}>
+                    Save
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {activeSection === 'preferences' && (
           <>

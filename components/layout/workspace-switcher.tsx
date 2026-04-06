@@ -87,7 +87,7 @@ export function WorkspaceSwitcher({
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} data-tour="ws-user-menu" className="relative">
 
       {/* ── Trigger button ─────────────────────────────────────────────── */}
       <button
@@ -265,6 +265,7 @@ export function WorkspaceSwitcher({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[12px] font-semibold text-foreground">{user.displayName}</p>
                   <p className="truncate text-[10px] text-foreground-muted">{user.email}</p>
+                  <p className="text-[10px] text-brand">Account settings</p>
                 </div>
               </Link>
             </div>

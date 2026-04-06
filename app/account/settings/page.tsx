@@ -20,11 +20,17 @@ export default async function AccountSettingsPage() {
       ? user.email ?? 'Connected'
       : null)
 
+  const displayName = (user.user_metadata?.full_name as string | undefined) ?? user.email?.split('@')[0] ?? ''
+  const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null
+
   return (
     <div className="space-y-5">
       <AccountSettingsForm
         preferredLanguage={profile?.preferred_language ?? 'en'}
         timezone={profile?.timezone ?? 'UTC'}
+        displayName={displayName}
+        avatarUrl={avatarUrl}
+        email={user.email ?? ''}
       />
       <GoogleDriveCard connectedEmail={connectedEmail} />
     </div>

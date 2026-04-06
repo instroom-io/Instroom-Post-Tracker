@@ -66,8 +66,8 @@ export const WORKSPACE_STEPS: TourStep[] = [
   {
     id: 'ws-user-menu',
     title: 'Your Account',
-    description: 'Access your profile, switch workspaces using the switcher above, and sign out here.',
-    side: 'right',
+    description: 'Access your profile, switch workspaces, and sign out — all from this menu.',
+    side: 'left',
   },
 ]
 

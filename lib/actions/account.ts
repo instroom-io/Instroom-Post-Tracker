@@ -3,8 +3,26 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { updatePreferencesSchema, updatePasswordSchema } from '@/lib/validations'
+import { updatePreferencesSchema, updatePasswordSchema, updateProfileSchema } from '@/lib/validations'
 import { getFreshAccessToken } from '@/lib/google/tokens'
+
+export async function updateProfile(data: {
+  displayName: string
+}): Promise<{ error: string } | void> {
+  const parsed = updateProfileSchema.safeParse(data)
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { error } = await supabase.auth.updateUser({
+    data: { full_name: parsed.data.displayName },
+  })
+  if (error) return { error: 'Failed to update profile.' }
+
+  revalidatePath('/account/settings')
+}
 
 export async function updatePreferences(data: {
   preferred_language: string

@@ -234,5 +234,10 @@ export const updatePasswordSchema = z.object({
   path: ['confirmPassword'],
 })
 
+export const updateProfileSchema = z.object({
+  displayName: z.string().min(1, 'Name is required').max(80, 'Name must be 80 characters or fewer').trim(),
+})
+
 export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
