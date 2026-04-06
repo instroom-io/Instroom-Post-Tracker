@@ -32,7 +32,16 @@ async function fetchFreshMediaUrl(
         `${ENSEMBLE_API_URL}/instagram/post/details?code=${encodeURIComponent(platformPostId)}&token=${ENSEMBLE_API_KEY}`
       )
       if (!res.ok) return null
-      const json = await res.json() as { data?: Record<string, unknown> }
+      // Use text() + manual parse to handle EnsembleData responses that contain
+      // literal control characters (e.g. in captions), which cause res.json() to throw.
+      const text = await res.text()
+      const sanitized = text.replace(/[\x00-\x1F]/g, ' ')
+      let json: { data?: Record<string, unknown> }
+      try {
+        json = JSON.parse(sanitized) as { data?: Record<string, unknown> }
+      } catch {
+        return null
+      }
       const data = json.data
       return (data?.video_url ?? data?.display_url) as string | null ?? null
     }
@@ -49,15 +58,21 @@ export interface DownloadResult {
   driveFolderPath: string
 }
 
+export interface UserGoogleTokens {
+  accessToken: string
+  refreshToken: string
+}
+
 /**
  * Download a single post's media and upload it to Google Drive.
- * Uses memberDriveFolderId as the upload destination.
+ * Uses the user's OAuth tokens to authenticate Drive uploads.
  * Throws on failure — caller is responsible for error handling.
  */
 export async function processPostDownload(
   supabase: SupabaseClient,
   postId: string,
-  memberDriveFolderId?: string | null
+  memberDriveFolderId: string | null | undefined,
+  userTokens: UserGoogleTokens,
 ): Promise<DownloadResult> {
   const { data: post, error: postError } = await supabase
     .from('posts')
@@ -67,6 +82,7 @@ export async function processPostDownload(
       platform_post_id,
       platform,
       post_url,
+      media_url,
       workspace_id,
       campaign:campaigns(name),
       influencer:influencers(ig_handle, tiktok_handle, youtube_handle),
@@ -83,33 +99,32 @@ export async function processPostDownload(
   const campaign = post.campaign as unknown as { name: string } | null
   const influencer = post.influencer as unknown as { ig_handle: string | null; tiktok_handle: string | null; youtube_handle: string | null } | null
   const workspace = post.workspace as unknown as { name: string } | null
+  const storedMediaUrl = post.media_url as string | null
 
-  // Resolve Drive folder: use member's personal folder, or look up workspace owner's folder
-  let rootFolderId: string | undefined = memberDriveFolderId ?? undefined
+  const rootFolderId = memberDriveFolderId ?? undefined
 
-  if (!rootFolderId) {
-    const { data: ownerMember } = await supabase
-      .from('workspace_members')
-      .select('drive_folder_id')
-      .eq('workspace_id', post.workspace_id)
-      .eq('role', 'owner')
-      .maybeSingle()
-
-    rootFolderId = ownerMember?.drive_folder_id ?? undefined
+  // Use stored media URL first to avoid burning EnsembleData units.
+  // Skip HEAD probe (CDN may block HEAD from cloud IPs) — attempt GET directly.
+  // Fall back to a fresh EnsembleData fetch only if the stored URL is absent or the GET fails.
+  let response: Response | null = null
+  if (storedMediaUrl) {
+    const r = await fetch(storedMediaUrl).catch(() => null)
+    if (r?.ok) response = r
+  }
+  if (!response) {
+    const freshUrl = await fetchFreshMediaUrl(post.platform, post.platform_post_id, post.post_url)
+    if (!freshUrl) {
+      throw new Error(`Could not resolve media URL for ${post.platform} post ${post.platform_post_id}`)
+    }
+    const r = await fetch(freshUrl).catch(() => null)
+    if (!r?.ok) {
+      throw new Error(`Media download failed: ${r?.status ?? 'network error'}`)
+    }
+    response = r
   }
 
-  const mediaUrl = await fetchFreshMediaUrl(post.platform, post.platform_post_id, post.post_url)
-  if (!mediaUrl) {
-    throw new Error(`Could not resolve media URL for ${post.platform} post ${post.platform_post_id}`)
-  }
-
-  const response = await fetch(mediaUrl)
-  if (!response.ok) {
-    throw new Error(`Media download failed: ${response.status}`)
-  }
-
-  const fileBuffer = await response.arrayBuffer()
-  const contentType = response.headers.get('content-type') ?? 'video/mp4'
+  const fileBuffer = await (response as Response).arrayBuffer()
+  const contentType = (response as Response).headers.get('content-type') ?? 'video/mp4'
   const ext = contentType.includes('image') ? 'jpg' : 'mp4'
 
   const handle =
@@ -124,17 +139,12 @@ export async function processPostDownload(
     fileName: `post-${post.id}.${ext}`,
     folderPath,
     rootFolderId,
+    accessToken: userTokens.accessToken,
+    refreshToken: userTokens.refreshToken,
   })
 
-  await supabase
-    .from('posts')
-    .update({
-      download_status: 'downloaded',
-      drive_file_id: fileId,
-      drive_folder_path: savedFolderPath,
-      downloaded_at: new Date().toISOString(),
-    })
-    .eq('id', postId)
+  // Manual downloads do not update download_status — that field is owned by the
+  // auto-download worker (Shared Drive). The two paths are independent.
 
   return { driveFileId: fileId, driveFolderPath: savedFolderPath }
 }

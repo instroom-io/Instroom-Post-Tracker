@@ -53,10 +53,14 @@ export interface DownloadResult {
   driveFolderPath: string
 }
 
+/**
+ * Download a single post's media and upload it to the Shared Drive via service account.
+ * Used by the automatic background download worker.
+ * Throws on failure — caller is responsible for error handling.
+ */
 export async function processPostDownload(
   supabase: SupabaseClient,
   postId: string,
-  memberDriveFolderId?: string | null
 ): Promise<DownloadResult> {
   const { data: post, error: postError } = await supabase
     .from('posts')
@@ -85,18 +89,8 @@ export async function processPostDownload(
   const workspace = post.workspace as unknown as { name: string } | null
   const storedMediaUrl = post.media_url as string | null
 
-  let rootFolderId: string | undefined = memberDriveFolderId ?? undefined
-
-  if (!rootFolderId) {
-    const { data: ownerMember } = await supabase
-      .from('workspace_members')
-      .select('drive_folder_id')
-      .eq('workspace_id', post.workspace_id)
-      .eq('role', 'owner')
-      .maybeSingle()
-
-    rootFolderId = ownerMember?.drive_folder_id ?? undefined
-  }
+  // Auto-download always uses GOOGLE_DRIVE_ROOT_FOLDER_ID (Shared Drive, 2TB)
+  // No per-member folder needed here.
 
   // Use stored media URL first to avoid burning EnsembleData units.
   // Skip HEAD probe (CDN may block HEAD from cloud IPs) — attempt GET directly.
@@ -133,7 +127,7 @@ export async function processPostDownload(
     fileBuffer,
     fileName: `post-${post.id}.${ext}`,
     folderPath,
-    rootFolderId,
+    // rootFolderId omitted — uploadToDrive falls back to GOOGLE_DRIVE_ROOT_FOLDER_ID
   })
 
   await supabase

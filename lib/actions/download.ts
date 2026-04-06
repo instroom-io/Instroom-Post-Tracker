@@ -32,25 +32,36 @@ export async function triggerPostDownload(
     return { error: 'Set your personal Drive folder in Settings → Members before downloading.' }
   }
 
-  // 3. Validate post belongs to workspace and is eligible for download
+  // 3. Fetch user's Google OAuth tokens (service client required — RLS blocks reading own token columns)
+  const serviceClient = createServiceClient()
+  const { data: userRecord } = await serviceClient
+    .from('users')
+    .select('google_access_token, google_refresh_token')
+    .eq('id', user.id)
+    .single()
+
+  if (!userRecord?.google_refresh_token) {
+    return { error: 'Connect your Google Drive in Account Settings before downloading.' }
+  }
+
+  // 4. Validate post belongs to workspace
   const { data: post } = await supabase
     .from('posts')
-    .select('id, download_status')
+    .select('id')
     .eq('id', postId)
     .eq('workspace_id', workspaceId)
     .single()
 
   if (!post) return { error: 'Post not found.' }
-  if (!['pending', 'failed'].includes(post.download_status)) {
-    return { error: 'Post is not available for download.' }
-  }
 
-  // 4. Process download to member's personal Drive folder
+  // 5. Download media and upload to member's personal Drive folder.
+  // This is independent of the auto-download (Shared Drive) — no download_status check.
   try {
-    const serviceClient = createServiceClient()
-    const result = await processPostDownload(serviceClient, postId, member.drive_folder_id)
+    await processPostDownload(serviceClient, postId, member.drive_folder_id, {
+      accessToken: userRecord.google_access_token ?? '',
+      refreshToken: userRecord.google_refresh_token,
+    })
 
-    revalidatePath('/', 'layout')
     return { driveUrl: `https://drive.google.com/drive/folders/${member.drive_folder_id}` }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Download failed.'
