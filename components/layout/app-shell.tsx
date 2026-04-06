@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
 import { CaretLeft, CaretRight, Question, SquaresFour, Megaphone, Users, ChartBar, GearSix } from '@phosphor-icons/react'
+import { Button } from '@/components/ui/button'
 import { useTour } from '@/lib/hooks/use-tour'
 import { TourProvider } from '@/components/tour/tour-provider'
 import { cn } from '@/lib/utils'
@@ -122,8 +123,8 @@ export function AppShell({
                 >
                   <item.icon
                     size={14}
-                    weight="regular"
-                    className={cn(isActive ? 'text-foreground' : '')}
+                    weight={isActive ? 'fill' : 'regular'}
+                    className={cn(isActive ? 'text-brand' : '')}
                   />
                   <AnimatePresence>
                     {!collapsed && (
@@ -144,11 +145,13 @@ export function AppShell({
 
           {/* Tour re-launch button */}
           <div className="mt-2 border-t border-border pt-2">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => startTour('workspace')}
               className={cn(
-                'flex w-full items-center rounded-lg px-2.5 py-[7px] text-[11px] text-foreground-muted transition-colors hover:bg-brand-muted hover:text-brand',
-                collapsed ? 'justify-center gap-0' : 'gap-2'
+                'w-full text-foreground-muted hover:text-brand',
+                collapsed ? 'justify-center px-0' : 'justify-start gap-2'
               )}
             >
               <Question size={14} className="flex-shrink-0" />
@@ -158,13 +161,13 @@ export function AppShell({
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
-                    className="overflow-hidden whitespace-nowrap"
+                    className="overflow-hidden whitespace-nowrap text-[11px]"
                   >
                     Take a tour
                   </motion.span>
                 )}
               </AnimatePresence>
-            </button>
+            </Button>
           </div>
 
         </nav>
@@ -174,9 +177,20 @@ export function AppShell({
       {/* ── Main content column ──────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col overflow-hidden">
 
-        {/* Top bar — theme toggle + workspace switcher right-aligned */}
-        <div className="flex h-14 flex-shrink-0 items-center justify-end gap-3 border-b border-border bg-background-surface px-6">
+        {/* Top bar — user avatar + theme toggle + workspace switcher right-aligned */}
+        <div className="flex h-14 flex-shrink-0 items-center justify-end gap-3 border-b border-border bg-background-surface px-6 shadow-xs">
           <ThemeToggle />
+          {/* User avatar / initials */}
+          <div
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand/10 text-[11px] font-semibold text-brand ring-2 ring-border"
+            title={displayName || user.email}
+          >
+            {avatarUrl ? (
+              <Image src={avatarUrl} alt={displayName} width={32} height={32} className="rounded-full object-cover" />
+            ) : (
+              (displayName || user.email?.split('@')[0] || '?').charAt(0).toUpperCase()
+            )}
+          </div>
           <WorkspaceSwitcher
             currentWorkspace={currentWorkspace}
             currentRole={currentRole}

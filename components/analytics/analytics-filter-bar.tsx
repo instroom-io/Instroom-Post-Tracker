@@ -43,7 +43,7 @@ export function AnalyticsFilterBar({
           value={filters.from}
           onChange={(e) => update('from', e.target.value)}
           aria-label="From date"
-          className="h-9 rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="h-9 rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
       </div>
 
@@ -56,7 +56,7 @@ export function AnalyticsFilterBar({
           value={filters.to}
           onChange={(e) => update('to', e.target.value)}
           aria-label="To date"
-          className="h-9 rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="h-9 rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
       </div>
 

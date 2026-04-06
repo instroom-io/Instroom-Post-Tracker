@@ -71,7 +71,7 @@ async function OverviewBottom({
           <div className="flex items-center gap-3">
             <Link
               href={`/${workspaceSlug}/campaigns?new=1`}
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-background-muted px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-brand"
+              className="inline-flex h-9 items-center gap-1 rounded-lg border border-border-strong bg-background-surface px-3 text-[12px] font-semibold text-foreground shadow-xs transition-colors hover:bg-background-muted"
             >
               + Add Campaign
             </Link>

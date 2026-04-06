@@ -223,9 +223,9 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
           <div data-tour="campaign-status" className="flex items-center gap-2">
             <CampaignTourButton />
             {campaign.status === 'active' ? (
-              <AnimatedBadge>{campaign.status}</AnimatedBadge>
+              <AnimatedBadge className="capitalize">{campaign.status}</AnimatedBadge>
             ) : (
-              <Badge variant={statusVariant[campaign.status as CampaignStatus]}>
+              <Badge variant={statusVariant[campaign.status as CampaignStatus]} className="capitalize">
                 {campaign.status}
               </Badge>
             )}

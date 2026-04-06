@@ -74,16 +74,16 @@ export function MemberTable({
       <table className="w-full">
         <thead>
           <tr className="border-b border-border">
-            <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
               Member
             </th>
-            <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
               Email
             </th>
-            <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
               Role
             </th>
-            <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
               Actions
             </th>
           </tr>

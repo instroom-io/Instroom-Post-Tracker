@@ -262,36 +262,36 @@ export function PostsTable({
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="w-16 px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="w-16 px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Post
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Influencer
                 </th>
                 {showCampaignColumn && (
-                  <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                  <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                     Campaign
                   </th>
                 )}
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Platform
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Posted
                 </th>
-                <th className="px-5 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Views
                 </th>
-                <th className="px-5 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   ER
                 </th>
-                <th className="px-5 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   EMV
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Download
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Collab
                 </th>
                 {workspaceId && (

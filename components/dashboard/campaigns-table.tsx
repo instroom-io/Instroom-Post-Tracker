@@ -101,7 +101,7 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
               <th
                 scope="col"
                 onClick={() => toggleSort('name')}
-                className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted hover:text-foreground"
+                className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter hover:text-foreground"
               >
                 <span className="inline-flex items-center gap-1.5">
                   Campaign
@@ -111,7 +111,7 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
               <th
                 scope="col"
                 onClick={() => toggleSort('status')}
-                className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted hover:text-foreground"
+                className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter hover:text-foreground"
               >
                 <span className="inline-flex items-center gap-1.5">
                   Status
@@ -121,7 +121,7 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
               <th
                 scope="col"
                 onClick={() => toggleSort('post_count')}
-                className="cursor-pointer select-none px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-muted hover:text-foreground"
+                className="cursor-pointer select-none px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-lighter hover:text-foreground"
               >
                 <span className="inline-flex items-center justify-end gap-1.5">
                   Posts
@@ -131,7 +131,7 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
               <th
                 scope="col"
                 onClick={() => toggleSort('start_date')}
-                className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted hover:text-foreground"
+                className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter hover:text-foreground"
               >
                 <span className="inline-flex items-center gap-1.5">
                   Date range
@@ -152,7 +152,7 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
                 <tr
                   key={campaign.id}
                   onClick={() => router.push(`/${workspaceSlug}/campaigns/${campaign.id}`)}
-                  className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/40 cursor-pointer"
+                  className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted cursor-pointer"
                 >
                   <td className="px-5 py-3.5">
                     <span className="text-[12px] font-medium text-foreground">
@@ -161,9 +161,9 @@ export function CampaignsTable({ campaigns, workspaceSlug }: CampaignsTableProps
                   </td>
                   <td className="px-5 py-3.5">
                     {campaign.status === 'active' ? (
-                      <AnimatedBadge>{campaign.status}</AnimatedBadge>
+                      <AnimatedBadge className="capitalize">{campaign.status}</AnimatedBadge>
                     ) : (
-                      <Badge variant={statusVariant[campaign.status]}>
+                      <Badge variant={statusVariant[campaign.status]} className="capitalize">
                         {campaign.status}
                       </Badge>
                     )}

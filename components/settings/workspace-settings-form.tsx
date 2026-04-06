@@ -88,7 +88,9 @@ export function WorkspaceSettingsForm({ workspace, canEdit, members = [] }: Work
         <div className="flex items-center gap-4">
           <div className="relative h-[52px] w-[52px] flex-shrink-0">
             {logoUrl ? (
-              <img src={logoUrl} alt={workspace.name} className="h-full w-full rounded-lg object-cover" />
+              <div className="h-full w-full overflow-hidden rounded-lg bg-background-muted">
+                <img src={logoUrl} alt={workspace.name} className="h-full w-full object-cover dark:mix-blend-luminosity" />
+              </div>
             ) : (
               <div className="flex h-full w-full items-center justify-center rounded-lg bg-foreground text-[18px] font-bold text-background">
                 {initials}

@@ -12,7 +12,7 @@
     --background: 0 0% 97.5%;            /* #F9F9F9 — zinc canvas */
     --background-surface: 0 0% 100%;     /* #FFFFFF — cards, panels */
     --background-muted: 0 0% 95.5%;      /* #F4F4F4 — table hover, input fill */
-    --background-overlay: 0 0% 96%;      /* #F5F5F5 — light sidebar surface */
+    --background-overlay: 0 0% 93%;      /* #EDEDED — sidebar surface, distinct from content */
 
     /* Foregrounds — neutral, no green cast */
     --foreground: 0 0% 9%;               /* #171717 — primary body text */
@@ -21,8 +21,8 @@
     --foreground-muted: 0 0% 72%;        /* #B8B8B8 — placeholders, disabled */
 
     /* Borders — neutral */
-    --border: 0 0% 91%;                  /* #E8E8E8 — card borders, dividers */
-    --border-strong: 0 0% 78%;           /* #C7C7C7 — input focus, active */
+    --border: 0 0% 89%;                  /* #E3E3E3 — card borders, dividers */
+    --border-strong: 0 0% 74%;           /* #BCBCBC — input focus, active */
 
     /* Brand — green stays as accent only */
     --brand: 145 72% 40%;                /* #1FAE5B — primary CTAs, toggles */
@@ -65,7 +65,7 @@
     --background: 240 6% 9%;
     --background-surface: 240 5% 12%;
     --background-muted: 240 4% 16%;
-    --background-overlay: 240 6% 7%;
+    --background-overlay: 240 6% 5%;    /* darker sidebar for clear depth separation */
 
     /* Foregrounds */
     --foreground: 0 0% 96%;
@@ -74,8 +74,8 @@
     --foreground-muted: 0 0% 38%;
 
     /* Borders */
-    --border: 0 0% 18%;
-    --border-strong: 0 0% 28%;
+    --border: 0 0% 22%;                  /* stronger border for dark mode visibility */
+    --border-strong: 0 0% 32%;
 
     /* Brand — unchanged in dark mode */
     --brand: 145 72% 40%;

@@ -113,7 +113,7 @@ function ProductSentDateCell({ row, canEdit, workspaceId }: { row: InfluencerRow
           }
         })
       }}
-      className="rounded border border-border bg-transparent px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+      className="rounded border border-border bg-transparent px-2 py-1 text-xs text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
     />
   )
 }
@@ -246,22 +246,22 @@ export function CampaignInfluencersList({
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Influencer
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Platforms
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Status
               </th>
-              <th data-tour="campaign-usage-rights" className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th data-tour="campaign-usage-rights" className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Usage rights
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Product sent
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Follow-up
               </th>
               {canEdit && <th className="w-10 px-5 py-3" />}
@@ -273,7 +273,7 @@ export function CampaignInfluencersList({
               return (
                 <tr
                   key={item.id}
-                  className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/40"
+                  className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted"
                 >
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2.5">

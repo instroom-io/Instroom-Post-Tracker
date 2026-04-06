@@ -75,8 +75,8 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       value: formatNumber(activeCampaigns ?? 0),
       sub: 'currently tracking',
       icon: Megaphone,
-      iconBg: 'bg-brand/10',
-      iconColor: 'text-brand',
+      iconBg: 'bg-accent/10',
+      iconColor: 'text-accent',
     },
   ]
 
@@ -87,7 +87,7 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       {stats.map((stat, i) => (
         <div
           key={stat.label}
-          className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[i] ?? ''}`}
+          className={`animate-fade-up rounded-xl border border-border-strong bg-background-surface p-4 shadow-xs ${delayClasses[i] ?? ''}`}
         >
           <div className="flex items-start justify-between">
             <p className="text-[12px] font-medium text-foreground-lighter">

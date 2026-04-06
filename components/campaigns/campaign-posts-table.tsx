@@ -77,31 +77,31 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="w-16 px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="w-16 px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Post
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Influencer
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Platform
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Posted
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Views
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 ER
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 EMV
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Drive
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Collab
               </th>
             </tr>
@@ -111,7 +111,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
               <tr
                 key={post.id}
                 onClick={() => setSelectedPost(post)}
-                className="cursor-pointer border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/40"
+                className="cursor-pointer border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted"
               >
                 {/* Thumbnail */}
                 <td className="px-5 py-3.5">
