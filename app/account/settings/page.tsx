@@ -8,27 +8,17 @@ export default async function AccountSettingsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: memberships }] = await Promise.all([
-    supabase
-      .from('users')
-      .select('preferred_language, timezone, google_connected_email, google_refresh_token')
-      .eq('id', user.id)
-      .single(),
-    supabase
-      .from('workspace_members')
-      .select('workspace_id, drive_folder_id, workspace:workspaces!workspace_members_workspace_id_fkey(id, name)')
-      .eq('user_id', user.id)
-      .neq('role', 'brand'),
-  ])
+  const { data: profile } = await supabase
+    .from('users')
+    .select('preferred_language, timezone, google_connected_email, google_refresh_token')
+    .eq('id', user.id)
+    .single()
 
-  const workspaceFolders = (memberships ?? []).map((m) => {
-    const ws = Array.isArray(m.workspace) ? m.workspace[0] : m.workspace
-    return {
-      workspaceId: m.workspace_id,
-      workspaceName: (ws as { name: string } | null)?.name ?? 'Workspace',
-      currentFolderId: m.drive_folder_id ?? null,
-    }
-  })
+  const connectedEmail =
+    (profile as unknown as { google_connected_email: string | null } | null)?.google_connected_email ??
+    ((profile as unknown as { google_refresh_token: string | null } | null)?.google_refresh_token
+      ? user.email ?? 'Connected'
+      : null)
 
   return (
     <div className="space-y-5">
@@ -36,10 +26,7 @@ export default async function AccountSettingsPage() {
         preferredLanguage={profile?.preferred_language ?? 'en'}
         timezone={profile?.timezone ?? 'UTC'}
       />
-      <GoogleDriveCard
-        connectedEmail={(profile as unknown as { google_connected_email: string | null; google_refresh_token: string | null } | null)?.google_connected_email ?? ((profile as unknown as { google_refresh_token: string | null } | null)?.google_refresh_token ? user.email ?? 'Connected' : null)}
-        workspaceFolders={workspaceFolders}
-      />
+      <GoogleDriveCard connectedEmail={connectedEmail} />
     </div>
   )
 }
