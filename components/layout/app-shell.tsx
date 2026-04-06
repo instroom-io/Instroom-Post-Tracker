@@ -75,31 +75,37 @@ export function AppShell({
           collapsed ? 'w-[56px]' : 'w-[220px]'
         )}
       >
-        {/* Toggle button — straddles the sidebar border */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-background-surface shadow-sm transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
-        >
-          {collapsed
-            ? <CaretRight size={10} className="text-foreground-lighter" />
-            : <CaretLeft size={10} className="text-foreground-lighter" />
-          }
-        </button>
-
-        {/* Logo area */}
+        {/* Logo area + toggle */}
         <div
           className={cn(
             'flex h-14 flex-shrink-0 items-center border-b border-border',
-            collapsed ? 'justify-center px-0' : 'px-4'
+            collapsed ? 'justify-center px-2 gap-0' : 'px-3 gap-2'
           )}
         >
-          <Link href={`/${workspaceSlug}/overview`} className="opacity-100 transition-opacity hover:opacity-75">
+          <Link href={`/${workspaceSlug}/overview`} className="flex-1 opacity-100 transition-opacity hover:opacity-75 overflow-hidden">
             {collapsed
               ? <Image src="/INSTROOM_LOGO.svg" alt="Instroom" width={32} height={32} />
               : <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={140} height={32} />
             }
           </Link>
+          {!collapsed && (
+            <button
+              onClick={() => setCollapsed(true)}
+              aria-label="Collapse sidebar"
+              className="flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            >
+              <CaretLeft size={12} />
+            </button>
+          )}
+          {collapsed && (
+            <button
+              onClick={() => setCollapsed(false)}
+              aria-label="Expand sidebar"
+              className="flex h-6 w-6 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            >
+              <CaretRight size={12} />
+            </button>
+          )}
         </div>
 
         {/* Nav */}
