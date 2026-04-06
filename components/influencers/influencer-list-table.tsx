@@ -168,7 +168,7 @@ function CampaignExpansionPanel({ campaigns, workspaceSlug, canEdit, removingCiI
       transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
       className="overflow-hidden"
     >
-      <div className="border-t border-border/40 px-3 py-2">
+      <div className="border-t border-border/40 py-2 pl-[52px] pr-3">
         {campaigns.map((c) => (
           <CampaignCard
             key={c.campaign_influencer_id}
@@ -296,8 +296,8 @@ export function InfluencerListTable({
   if (totalCount === 0 && !campaignFilter) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-24 text-center">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background-muted">
-          <Users size={18} className="text-foreground-muted" />
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-background-muted">
+          <Users size={20} className="text-foreground-muted" />
         </div>
         <p className="font-display text-[14px] font-bold text-foreground">No influencers yet</p>
         <p className="max-w-xs text-[13px] text-foreground-lighter">
@@ -310,49 +310,52 @@ export function InfluencerListTable({
   return (
     <div>
       {/* ── Filter bar ─────────────────────────────────────────────────────── */}
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        {/* Search */}
-        <div className="flex flex-col gap-0.5">
-          <div className="relative">
-            <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or handle…"
-              className="h-8 w-56 rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40"
-            />
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        {/* Left group: search + campaign filter + active chip */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="flex flex-col gap-0">
+            <div className="relative">
+              <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name or handle…"
+                className="h-9 w-64 rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40"
+              />
+            </div>
+            {search && (
+              <span className="pl-1 pt-0.5 text-[11px] italic text-foreground-muted">Searching this page only</span>
+            )}
           </div>
-          {search && (
-            <span className="pl-1 text-[11px] text-foreground-muted">Searching this page only</span>
+
+          {/* Campaign filter */}
+          <select
+            value={campaignFilter}
+            onChange={(e) => handleCampaignFilter(e.target.value)}
+            className="h-9 rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
+          >
+            <option value="">All campaigns</option>
+            {workspaceCampaigns.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+
+          {/* Active filter chip */}
+          {activeCampaignName && (
+            <button
+              type="button"
+              onClick={() => handleCampaignFilter('')}
+              className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-medium text-brand transition-colors hover:bg-brand/20"
+            >
+              {activeCampaignName}
+              <X size={10} />
+            </button>
           )}
         </div>
 
-        {/* Campaign filter */}
-        <select
-          value={campaignFilter}
-          onChange={(e) => handleCampaignFilter(e.target.value)}
-          className="h-8 rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
-        >
-          <option value="">All campaigns</option>
-          {workspaceCampaigns.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
-
-        {/* Active filter chip */}
-        {activeCampaignName && (
-          <button
-            type="button"
-            onClick={() => handleCampaignFilter('')}
-            className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-medium text-brand transition-colors hover:bg-brand/20"
-          >
-            {activeCampaignName}
-            <X size={10} />
-          </button>
-        )}
-
-        {/* Count */}
+        {/* Right: count */}
         {totalCount > 0 && (
           <span className="text-[12px] text-foreground-lighter">
             Showing {from}–{to} of {totalCount}
@@ -365,14 +368,14 @@ export function InfluencerListTable({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border">
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+              <tr className="border-b border-border bg-background-muted/40">
+                <th className="px-5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Influencer
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+                <th className="px-5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Platforms
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+                <th className="px-5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Campaigns
                 </th>
                 {canEdit && <th className="w-10 px-3 py-2.5" />}
@@ -401,44 +404,44 @@ export function InfluencerListTable({
                     {/* ── Main row ── */}
                     <tr className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/30">
                       {/* Influencer cell */}
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           {inf.profile_pic_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={inf.profile_pic_url}
                               alt=""
-                              className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+                              className="h-9 w-9 flex-shrink-0 rounded-full object-cover ring-1 ring-border"
                             />
                           ) : (
-                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-muted text-[11px] font-bold text-brand">
+                            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-muted to-brand/20 text-[11px] font-bold text-brand ring-1 ring-border">
                               {getInitials(label)}
                             </div>
                           )}
-                          <p className="text-[12px] font-medium text-foreground">@{label}</p>
+                          <p className="text-[13px] font-semibold text-foreground">@{label}</p>
                         </div>
                       </td>
 
                       {/* Platforms cell — icon badges with handle tooltip */}
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
                           {inf.ig_handle && (
                             <Tooltip content={`@${inf.ig_handle}`} side="top">
-                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-background-muted">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-purple-50 dark:bg-purple-500/10">
                                 <PlatformIcon platform="instagram" size={13} />
                               </span>
                             </Tooltip>
                           )}
                           {inf.tiktok_handle && (
                             <Tooltip content={`@${inf.tiktok_handle}`} side="top">
-                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-background-muted">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-blue-50 dark:bg-blue-500/10">
                                 <PlatformIcon platform="tiktok" size={13} />
                               </span>
                             </Tooltip>
                           )}
                           {inf.youtube_handle && (
                             <Tooltip content={`@${inf.youtube_handle}`} side="top">
-                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-background-muted">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-red-50 dark:bg-red-500/10">
                                 <PlatformIcon platform="youtube" size={13} />
                               </span>
                             </Tooltip>
@@ -450,7 +453,7 @@ export function InfluencerListTable({
                       </td>
 
                       {/* Campaigns cell — clickable count badge */}
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3.5">
                         {activeCampaigns.length > 0 ? (
                           <button
                             type="button"
@@ -481,14 +484,14 @@ export function InfluencerListTable({
 
                       {/* Actions cell */}
                       {canEdit && (
-                        <td className="px-3 py-3">
+                        <td className="px-3 py-3.5">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <button
                                 type="button"
-                                className="rounded-md p-1 text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground"
+                                className="cursor-pointer rounded-md p-1.5 text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground"
                               >
-                                <DotsThree size={14} />
+                                <DotsThree size={15} />
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
