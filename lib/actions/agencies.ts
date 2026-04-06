@@ -112,6 +112,13 @@ export async function acceptBrandInvite(
     .from('workspaces').select('slug').eq('slug', slug).maybeSingle()
   if (existing) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`
 
+  // Derive favicon logo from website URL as default (overridden if file is uploaded)
+  let logo_url: string | null = null
+  try {
+    const domain = new URL(websiteParsed.data).hostname.replace(/^www\./, '')
+    logo_url = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=64`
+  } catch { /* invalid URL — leave null */ }
+
   // Create workspace
   const { data: workspace, error: wsError } = await serviceClient
     .from('workspaces')
@@ -119,7 +126,7 @@ export async function acceptBrandInvite(
       name: invite.workspace_name,
       slug,
       agency_id: invite.agency_id,
-      logo_url: null,
+      logo_url,
     })
     .select('id, slug')
     .single()
