@@ -123,7 +123,7 @@ function ThumbnailCell({ thumbnailUrl, mediaUrl, platform }: {
       {thumbnailUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={thumbnailUrl}
+          src={platform === 'instagram' ? `/api/proxy-image?url=${encodeURIComponent(thumbnailUrl)}` : thumbnailUrl}
           alt=""
           className={cn('h-full w-full object-cover transition-opacity duration-200', hovering && canPreview && 'opacity-0')}
         />
