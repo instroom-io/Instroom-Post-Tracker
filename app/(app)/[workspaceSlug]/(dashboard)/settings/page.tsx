@@ -7,6 +7,7 @@ import { MemberTable } from '@/components/settings/member-table'
 import { InviteMemberDialog } from '@/components/settings/invite-member-dialog'
 import { EmvSettingsPanel } from '@/components/settings/emv-settings-panel'
 import { StorageCard } from '@/components/settings/storage-card'
+import { WorkspaceDriveCard } from '@/components/settings/workspace-drive-card'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
 import { MembersSkeleton } from '@/components/dashboard/members-skeleton'
 import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
@@ -134,12 +135,31 @@ export default async function SettingsPage({ params }: PageProps) {
   if (!workspace) notFound()
   if (!user) redirect('/login')
 
-  const { data: currentMember } = await supabase
-    .from('workspace_members')
-    .select('role')
-    .eq('workspace_id', workspace.id)
-    .eq('user_id', user.id)
-    .single()
+  const [{ data: currentMember }, { data: userProfile }, { data: memberDriveRow }] = await Promise.all([
+    supabase
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspace.id)
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('users')
+      .select('google_connected_email, google_refresh_token')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('workspace_members')
+      .select('drive_folder_id')
+      .eq('workspace_id', workspace.id)
+      .eq('user_id', user.id)
+      .maybeSingle(),
+  ])
+
+  const connectedEmail =
+    (userProfile as unknown as { google_connected_email: string | null } | null)?.google_connected_email ??
+    ((userProfile as unknown as { google_refresh_token: string | null } | null)?.google_refresh_token
+      ? user.email ?? 'Connected'
+      : null)
 
   const currentRole = (currentMember?.role ?? 'viewer') as WorkspaceRole
   const canEdit = currentRole === 'owner' || currentRole === 'admin'
@@ -165,6 +185,14 @@ export default async function SettingsPage({ params }: PageProps) {
           workspaceId={workspace.id}
           currentFolderId={(workspace as unknown as { drive_folder_id: string | null }).drive_folder_id ?? null}
           canEdit={canEditStorage}
+        />
+
+        {/* Personal Drive — per-user folder picker */}
+        <WorkspaceDriveCard
+          workspaceId={workspace.id}
+          workspaceName={workspace.name}
+          connectedEmail={connectedEmail}
+          currentFolderId={(memberDriveRow as unknown as { drive_folder_id: string | null } | null)?.drive_folder_id ?? null}
         />
 
         {/* Members — streams in independently */}
