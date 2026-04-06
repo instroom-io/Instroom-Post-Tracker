@@ -46,6 +46,12 @@ export const WORKSPACE_STEPS: TourStep[] = [
     side: 'right',
   },
   {
+    id: 'ws-influencers',
+    title: 'Influencers',
+    description: 'Your workspace-wide influencer directory. Add influencers here once and reuse them across campaigns — search, filter by campaign, and see at a glance which campaigns each influencer is part of.',
+    side: 'right',
+  },
+  {
     id: 'ws-analytics',
     title: 'Analytics',
     description: 'EMV, engagement rate, post volume over time, platform breakdown, and an influencer leaderboard — all calculated from your real post data.',
