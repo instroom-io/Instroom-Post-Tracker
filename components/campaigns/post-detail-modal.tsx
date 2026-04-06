@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { cn, formatNumber, formatEMV, formatPercent, formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
-import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } from '@/lib/types'
+import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/types'
 
 interface PostRow {
   id: string
@@ -25,7 +25,6 @@ interface PostRow {
   posted_at: string
   download_status: DownloadStatus
   drive_file_id: string | null
-  collab_status: CollabStatus
   influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
   metrics: {
     views: number
@@ -58,15 +57,6 @@ const downloadVariant: Record<DownloadStatus, 'muted' | 'success' | 'warning' | 
   downloaded: 'success',
   blocked: 'warning',
   failed: 'destructive',
-}
-
-const collabVariant: Record<
-  Exclude<CollabStatus, 'n/a'>,
-  'muted' | 'success' | 'destructive'
-> = {
-  pending: 'muted',
-  confirmed: 'success',
-  not_added: 'destructive',
 }
 
 function MetricCell({ label, value }: { label: string; value: string }) {
@@ -192,11 +182,6 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <Badge variant={platformVariant[post.platform]}>{post.platform}</Badge>
                       <Badge variant={downloadVariant[post.download_status]}>{post.download_status}</Badge>
-                      {post.platform === 'instagram' && post.collab_status !== 'n/a' && (
-                        <Badge variant={collabVariant[post.collab_status as Exclude<CollabStatus, 'n/a'>]}>
-                          collab: {post.collab_status}
-                        </Badge>
-                      )}
                     </div>
                     <DialogTitle>@{influencerLabel}</DialogTitle>
                   </div>

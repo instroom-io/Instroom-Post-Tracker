@@ -39,7 +39,7 @@ export default async function PostsPage({ params }: PageProps) {
     supabase
       .from('posts')
       .select(
-        'id, thumbnail_url, media_url, platform, posted_at, download_status, blocked_reason, drive_file_id, drive_folder_path, collab_status, influencer:influencers(full_name, ig_handle), campaign:campaigns(id, name), metrics:post_metrics(views, engagement_rate, emv)'
+        'id, thumbnail_url, media_url, platform, posted_at, download_status, blocked_reason, drive_file_id, drive_folder_path, influencer:influencers(full_name, ig_handle), campaign:campaigns(id, name), metrics:post_metrics(views, engagement_rate, emv)'
       )
       .eq('workspace_id', workspace.id)
       .order('posted_at', { ascending: false })

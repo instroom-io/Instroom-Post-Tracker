@@ -5,7 +5,7 @@ import { Tray, ImageBroken, Eye, Percent, CurrencyDollar, ArrowSquareOut, Lock }
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, cn, getInfluencerLabel } from '@/lib/utils'
-import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } from '@/lib/types'
+import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/types'
 
 interface PostRow {
   id: string
@@ -17,7 +17,6 @@ interface PostRow {
   posted_at: string
   download_status: DownloadStatus
   drive_file_id: string | null
-  collab_status: CollabStatus
   influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
   metrics: {
     views: number

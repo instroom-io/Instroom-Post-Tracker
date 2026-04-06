@@ -13,8 +13,6 @@ export type MonitoringStatus = 'pending' | 'active' | 'paused' | 'removed'
 
 export type DownloadStatus = 'pending' | 'downloaded' | 'blocked' | 'failed'
 
-export type CollabStatus = 'n/a' | 'pending' | 'confirmed' | 'not_added'
-
 export type JobType = 'download' | 'metrics_fetch'
 
 export type JobStatus = 'pending' | 'processing' | 'done' | 'failed'
@@ -156,8 +154,6 @@ export interface Post {
   drive_file_id: string | null
   drive_folder_path: string | null
   downloaded_at: string | null
-  collab_status: CollabStatus
-  collab_checked_by: string | null
   metrics_fetch_after: string | null
   metrics_fetched_at: string | null
   influencer?: Influencer

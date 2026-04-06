@@ -1,13 +1,12 @@
 'use client'
 
 import { Select } from '@/components/ui/select'
-import type { Platform, DownloadStatus, CollabStatus } from '@/lib/types'
+import type { Platform, DownloadStatus } from '@/lib/types'
 
 interface PostFilters {
   platform: Platform | 'all'
   campaignId: string | 'all'
   downloadStatus: DownloadStatus | 'all'
-  collabStatus: CollabStatus | 'all'
 }
 
 interface Campaign {
@@ -79,24 +78,6 @@ export function PostsFilterBar({
         />
       </div>
 
-      <div className="w-40">
-        <Select
-          value={filters.collabStatus}
-          onChange={(e) =>
-            update(
-              'collabStatus',
-              e.target.value as PostFilters['collabStatus']
-            )
-          }
-          options={[
-            { value: 'all', label: 'All collab' },
-            { value: 'pending', label: 'Pending' },
-            { value: 'confirmed', label: 'Confirmed' },
-            { value: 'not_added', label: 'Not added' },
-            { value: 'n/a', label: 'N/A' },
-          ]}
-        />
-      </div>
     </div>
   )
 }

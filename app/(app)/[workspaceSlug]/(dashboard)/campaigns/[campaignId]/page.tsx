@@ -11,7 +11,7 @@ import { CampaignTabs } from '@/components/campaigns/campaign-tabs'
 import { CampaignTourWrapper, CampaignTourButton } from '@/components/campaigns/campaign-tour-wrapper'
 import { formatDateRange } from '@/lib/utils'
 import { updateCampaign } from '@/lib/actions/campaigns'
-import type { WorkspaceRole, CampaignStatus, Platform, DownloadStatus, CollabStatus } from '@/lib/types'
+import type { WorkspaceRole, CampaignStatus, Platform, DownloadStatus } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string; campaignId: string }>
@@ -85,7 +85,7 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
     supabase
       .from('posts')
       .select(
-        'id, influencer_id, thumbnail_url, media_url, platform, posted_at, download_status, drive_file_id, collab_status, caption, post_url, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), metrics:post_metrics(views, likes, comments, shares, saves, follower_count, engagement_rate, emv)'
+        'id, influencer_id, thumbnail_url, media_url, platform, posted_at, download_status, drive_file_id, caption, post_url, influencer:influencers(tiktok_handle, ig_handle, youtube_handle), metrics:post_metrics(views, likes, comments, shares, saves, follower_count, engagement_rate, emv)'
       )
       .eq('campaign_id', campaignId)
       .order('posted_at', { ascending: false })
@@ -170,7 +170,6 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
       posted_at: p.posted_at,
       download_status: p.download_status as DownloadStatus,
       drive_file_id: (p as unknown as { drive_file_id: string | null }).drive_file_id,
-      collab_status: p.collab_status as CollabStatus,
       influencer: p.influencer as unknown as { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null,
       metrics: m
         ? {

@@ -7,10 +7,9 @@ import { savePostToUserDrive } from '@/lib/actions/posts'
 import { cn } from '@/lib/utils'
 import { PostsFilterBar } from './posts-filter-bar'
 import { DownloadStatusBadge } from './download-status-badge'
-import { CollabStatusSelect } from './collab-status-select'
 import { Badge } from '@/components/ui/badge'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent } from '@/lib/utils'
-import type { Platform, DownloadStatus, CollabStatus } from '@/lib/types'
+import type { Platform, DownloadStatus } from '@/lib/types'
 
 interface PostRow {
   id: string
@@ -22,7 +21,6 @@ interface PostRow {
   blocked_reason: string | null
   drive_file_id: string | null
   drive_folder_path: string | null
-  collab_status: CollabStatus
   influencer: { full_name: string; ig_handle: string | null } | null
   campaign: { id: string; name: string } | null
   metrics: {
@@ -166,14 +164,12 @@ export function PostsTable({
     platform: 'all' as Platform | 'all',
     campaignId: 'all',
     downloadStatus: 'all' as DownloadStatus | 'all',
-    collabStatus: 'all' as CollabStatus | 'all',
   })
 
   const filtered = posts.filter((p) => {
     if (filters.platform !== 'all' && p.platform !== filters.platform) return false
     if (filters.campaignId !== 'all' && p.campaign?.id !== filters.campaignId) return false
     if (filters.downloadStatus !== 'all' && p.download_status !== filters.downloadStatus) return false
-    if (filters.collabStatus !== 'all' && p.collab_status !== filters.collabStatus) return false
     return true
   })
 
@@ -184,15 +180,14 @@ export function PostsTable({
       label: campaigns.find((c) => c.id === filters.campaignId)?.name ?? filters.campaignId,
     },
     filters.downloadStatus !== 'all' && { key: 'downloadStatus' as const, label: filters.downloadStatus },
-    filters.collabStatus !== 'all' && { key: 'collabStatus' as const, label: filters.collabStatus },
-  ].filter(Boolean) as { key: 'platform' | 'campaignId' | 'downloadStatus' | 'collabStatus'; label: string }[]
+  ].filter(Boolean) as { key: 'platform' | 'campaignId' | 'downloadStatus'; label: string }[]
 
   function clearFilter(key: typeof activeFilterChips[number]['key']) {
     setFilters((prev) => ({ ...prev, [key]: 'all' }))
   }
 
   function clearAll() {
-    setFilters({ platform: 'all', campaignId: 'all', downloadStatus: 'all', collabStatus: 'all' })
+    setFilters({ platform: 'all', campaignId: 'all', downloadStatus: 'all' })
   }
 
   const isFiltered = activeFilterChips.length > 0
@@ -291,9 +286,6 @@ export function PostsTable({
                 <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
                   Download
                 </th>
-                <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
-                  Collab
-                </th>
                 {workspaceId && (
                   <th className="w-10 px-2 py-2.5" />
                 )}
@@ -362,14 +354,6 @@ export function PostsTable({
                     />
                   </td>
 
-                  <td className="px-5 py-3">
-                    <CollabStatusSelect
-                      postId={post.id}
-                      currentStatus={post.collab_status}
-                      platform={post.platform}
-                      canEdit={canEdit}
-                    />
-                  </td>
                   {workspaceId && (
                     <td className="px-2 py-3">
                       <SaveToDriveButton

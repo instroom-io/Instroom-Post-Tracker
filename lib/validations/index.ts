@@ -145,13 +145,6 @@ export const updateInfluencerSchema = z.object({
   youtube_handle: z.string().max(100).optional().or(z.literal('')),
 })
 
-// ─── Posts ────────────────────────────────────────────────────────────────────
-
-export const updateCollabStatusSchema = z.object({
-  post_id: z.string().uuid(),
-  status: z.enum(['n/a', 'pending', 'confirmed', 'not_added']),
-})
-
 // ─── Analytics / EMV ─────────────────────────────────────────────────────────
 
 export const updateEmvConfigSchema = z.object({
@@ -176,7 +169,6 @@ export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>
 export type TrackingConfigInput = z.infer<typeof trackingConfigSchema>
 export type AddInfluencerInput = z.infer<typeof addInfluencerSchema>
 export type UpdateInfluencerInput = z.infer<typeof updateInfluencerSchema>
-export type UpdateCollabStatusInput = z.infer<typeof updateCollabStatusSchema>
 export type UpdateEmvConfigInput = z.infer<typeof updateEmvConfigSchema>
 
 export const contactInquirySchema = z.object({

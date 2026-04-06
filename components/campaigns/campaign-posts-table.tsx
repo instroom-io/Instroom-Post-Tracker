@@ -5,7 +5,7 @@ import { Tray, ImageBroken, ArrowSquareOut } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, getInfluencerLabel } from '@/lib/utils'
-import type { Platform, DownloadStatus, CollabStatus, CampaignTrackingConfig } from '@/lib/types'
+import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/types'
 
 interface PostRow {
   id: string
@@ -16,7 +16,6 @@ interface PostRow {
   posted_at: string
   download_status: DownloadStatus
   drive_file_id: string | null
-  collab_status: CollabStatus
   influencer: { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null } | null
   metrics: {
     views: number
@@ -45,14 +44,6 @@ const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
   youtube: 'youtube',
 }
 
-const collabVariant: Record<
-  Exclude<CollabStatus, 'n/a'>,
-  'muted' | 'success' | 'destructive'
-> = {
-  pending: 'muted',
-  confirmed: 'success',
-  not_added: 'destructive',
-}
 
 export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, memberDriveUrl }: CampaignPostsTableProps) {
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null)
@@ -100,9 +91,6 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
               </th>
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Drive
-              </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
-                Collab
               </th>
             </tr>
           </thead>
@@ -178,15 +166,6 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
                   )}
                 </td>
 
-                <td className="px-5 py-3.5">
-                  {post.platform === 'instagram' && post.collab_status !== 'n/a' ? (
-                    <Badge variant={collabVariant[post.collab_status as Exclude<CollabStatus, 'n/a'>]}>
-                      {post.collab_status}
-                    </Badge>
-                  ) : (
-                    <span className="text-[12px] text-foreground-muted">—</span>
-                  )}
-                </td>
               </tr>
             ))}
           </tbody>
