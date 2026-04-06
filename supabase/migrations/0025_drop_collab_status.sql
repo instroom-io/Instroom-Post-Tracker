@@ -3,10 +3,11 @@
 -- the trigger that set collab defaults, and the index on collab_checked_by.
 
 -- 1. Drop the trigger first (depends on the function)
+drop trigger if exists set_collab_status_on_insert on public.posts;
 drop trigger if exists posts_set_collab_status_default on public.posts;
 
--- 2. Drop the trigger function
-drop function if exists public.posts_collab_status_default();
+-- 2. Drop the trigger function (cascade handles any remaining dependents)
+drop function if exists public.posts_collab_status_default() cascade;
 
 -- 3. Drop columns from posts
 alter table public.posts
