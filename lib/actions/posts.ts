@@ -2,9 +2,10 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { updateCollabStatusSchema } from '@/lib/validations'
 import { getFreshAccessToken } from '@/lib/google/tokens'
+import { processPostDownload } from '@/lib/downloads/process-download'
 import type { CollabStatus } from '@/lib/types'
 
 export async function updateCollabStatus(
@@ -48,48 +49,44 @@ export async function savePostToUserDrive(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const accessToken = await getFreshAccessToken(user.id)
-  if (!accessToken) return { error: 'connect_required' }
-
-  const [{ data: post }, { data: member }] = await Promise.all([
-    supabase
-      .from('posts')
-      .select('drive_file_id')
-      .eq('id', postId)
-      .eq('workspace_id', workspaceId)
-      .single(),
+  // Fetch member folder + user tokens in parallel
+  const serviceClient = createServiceClient()
+  const [{ data: member }, { data: userRecord }] = await Promise.all([
     supabase
       .from('workspace_members')
       .select('drive_folder_id')
       .eq('workspace_id', workspaceId)
       .eq('user_id', user.id)
       .single(),
+    serviceClient
+      .from('users')
+      .select('google_access_token, google_refresh_token, google_token_expiry')
+      .eq('id', user.id)
+      .single(),
   ])
 
-  if (!post?.drive_file_id) return { error: 'not_downloaded' }
-
-  const copyBody: Record<string, unknown> = {}
-  if (member?.drive_folder_id) {
-    copyBody.parents = [member.drive_folder_id]
+  if (!userRecord?.google_refresh_token) return { error: 'connect_required' }
+  if (!member?.drive_folder_id) {
+    return { error: 'Set your personal Drive folder in Account Settings before saving.' }
   }
 
-  const copyRes = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${post.drive_file_id}/copy?supportsAllDrives=true`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(copyBody),
-    }
-  )
+  // Get a fresh access token (refreshes if expired)
+  const accessToken = await getFreshAccessToken(user.id)
+  if (!accessToken) return { error: 'connect_required' }
 
-  if (!copyRes.ok) {
-    console.error('[savePostToUserDrive] Drive copy error:', await copyRes.text())
+  // Re-download the media from EnsembleData and upload to the member's personal Drive.
+  // Copying from the Shared Drive requires the user to be a Shared Drive member — instead
+  // we fetch fresh media and upload directly using their OAuth tokens.
+  try {
+    await processPostDownload(serviceClient, postId, member.drive_folder_id, {
+      accessToken,
+      refreshToken: userRecord.google_refresh_token,
+    })
+
+    return { url: `https://drive.google.com/drive/folders/${member.drive_folder_id}` }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('[savePostToUserDrive] error:', message)
     return { error: 'Failed to save to Google Drive. Please try again.' }
   }
-
-  const copied = await copyRes.json() as { id: string }
-  return { url: `https://drive.google.com/file/d/${copied.id}/view` }
 }
