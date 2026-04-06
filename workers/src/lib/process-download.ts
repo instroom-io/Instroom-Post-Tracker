@@ -18,7 +18,7 @@ async function fetchFreshMediaUrl(
       const json = await res.json() as { data?: unknown }
       const item = (Array.isArray(json.data) ? json.data[0] : json.data) as Record<string, unknown> | undefined
       const video = item?.video as Record<string, unknown> | undefined
-      const addrObj = (video?.download_addr ?? video?.play_addr_h264) as Record<string, unknown> | undefined
+      const addrObj = (video?.play_addr_h264 ?? video?.play_addr ?? video?.download_addr) as Record<string, unknown> | undefined
       const urlList = addrObj?.url_list as string[] | undefined
       return urlList?.[0] ?? null
     }
