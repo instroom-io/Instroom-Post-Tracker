@@ -74,7 +74,7 @@ export async function savePostToUserDrive(
   }
 
   const copyRes = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${post.drive_file_id}/copy`,
+    `https://www.googleapis.com/drive/v3/files/${post.drive_file_id}/copy?supportsAllDrives=true`,
     {
       method: 'POST',
       headers: {
