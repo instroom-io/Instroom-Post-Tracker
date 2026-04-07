@@ -121,7 +121,7 @@ export function InviteBrandDialog({ agencyId, defaultOpen = false }: InviteBrand
                   label="Brand name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Nike"
+                  placeholder="e.g. Acme Corp"
                   required
                   error={undefined}
                 />
