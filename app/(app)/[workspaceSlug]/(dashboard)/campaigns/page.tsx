@@ -11,13 +11,6 @@ interface PageProps {
   searchParams: Promise<{ new?: string }>
 }
 
-const statusVariant: Record<CampaignStatus, 'active' | 'draft' | 'ended'> = {
-  active: 'active',
-  draft: 'draft',
-  ended: 'ended',
-  archived: 'ended',
-}
-
 export default async function CampaignsPage({ params, searchParams }: PageProps) {
   const { workspaceSlug } = await params
   const { new: openNew } = await searchParams
