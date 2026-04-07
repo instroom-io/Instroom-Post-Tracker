@@ -15,6 +15,7 @@ const statusVariant: Record<CampaignStatus, 'active' | 'draft' | 'ended'> = {
   active: 'active',
   draft: 'draft',
   ended: 'ended',
+  archived: 'ended',
 }
 
 export default async function CampaignsPage({ params, searchParams }: PageProps) {
@@ -88,7 +89,12 @@ export default async function CampaignsPage({ params, searchParams }: PageProps)
 
         <div className="p-5">
           <div data-tour="campaigns-table" className="rounded-xl border border-border bg-background-surface shadow-sm">
-            <CampaignsTable campaigns={enrichedCampaigns} workspaceSlug={workspaceSlug} />
+            <CampaignsTable
+              campaigns={enrichedCampaigns}
+              workspaceSlug={workspaceSlug}
+              workspaceId={workspace.id}
+              userRole={role}
+            />
           </div>
         </div>
       </div>

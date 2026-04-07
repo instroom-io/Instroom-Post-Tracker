@@ -22,6 +22,7 @@ const statusVariant: Record<CampaignStatus, 'active' | 'draft' | 'ended'> = {
   active: 'active',
   draft: 'draft',
   ended: 'ended',
+  archived: 'ended',
 }
 
 const VALID_TABS = ['overview', 'influencers', 'posts', 'downloads'] as const

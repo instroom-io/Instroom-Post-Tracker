@@ -9,6 +9,7 @@ import { CampaignsTable } from '@/components/dashboard/campaigns-table'
 import { RecentPostsGrid } from '@/components/dashboard/recent-posts-grid'
 import { OverviewBottomSkeleton } from '@/components/dashboard/overview-bottom-skeleton'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
+import type { WorkspaceRole } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
@@ -22,6 +23,19 @@ async function OverviewBottom({
   workspaceSlug: string
 }) {
   const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user?.id ?? '')
+    .single()
+
+  const role = (member?.role ?? 'viewer') as WorkspaceRole
 
   // Fetch campaigns and recent posts in parallel
   const [{ data: campaigns }, { data: recentPosts }] =
@@ -80,7 +94,12 @@ async function OverviewBottom({
             </Link>
           </div>
         </div>
-        <CampaignsTable campaigns={enrichedCampaigns} workspaceSlug={workspaceSlug} />
+        <CampaignsTable
+          campaigns={enrichedCampaigns}
+          workspaceSlug={workspaceSlug}
+          workspaceId={workspaceId}
+          userRole={role}
+        />
       </div>
 
       {/* Recent posts grid */}
