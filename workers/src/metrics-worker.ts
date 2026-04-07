@@ -207,8 +207,8 @@ async function main() {
     )
   )
 
-  const succeeded = results.filter((r) => r.status === 'fulfilled').length
-  const failed = results.filter((r) => r.status === 'rejected').length
+  const succeeded = results.filter((r: PromiseSettledResult<unknown>) => r.status === 'fulfilled').length
+  const failed = results.filter((r: PromiseSettledResult<unknown>) => r.status === 'rejected').length
 
   console.log(JSON.stringify({ processed: jobs.length, succeeded, failed }))
   process.exit(0)
