@@ -75,7 +75,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
               : 'text-foreground-muted hover:text-foreground'
           }`}
         >
-          Brand
+          Solo
         </button>
       </div>
 
