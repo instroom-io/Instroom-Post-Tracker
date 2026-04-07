@@ -8,6 +8,7 @@ import {
   useRef,
   type ReactNode,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -98,12 +99,6 @@ interface DropdownMenuContentProps {
   className?: string
 }
 
-const alignClasses: Record<DropdownAlign, string> = {
-  start: 'left-0',
-  end: 'right-0',
-  center: 'left-1/2 -translate-x-1/2',
-}
-
 export function DropdownMenuContent({
   children,
   align = 'start',
@@ -112,38 +107,70 @@ export function DropdownMenuContent({
 }: DropdownMenuContentProps) {
   const { open, containerRef } = useDropdownContext()
   const [resolvedSide, setResolvedSide] = useState<'top' | 'bottom'>('bottom')
+  const [coords, setCoords] = useState<{
+    top?: number
+    bottom?: number
+    left?: number
+    right?: number
+  } | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (open && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect()
       const spaceBelow = window.innerHeight - rect.bottom
       const spaceAbove = rect.top
-      setResolvedSide(spaceBelow < 160 && spaceAbove > spaceBelow ? 'top' : 'bottom')
+      const side = spaceBelow < 160 && spaceAbove > spaceBelow ? 'top' : 'bottom'
+      setResolvedSide(side)
+
+      const c: { top?: number; bottom?: number; left?: number; right?: number } = {}
+      if (side === 'bottom') {
+        c.top = rect.bottom + 4
+      } else {
+        c.bottom = window.innerHeight - rect.top + 4
+      }
+      if (align === 'end') {
+        c.right = window.innerWidth - rect.right
+      } else if (align === 'center') {
+        c.left = rect.left + rect.width / 2
+      } else {
+        c.left = rect.left
+      }
+      setCoords(c)
     }
-  }, [open, containerRef])
+  }, [open, containerRef, align])
+
+  if (!mounted) return null
 
   const yInit = resolvedSide === 'top' ? 4 : -4
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      {open && (
+      {open && coords && (
         <motion.div
           role="menu"
           initial={{ opacity: 0, y: yInit, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: yInit, scale: 0.97 }}
           transition={{ duration: 0.1 }}
+          style={{
+            position: 'fixed',
+            ...coords,
+            ...(align === 'center' ? { transform: 'translateX(-50%)' } : {}),
+            zIndex: 9999,
+          }}
           className={cn(
-            'absolute z-50 min-w-[160px] rounded-xl border border-border bg-background-surface shadow-md',
-            resolvedSide === 'top' ? 'bottom-full mb-1' : 'top-full mt-1',
-            alignClasses[align],
+            'min-w-[160px] rounded-xl border border-border bg-background-surface shadow-md',
             className
           )}
         >
           <div className="p-1">{children}</div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
 

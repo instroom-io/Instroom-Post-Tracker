@@ -268,7 +268,7 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
                           <DropdownMenuTrigger asChild>
                             <button
                               type="button"
-                              className="flex items-center justify-center rounded-md p-1.5 text-foreground-muted opacity-0 transition-all group-hover:opacity-100 hover:bg-background-muted hover:text-foreground focus:opacity-100 focus:outline-none"
+                              className="flex items-center justify-center rounded-md p-1.5 text-foreground-lighter opacity-0 transition-all group-hover:opacity-100 hover:bg-background-muted hover:text-foreground focus:opacity-100 focus:outline-none"
                             >
                               <DotsThree size={16} weight="bold" />
                             </button>
