@@ -98,7 +98,91 @@ export async function archiveCampaign(
   workspaceId: string,
   campaignId: string
 ): Promise<{ error: string } | void> {
-  return updateCampaign(workspaceId, campaignId, { status: 'ended' })
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
+  const { error } = await supabase
+    .from('campaigns')
+    .update({ status: 'archived' })
+    .eq('id', campaignId)
+    .eq('workspace_id', workspaceId)
+  if (error) return { error: 'Failed to archive campaign.' }
+
+  revalidatePath('/', 'layout')
+}
+
+export async function restoreCampaign(
+  workspaceId: string,
+  campaignId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
+  const { error } = await supabase
+    .from('campaigns')
+    .update({ status: 'draft' })
+    .eq('id', campaignId)
+    .eq('workspace_id', workspaceId)
+  if (error) return { error: 'Failed to restore campaign.' }
+
+  revalidatePath('/', 'layout')
+}
+
+export async function deleteCampaign(
+  workspaceId: string,
+  campaignId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
+  const { count } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('campaign_id', campaignId)
+    .eq('workspace_id', workspaceId)
+  if ((count ?? 0) > 0) return { error: 'Cannot delete a campaign that has posts.' }
+
+  const { error } = await supabase
+    .from('campaigns')
+    .delete()
+    .eq('id', campaignId)
+    .eq('workspace_id', workspaceId)
+  if (error) return { error: 'Failed to delete campaign.' }
+
+  revalidatePath('/', 'layout')
 }
 
 export async function upsertTrackingConfig(
