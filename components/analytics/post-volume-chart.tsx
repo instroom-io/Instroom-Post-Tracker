@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts'
-import { CHART_COLORS } from '@/lib/constants/platform-colors'
+import { CHART_COLORS, PLATFORM_COLORS } from '@/lib/constants/platform-colors'
 import { PlatformIcon } from '@/components/ui/platform-icon'
 
 type Platform = 'instagram' | 'tiktok' | 'youtube'
@@ -41,10 +41,18 @@ interface PostVolumeChartProps {
   multiPlatform?: boolean
 }
 
+const TOOLTIP_STYLE = {
+  background: 'var(--color-background-surface)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '10px',
+  fontSize: '12px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+}
+
 export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex h-[180px] items-center justify-center text-[12px] text-foreground-muted">
+      <div className="flex h-[200px] items-center justify-center text-[12px] text-foreground-muted">
         No post data for this period.
       </div>
     )
@@ -53,8 +61,26 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
   const axisStyle = { fontSize: 11, fill: 'hsl(0, 0%, 52%)' }
 
   return (
-    <ResponsiveContainer width="100%" height={180}>
-      <LineChart data={data} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
+    <ResponsiveContainer width="100%" height={200}>
+      <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
+        <defs>
+          <linearGradient id="gradientInstagram" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={PLATFORM_COLORS.instagram} stopOpacity={0.22} />
+            <stop offset="95%" stopColor={PLATFORM_COLORS.instagram} stopOpacity={0.02} />
+          </linearGradient>
+          <linearGradient id="gradientTiktok" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={PLATFORM_COLORS.tiktok} stopOpacity={0.22} />
+            <stop offset="95%" stopColor={PLATFORM_COLORS.tiktok} stopOpacity={0.02} />
+          </linearGradient>
+          <linearGradient id="gradientYoutube" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={PLATFORM_COLORS.youtube} stopOpacity={0.22} />
+            <stop offset="95%" stopColor={PLATFORM_COLORS.youtube} stopOpacity={0.02} />
+          </linearGradient>
+          <linearGradient id="gradientBrand" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#1FAE5B" stopOpacity={0.22} />
+            <stop offset="95%" stopColor="#1FAE5B" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
         <CartesianGrid
           strokeDasharray="3 3"
           stroke={CHART_COLORS.muted}
@@ -73,30 +99,61 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
           width={28}
           allowDecimals={false}
         />
-        <Tooltip
-          contentStyle={{
-            background: 'var(--color-background-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '8px',
-            fontSize: '12px',
-          }}
-        />
+        <Tooltip contentStyle={TOOLTIP_STYLE} />
         {multiPlatform && (
           <Legend content={<PlatformLegend />} />
         )}
         {multiPlatform && (
-          <Line type="monotone" dataKey="instagram" stroke={CHART_COLORS.instagram} strokeWidth={2} dot={false} name="Instagram" />
+          <Area
+            type="monotone"
+            dataKey="instagram"
+            stroke={PLATFORM_COLORS.instagram}
+            strokeWidth={2}
+            fill="url(#gradientInstagram)"
+            dot={false}
+            activeDot={{ r: 3, strokeWidth: 0 }}
+            name="instagram"
+          />
         )}
         {multiPlatform && (
-          <Line type="monotone" dataKey="tiktok" stroke={CHART_COLORS.tiktok} strokeWidth={2} strokeDasharray="5 5" dot={false} name="TikTok" />
+          <Area
+            type="monotone"
+            dataKey="tiktok"
+            stroke={PLATFORM_COLORS.tiktok}
+            strokeWidth={2}
+            strokeDasharray="5 5"
+            fill="url(#gradientTiktok)"
+            dot={false}
+            activeDot={{ r: 3, strokeWidth: 0 }}
+            name="tiktok"
+          />
         )}
         {multiPlatform && (
-          <Line type="monotone" dataKey="youtube" stroke={CHART_COLORS.youtube} strokeWidth={2} strokeDasharray="2 4" dot={false} name="YouTube" />
+          <Area
+            type="monotone"
+            dataKey="youtube"
+            stroke={PLATFORM_COLORS.youtube}
+            strokeWidth={2}
+            strokeDasharray="2 4"
+            fill="url(#gradientYoutube)"
+            dot={false}
+            activeDot={{ r: 3, strokeWidth: 0 }}
+            name="youtube"
+          />
         )}
         {!multiPlatform && (
-          <Line type="monotone" dataKey="total" stroke={CHART_COLORS.brand} strokeWidth={2} dot={false} name="Posts" />
+          <Area
+            type="monotone"
+            dataKey="total"
+            stroke="#1FAE5B"
+            strokeWidth={2}
+            fill="url(#gradientBrand)"
+            dot={false}
+            activeDot={{ r: 3, strokeWidth: 0 }}
+            name="Posts"
+          />
         )}
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   )
 }

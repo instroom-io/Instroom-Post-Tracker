@@ -39,6 +39,30 @@ interface AnalyticsClientProps {
   defaultFilters: AnalyticsFilters
 }
 
+function ChartCard({
+  title,
+  badge,
+  children,
+}: {
+  title: string
+  badge?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-background-surface p-5 shadow-md">
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-[13px] font-display font-bold text-foreground">{title}</p>
+        {badge && (
+          <span className="rounded-md bg-background-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+            {badge}
+          </span>
+        )}
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export function AnalyticsClient({
   metrics,
   campaigns,
@@ -62,6 +86,12 @@ export function AnalyticsClient({
     filtered.length > 0
       ? filtered.reduce((s, m) => s + m.engagement_rate, 0) / filtered.length
       : 0
+
+  // Date range label
+  const fromDate = new Date(filters.from)
+  const toDate = new Date(filters.to)
+  const dayDiff = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const dateRangeLabel = `${dayDiff}d`
 
   // PostVolumeChart data
   const dayMap = new Map<string, { total: number; instagram: number; tiktok: number; youtube: number }>()
@@ -159,10 +189,38 @@ export function AnalyticsClient({
   const multiPlatform = filters.platform === 'all'
 
   const statCards = [
-    { label: 'Posts', value: totalPosts.toLocaleString(), icon: ChartBar, iconBg: 'bg-brand/10', iconColor: 'text-brand' },
-    { label: 'Total Views', value: formatNumber(totalViews), icon: Eye, iconBg: 'bg-info/10', iconColor: 'text-info' },
-    { label: 'Avg ER', value: avgEr > 0 ? formatPercent(avgEr) : '—', icon: Percent, iconBg: 'bg-warning/10', iconColor: 'text-warning' },
-    { label: 'Total EMV', value: formatEMV(totalEmv), icon: TrendUp, iconBg: 'bg-warning/10', iconColor: 'text-warning' },
+    {
+      label: 'Posts',
+      value: totalPosts.toLocaleString(),
+      icon: ChartBar,
+      iconBg: 'bg-foreground/[0.07]',
+      iconColor: 'text-foreground-light',
+      accentColor: 'hsl(var(--foreground-light))',
+    },
+    {
+      label: 'Total Views',
+      value: formatNumber(totalViews),
+      icon: Eye,
+      iconBg: 'bg-info/10',
+      iconColor: 'text-info',
+      accentColor: 'hsl(var(--info))',
+    },
+    {
+      label: 'Avg ER',
+      value: avgEr > 0 ? formatPercent(avgEr) : '—',
+      icon: Percent,
+      iconBg: 'bg-accent/10',
+      iconColor: 'text-accent',
+      accentColor: 'hsl(var(--accent))',
+    },
+    {
+      label: 'Total EMV',
+      value: formatEMV(totalEmv),
+      icon: TrendUp,
+      iconBg: 'bg-brand/10',
+      iconColor: 'text-brand',
+      accentColor: 'hsl(var(--brand))',
+    },
   ]
 
   return (
@@ -173,64 +231,58 @@ export function AnalyticsClient({
         campaigns={campaigns}
       />
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="rounded-xl border border-border bg-background-surface p-4 shadow-sm"
+            className="relative overflow-hidden rounded-xl border border-border bg-background-surface p-4 shadow-md"
+            style={{ borderLeft: `2.5px solid ${card.accentColor}` }}
           >
             <div className="flex items-start justify-between">
               <p className="text-[12px] font-medium text-foreground-lighter">{card.label}</p>
-              <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${card.iconBg}`}>
-                <card.icon size={14} className={card.iconColor} />
+              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${card.iconBg}`}>
+                <card.icon size={15} className={card.iconColor} />
               </div>
             </div>
-            <p className="mt-2 text-[22px] font-display font-extrabold text-foreground">
+            <p className="mt-2 text-[24px] font-display font-extrabold leading-none text-foreground">
               {card.value}
             </p>
           </div>
         ))}
       </div>
 
+      {/* Charts — 2-col grid */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
-          <p className="mb-4 text-[13px] font-display font-bold text-foreground">
-            Post Volume
-          </p>
+        <ChartCard title="Post Volume" badge={dateRangeLabel}>
           <PostVolumeChart data={volumeData} multiPlatform={multiPlatform} />
-        </div>
+        </ChartCard>
 
-        <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
-          <p className="mb-4 text-[13px] font-display font-bold text-foreground">
-            Platform Breakdown
-          </p>
+        <ChartCard title="Platform Breakdown">
           <PlatformBreakdown data={platformData} />
-        </div>
+        </ChartCard>
 
-        <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
-          <p className="mb-4 text-[13px] font-display font-bold text-foreground">
-            EMV by Influencer
-          </p>
+        <ChartCard title="EMV by Influencer" badge="Top 10">
           <EmvChart data={emvData} />
-        </div>
+        </ChartCard>
 
-        <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
-          <p className="mb-4 text-[13px] font-display font-bold text-foreground">
-            Engagement Rate
-          </p>
+        <ChartCard title="Engagement Rate" badge="vs benchmark">
           <ErBenchmarkChart data={erData} />
-        </div>
+        </ChartCard>
       </div>
 
-      <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-        <div className="border-b border-border px-5 py-3.5">
-          <p className="text-[13px] font-display font-bold text-foreground">
-            Influencer Leaderboard
-          </p>
+      {/* Leaderboard */}
+      <div className="rounded-xl border border-border bg-background-surface shadow-md">
+        <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+          <p className="text-[13px] font-display font-bold text-foreground">Influencer Leaderboard</p>
+          {leaderboardRows.length > 0 && (
+            <span className="rounded-md bg-background-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+              {leaderboardRows.length} influencers
+            </span>
+          )}
         </div>
         <InfluencerLeaderboard rows={leaderboardRows} />
       </div>
-
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -22,6 +23,20 @@ interface ErBenchmarkChartProps {
   data: ErData[]
 }
 
+function getBarColor(er: number): string {
+  if (er >= 0.08) return 'hsl(145, 72%, 40%)'  // macro → brand green
+  if (er >= 0.04) return ER_BENCHMARK_COLORS.mid  // mid → warning
+  return ER_BENCHMARK_COLORS.micro               // micro → info
+}
+
+const TOOLTIP_STYLE = {
+  background: 'var(--color-background-surface)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '10px',
+  fontSize: '12px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+}
+
 export function ErBenchmarkChart({ data }: ErBenchmarkChartProps) {
   if (data.length === 0) {
     return (
@@ -36,19 +51,21 @@ export function ErBenchmarkChart({ data }: ErBenchmarkChartProps) {
 
   return (
     <div>
-      {/* micro/mid/macro benchmarks map to info/warning/destructive semantic tokens */}
-      <div className="mb-2 flex items-center gap-4 text-[10px] text-foreground-muted">
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-px w-3 bg-info" /> Micro 2%
+      <div className="mb-3 flex items-center gap-5 text-[10px] text-foreground-muted">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'hsl(145, 72%, 40%)' }} />
+          ≥8% Macro
         </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-px w-3 bg-warning" /> Mid 4%
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full" style={{ background: ER_BENCHMARK_COLORS.mid }} />
+          ≥4% Mid
         </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-px w-3 bg-destructive" /> Macro 8%
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full" style={{ background: ER_BENCHMARK_COLORS.micro }} />
+          &lt;4% Micro
         </span>
       </div>
-      <ResponsiveContainer width="100%" height={Math.max(180, sorted.length * 32)}>
+      <ResponsiveContainer width="100%" height={Math.max(180, sorted.length * 34)}>
         <BarChart
           layout="vertical"
           data={sorted}
@@ -76,22 +93,17 @@ export function ErBenchmarkChart({ data }: ErBenchmarkChartProps) {
             width={90}
           />
           <Tooltip
-            contentStyle={{
-              background: 'var(--color-background-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '8px',
-              fontSize: '12px',
-            }}
+            contentStyle={TOOLTIP_STYLE}
             formatter={(value: number) => [formatPercent(value), 'ER']}
           />
           <ReferenceLine x={0.02} stroke={ER_BENCHMARK_COLORS.micro} strokeDasharray="4 2" strokeWidth={1.5} />
           <ReferenceLine x={0.04} stroke={ER_BENCHMARK_COLORS.mid}   strokeDasharray="4 2" strokeWidth={1.5} />
-          <ReferenceLine x={0.08} stroke={ER_BENCHMARK_COLORS.macro} strokeDasharray="4 2" strokeWidth={1.5} />
-          <Bar
-            dataKey="er"
-            fill={CHART_COLORS.brand}
-            radius={[0, 4, 4, 0]}
-          />
+          <ReferenceLine x={0.08} stroke="hsl(145, 72%, 40%)"        strokeDasharray="4 2" strokeWidth={1.5} />
+          <Bar dataKey="er" radius={[0, 5, 5, 0]}>
+            {sorted.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={getBarColor(entry.er)} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>

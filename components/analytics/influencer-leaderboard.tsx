@@ -15,6 +15,30 @@ interface InfluencerLeaderboardProps {
   rows: LeaderboardRow[]
 }
 
+const RANK_STYLES: Record<number, string> = {
+  1: 'text-[#E9A426] font-bold',
+  2: 'text-foreground-lighter font-bold',
+  3: 'text-[#C47A30] font-bold',
+}
+
+const AVATAR_COLORS = [
+  'bg-accent/15 text-accent',
+  'bg-brand/15 text-brand',
+  'bg-info/15 text-info',
+]
+
+function Avatar({ handle, index }: { handle: string; index: number }) {
+  const letter = (handle?.[0] ?? '?').toUpperCase()
+  const colorClass = AVATAR_COLORS[index % 3]
+  return (
+    <div
+      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${colorClass}`}
+    >
+      {letter}
+    </div>
+  )
+}
+
 export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
   if (rows.length === 0) {
     return (
@@ -35,7 +59,7 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
       <table className="w-full">
         <thead>
           <tr className="border-b border-border">
-            <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter w-8">
+            <th className="w-8 px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
               #
             </th>
             <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
@@ -56,19 +80,26 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {rows.map((row, index) => (
             <tr
               key={row.fullName}
-              className="border-b border-border/50 last:border-0 hover:bg-background-muted/30 transition-colors"
+              className={`border-b border-border/50 last:border-0 transition-colors hover:bg-background-muted/50 ${
+                row.rank <= 3 ? 'bg-background-muted/20' : ''
+              }`}
             >
-              <td className="px-4 py-3 text-[11px] font-bold text-foreground-muted">
+              <td className={`px-4 py-3 text-[11px] ${RANK_STYLES[row.rank] ?? 'text-foreground-muted'}`}>
                 {row.rank}
               </td>
               <td className="px-4 py-3">
-                <p className="text-[12px] font-medium text-foreground">{row.fullName}</p>
-                {row.handle && (
-                  <p className="text-[11px] text-foreground-lighter">@{row.handle}</p>
-                )}
+                <div className="flex items-center gap-2.5">
+                  <Avatar handle={row.handle} index={index} />
+                  <div>
+                    <p className="text-[12px] font-medium text-foreground">{row.fullName}</p>
+                    {row.handle && (
+                      <p className="text-[11px] text-foreground-lighter">@{row.handle}</p>
+                    )}
+                  </div>
+                </div>
               </td>
               <td className="px-4 py-3 text-right text-[12px] text-foreground">
                 {row.posts}
