@@ -418,7 +418,7 @@ export function AddInfluencerToCampaignDialog({
                   loading={isPending}
                   onClick={handleValidate}
                 >
-                  Verify {parsedHandles.length > 0 ? parsedHandles.length : ''} handle{parsedHandles.length !== 1 ? 's' : ''}
+                  Verify
                 </Button>
               </DialogFooter>
             </>
