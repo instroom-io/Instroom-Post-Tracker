@@ -154,6 +154,56 @@ function ModalSaveToDriveButton({ postId, workspaceId, driveFileId }: {
   )
 }
 
+function ModalThumbnail({ post }: { post: PostRow }) {
+  const [playing, setPlaying] = useState(false)
+  const isVideo = post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)
+
+  return (
+    <div className="relative h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
+      {playing && post.media_url ? (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
+        <video
+          src={post.media_url}
+          autoPlay
+          controls
+          loop
+          playsInline
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <>
+          {post.thumbnail_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={
+                post.platform === 'instagram'
+                  ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
+                  : post.thumbnail_url
+              }
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <ImageBroken size={24} className="text-foreground-muted" />
+          )}
+          {isVideo && (
+            <button
+              type="button"
+              onClick={() => setPlaying(true)}
+              className="absolute inset-0 flex items-center justify-center group"
+              aria-label="Play video"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 transition-transform group-hover:scale-110">
+                <Play size={16} weight="fill" className="text-white" />
+              </div>
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, memberDriveUrl }: PostDetailModalProps) {
   // Detect which tracking hashtags/mentions appear in the caption
   const caption = post?.caption?.toLowerCase() ?? ''
@@ -217,29 +267,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                 <div className="flex flex-col gap-0 sm:flex-row">
                   {/* Thumbnail */}
                   <div className="flex-shrink-0 p-5 sm:pb-5 sm:pr-0">
-                    <div className="relative h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
-                      {post.thumbnail_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={
-                            post.platform === 'instagram'
-                              ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
-                              : post.thumbnail_url
-                          }
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <ImageBroken size={24} className="text-foreground-muted" />
-                      )}
-                      {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)) && (
-                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50">
-                            <Play size={12} weight="fill" className="text-white" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    <ModalThumbnail post={post} />
                   </div>
 
                   {/* Right side */}
