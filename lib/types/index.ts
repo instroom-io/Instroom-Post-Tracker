@@ -7,7 +7,7 @@ export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer'
 export type AgencyStatus = 'pending' | 'active' | 'suspended'
 export type AgencyRequestStatus = 'pending' | 'approved' | 'rejected'
 
-export type CampaignStatus = 'draft' | 'active' | 'ended'
+export type CampaignStatus = 'draft' | 'active' | 'ended' | 'archived'
 
 export type MonitoringStatus = 'pending' | 'active' | 'paused' | 'removed'
 

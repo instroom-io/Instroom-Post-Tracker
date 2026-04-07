@@ -111,7 +111,7 @@ export const updateCampaignSchema = z.object({
   platforms: z.array(z.enum(['instagram', 'tiktok', 'youtube'])).min(1).optional(),
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
-  status: z.enum(['draft', 'active', 'ended']).optional(),
+  status: z.enum(['draft', 'active', 'ended', 'archived']).optional(),
 })
 
 export const trackingConfigSchema = z.object({
