@@ -15,28 +15,11 @@ interface InfluencerLeaderboardProps {
   rows: LeaderboardRow[]
 }
 
-const RANK_STYLES: Record<number, string> = {
-  1: 'text-[#E9A426] font-bold',
-  2: 'text-foreground-lighter font-bold',
-  3: 'text-[#C47A30] font-bold',
-}
-
-const AVATAR_COLORS = [
-  'bg-accent/15 text-accent',
-  'bg-brand/15 text-brand',
-  'bg-info/15 text-info',
-]
-
-function Avatar({ handle, index }: { handle: string; index: number }) {
-  const letter = (handle?.[0] ?? '?').toUpperCase()
-  const colorClass = AVATAR_COLORS[index % 3]
-  return (
-    <div
-      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${colorClass}`}
-    >
-      {letter}
-    </div>
-  )
+function rankClass(rank: number): string {
+  if (rank === 1) return 'text-warning font-bold'
+  if (rank === 2) return 'text-foreground-lighter font-bold'
+  if (rank === 3) return 'text-foreground-light font-bold'
+  return 'text-foreground-muted'
 }
 
 export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
@@ -80,26 +63,19 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, index) => (
+          {rows.map((row) => (
             <tr
               key={row.fullName}
-              className={`border-b border-border/50 last:border-0 transition-colors hover:bg-background-muted/50 ${
-                row.rank <= 3 ? 'bg-background-muted/20' : ''
-              }`}
+              className="border-b border-border/50 last:border-0 transition-colors hover:bg-background-muted/30"
             >
-              <td className={`px-4 py-3 text-[11px] ${RANK_STYLES[row.rank] ?? 'text-foreground-muted'}`}>
+              <td className={`px-4 py-3 text-[11px] ${rankClass(row.rank)}`}>
                 {row.rank}
               </td>
               <td className="px-4 py-3">
-                <div className="flex items-center gap-2.5">
-                  <Avatar handle={row.handle} index={index} />
-                  <div>
-                    <p className="text-[12px] font-medium text-foreground">{row.fullName}</p>
-                    {row.handle && (
-                      <p className="text-[11px] text-foreground-lighter">@{row.handle}</p>
-                    )}
-                  </div>
-                </div>
+                <p className="text-[12px] font-medium text-foreground">{row.fullName}</p>
+                {row.handle && (
+                  <p className="text-[11px] text-foreground-lighter">@{row.handle}</p>
+                )}
               </td>
               <td className="px-4 py-3 text-right text-[12px] text-foreground">
                 {row.posts}

@@ -8,7 +8,8 @@ import { PlatformBreakdown } from '@/components/analytics/platform-breakdown'
 import { EmvChart } from '@/components/analytics/emv-chart'
 import { ErBenchmarkChart } from '@/components/analytics/er-benchmark-chart'
 import { InfluencerLeaderboard } from '@/components/analytics/influencer-leaderboard'
-import { formatEMV, formatNumber, formatPercent, getInfluencerLabel } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { cn, formatEMV, formatNumber, formatPercent, getInfluencerLabel } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
 
 export interface PostMetricRow {
@@ -49,14 +50,10 @@ function ChartCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl border border-border bg-background-surface p-5 shadow-md">
+    <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-[13px] font-display font-bold text-foreground">{title}</p>
-        {badge && (
-          <span className="rounded-md bg-background-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
-            {badge}
-          </span>
-        )}
+        {badge && <Badge variant="muted">{badge}</Badge>}
       </div>
       {children}
     </div>
@@ -188,38 +185,40 @@ export function AnalyticsClient({
 
   const multiPlatform = filters.platform === 'all'
 
+  const delayClasses = ['', 'animate-fade-up-delay-1', 'animate-fade-up-delay-2', 'animate-fade-up-delay-3']
+
   const statCards = [
     {
       label: 'Posts',
       value: totalPosts.toLocaleString(),
+      sub: 'tracked this period',
       icon: ChartBar,
-      iconBg: 'bg-foreground/[0.07]',
-      iconColor: 'text-foreground-light',
-      accentColor: 'hsl(var(--foreground-light))',
+      iconBg: 'bg-brand/10',
+      iconColor: 'text-brand',
     },
     {
       label: 'Total Views',
       value: formatNumber(totalViews),
+      sub: 'across all platforms',
       icon: Eye,
       iconBg: 'bg-info/10',
       iconColor: 'text-info',
-      accentColor: 'hsl(var(--info))',
     },
     {
       label: 'Avg ER',
       value: avgEr > 0 ? formatPercent(avgEr) : '—',
+      sub: 'engagement rate',
       icon: Percent,
       iconBg: 'bg-accent/10',
       iconColor: 'text-accent',
-      accentColor: 'hsl(var(--accent))',
     },
     {
       label: 'Total EMV',
       value: formatEMV(totalEmv),
+      sub: 'estimated media value',
       icon: TrendUp,
-      iconBg: 'bg-brand/10',
-      iconColor: 'text-brand',
-      accentColor: 'hsl(var(--brand))',
+      iconBg: 'bg-warning/10',
+      iconColor: 'text-warning',
     },
   ]
 
@@ -233,21 +232,21 @@ export function AnalyticsClient({
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {statCards.map((card) => (
+        {statCards.map((card, i) => (
           <div
             key={card.label}
-            className="relative overflow-hidden rounded-xl border border-border bg-background-surface p-4 shadow-md"
-            style={{ borderLeft: `2.5px solid ${card.accentColor}` }}
+            className={cn('animate-fade-up rounded-xl border border-border-strong bg-background-surface p-4 shadow-xs', delayClasses[i])}
           >
             <div className="flex items-start justify-between">
               <p className="text-[12px] font-medium text-foreground-lighter">{card.label}</p>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${card.iconBg}`}>
-                <card.icon size={15} className={card.iconColor} />
+              <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', card.iconBg)}>
+                <card.icon size={14} weight="duotone" className={card.iconColor} />
               </div>
             </div>
-            <p className="mt-2 text-[24px] font-display font-extrabold leading-none text-foreground">
+            <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
               {card.value}
             </p>
+            <p className="mt-0.5 text-[11px] text-foreground-muted">{card.sub}</p>
           </div>
         ))}
       </div>
@@ -272,13 +271,11 @@ export function AnalyticsClient({
       </div>
 
       {/* Leaderboard */}
-      <div className="rounded-xl border border-border bg-background-surface shadow-md">
+      <div className="rounded-xl border border-border bg-background-surface shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
           <p className="text-[13px] font-display font-bold text-foreground">Influencer Leaderboard</p>
           {leaderboardRows.length > 0 && (
-            <span className="rounded-md bg-background-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
-              {leaderboardRows.length} influencers
-            </span>
+            <Badge variant="muted">{leaderboardRows.length} influencers</Badge>
           )}
         </div>
         <InfluencerLeaderboard rows={leaderboardRows} />

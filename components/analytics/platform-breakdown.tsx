@@ -25,12 +25,6 @@ interface PlatformBreakdownProps {
   data: PlatformData[]
 }
 
-const PLATFORM_BORDER: Record<string, string> = {
-  instagram: PLATFORM_COLORS.instagram,
-  tiktok: PLATFORM_COLORS.tiktok,
-  youtube: PLATFORM_COLORS.youtube,
-}
-
 const TOOLTIP_STYLE = {
   background: 'var(--color-background-surface)',
   border: '1px solid var(--color-border)',
@@ -92,13 +86,11 @@ export function PlatformBreakdown({ data }: PlatformBreakdownProps) {
 
       <div className="grid grid-cols-3 gap-3">
         {data.map((d) => {
-          const borderColor = PLATFORM_BORDER[d.platform] ?? '#888'
           const pct = totalPosts > 0 ? Math.round((d.posts / totalPosts) * 100) : 0
           return (
             <div
               key={d.platform}
               className="rounded-lg border border-border bg-background-surface p-3 transition-colors hover:bg-background-muted/50"
-              style={{ borderLeft: `2.5px solid ${borderColor}` }}
             >
               <div className="mb-1 flex items-center gap-1.5">
                 <PlatformIcon platform={d.platform as 'instagram' | 'tiktok' | 'youtube'} size={11} />
