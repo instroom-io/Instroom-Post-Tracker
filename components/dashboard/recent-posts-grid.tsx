@@ -1,6 +1,5 @@
-import { Tray, ImageBroken, Play } from '@phosphor-icons/react/dist/ssr'
-import { Badge } from '@/components/ui/badge'
-import { formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
+import { Tray } from '@phosphor-icons/react/dist/ssr'
+import { RecentPostCard } from './recent-post-card'
 import type { Platform } from '@/lib/types'
 
 interface Post {
@@ -14,12 +13,6 @@ interface Post {
 
 interface RecentPostsGridProps {
   posts: Post[]
-}
-
-const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
-  instagram: 'instagram',
-  tiktok: 'tiktok',
-  youtube: 'youtube',
 }
 
 export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
@@ -40,60 +33,7 @@ export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {posts.map((post) => (
-        <div
-          key={post.id}
-          className="group relative overflow-hidden rounded-lg border border-border bg-background-muted"
-        >
-          {/* Thumbnail */}
-          <div className="aspect-square w-full bg-background-muted">
-            {post.thumbnail_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={
-                  post.platform === 'instagram'
-                    ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url!)}`
-                    : post.thumbnail_url!
-                }
-                alt={`Post by @${post.influencer ? getInfluencerLabel(post.influencer) : 'influencer'} on ${post.platform}, ${formatRelativeDate(post.posted_at)}`}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <ImageBroken size={20} className="text-foreground-muted" aria-label="No thumbnail" />
-              </div>
-            )}
-          </div>
-
-          {/* Overlay */}
-          <div className="absolute inset-0 flex flex-col justify-between p-2 opacity-0 transition-opacity group-hover:opacity-100 bg-black/40">
-            <Badge variant={platformVariant[post.platform]} className="self-start">
-              {post.platform}
-            </Badge>
-            <div>
-              <p className="text-[11px] font-medium text-white truncate">
-                @{post.influencer ? getInfluencerLabel(post.influencer) : 'Unknown'}
-              </p>
-              <p className="text-[10px] text-white/70">
-                {formatRelativeDate(post.posted_at)}
-              </p>
-            </div>
-          </div>
-
-          {/* Play overlay — always visible on video posts */}
-          {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)) && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50">
-                <Play size={12} weight="fill" className="text-white" />
-              </div>
-            </div>
-          )}
-          {/* Always-visible platform badge */}
-          <div className="absolute left-2 top-2 group-hover:opacity-0 transition-opacity">
-            <Badge variant={platformVariant[post.platform]} className="self-start">
-              {post.platform}
-            </Badge>
-          </div>
-        </div>
+        <RecentPostCard key={post.id} post={post} />
       ))}
     </div>
   )
