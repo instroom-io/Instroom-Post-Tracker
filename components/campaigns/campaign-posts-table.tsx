@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Tray, ImageBroken, ArrowSquareOut } from '@phosphor-icons/react'
+import { Tray, ImageBroken, ArrowSquareOut, Play } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, getInfluencerLabel } from '@/lib/utils'
@@ -10,6 +10,7 @@ import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/typ
 interface PostRow {
   id: string
   thumbnail_url: string | null
+  media_url: string | null
   caption: string | null
   post_url: string | null
   platform: Platform
@@ -103,7 +104,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
               >
                 {/* Thumbnail */}
                 <td className="px-5 py-3.5">
-                  <div className="h-11 w-11 overflow-hidden rounded-lg bg-background-muted flex-shrink-0">
+                  <div className="relative h-11 w-11 overflow-hidden rounded-lg bg-background-muted flex-shrink-0">
                     {post.thumbnail_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -114,6 +115,13 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
                     ) : (
                       <div className="flex h-full items-center justify-center">
                         <ImageBroken size={14} className="text-foreground-muted" aria-label="No thumbnail" />
+                      </div>
+                    )}
+                    {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)) && (
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-black/50">
+                          <Play size={7} weight="fill" className="text-white" />
+                        </div>
                       </div>
                     )}
                   </div>

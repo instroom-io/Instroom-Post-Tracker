@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { ArrowSquareOut, ImageBroken, Lock, CloudArrowUp, ArrowClockwise } from '@phosphor-icons/react'
+import { ArrowSquareOut, ImageBroken, Lock, CloudArrowUp, ArrowClockwise, Play } from '@phosphor-icons/react'
 import { savePostToUserDrive } from '@/lib/actions/posts'
 import {
   Dialog,
@@ -19,6 +19,7 @@ import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/typ
 interface PostRow {
   id: string
   thumbnail_url: string | null
+  media_url: string | null
   caption: string | null
   post_url: string | null
   platform: Platform
@@ -216,7 +217,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                 <div className="flex flex-col gap-0 sm:flex-row">
                   {/* Thumbnail */}
                   <div className="flex-shrink-0 p-5 sm:pb-5 sm:pr-0">
-                    <div className="h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
+                    <div className="relative h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
                       {post.thumbnail_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -230,6 +231,13 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                         />
                       ) : (
                         <ImageBroken size={24} className="text-foreground-muted" />
+                      )}
+                      {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)) && (
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50">
+                            <Play size={12} weight="fill" className="text-white" />
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>

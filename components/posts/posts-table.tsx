@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Tray, ImageBroken, CloudArrowUp, ArrowClockwise } from '@phosphor-icons/react'
+import { Tray, ImageBroken, CloudArrowUp, ArrowClockwise, Play } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { savePostToUserDrive } from '@/lib/actions/posts'
 import { cn } from '@/lib/utils'
@@ -142,6 +142,13 @@ function ThumbnailCell({ thumbnailUrl, mediaUrl, platform }: {
           preload="none"
           className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
         />
+      )}
+      {(platform === 'tiktok' || platform === 'youtube' || (platform === 'instagram' && !!mediaUrl)) && !hovering && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-black/50">
+            <Play size={7} weight="fill" className="text-white" />
+          </div>
+        </div>
       )}
     </div>
   )

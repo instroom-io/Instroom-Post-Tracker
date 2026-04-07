@@ -1,4 +1,4 @@
-import { Tray, ImageBroken } from '@phosphor-icons/react/dist/ssr'
+import { Tray, ImageBroken, Play } from '@phosphor-icons/react/dist/ssr'
 import { Badge } from '@/components/ui/badge'
 import { formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
@@ -6,6 +6,7 @@ import type { Platform } from '@/lib/types'
 interface Post {
   id: string
   thumbnail_url: string | null
+  media_url: string | null
   platform: Platform
   posted_at: string
   influencer: { tiktok_handle?: string | null; ig_handle?: string | null; youtube_handle?: string | null } | null
@@ -78,6 +79,14 @@ export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
             </div>
           </div>
 
+          {/* Play overlay — always visible on video posts */}
+          {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)) && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50">
+                <Play size={12} weight="fill" className="text-white" />
+              </div>
+            </div>
+          )}
           {/* Always-visible platform badge */}
           <div className="absolute left-2 top-2 group-hover:opacity-0 transition-opacity">
             <Badge variant={platformVariant[post.platform]} className="self-start">

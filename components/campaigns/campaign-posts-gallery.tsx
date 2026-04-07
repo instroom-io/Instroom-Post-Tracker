@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Tray, ImageBroken, Eye, Percent, CurrencyDollar, ArrowSquareOut, Lock } from '@phosphor-icons/react'
+import { Tray, ImageBroken, Eye, Percent, CurrencyDollar, ArrowSquareOut, Lock, Play } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, cn, getInfluencerLabel } from '@/lib/utils'
@@ -129,6 +129,14 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
           playsInline
           className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
         />
+      )}
+      {/* Play overlay — centered, always visible on video posts */}
+      {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)) && !hovering && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50">
+            <Play size={12} weight="fill" className="text-white" />
+          </div>
+        </div>
       )}
       {/* Platform badge — top left */}
       <div className="absolute left-2 top-2">
