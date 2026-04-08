@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const contentType = meta.data.mimeType ?? 'video/mp4'
     const fileSize = Number(meta.data.size ?? 0)
 
-    const res = await (drive.files.get as (p: object, o: object) => Promise<{ data: ArrayBuffer }>)(
+    const res = await (drive.files.get as unknown as (p: object, o: object) => Promise<{ data: ArrayBuffer }>)(
       { fileId, alt: 'media', supportsAllDrives: true },
       { responseType: 'arraybuffer' }
     )
