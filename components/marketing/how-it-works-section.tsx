@@ -69,8 +69,28 @@ export function HowItWorksSection() {
             </p>
           </motion.div>
 
-          <div className="mt-12 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8">
-            {steps.map((step) => (
+          <div className="mt-12 grid grid-cols-3 gap-8">
+            {steps.slice(0, 3).map((step) => (
+              <motion.div
+                key={step.num}
+                variants={itemVariants}
+                className="border-l-2 border-border pl-4 dark:border-white/10"
+              >
+                <span className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-brand">
+                  Step {step.num}
+                </span>
+                <h3 className="mt-1 mb-2 font-display text-[1.05rem] font-bold tracking-tight text-foreground">
+                  {step.title}
+                </h3>
+                <p className="text-[0.875rem] leading-relaxed text-foreground-lighter">
+                  {step.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-8 mx-auto grid max-w-[66.666%] grid-cols-2 gap-8">
+            {steps.slice(3).map((step) => (
               <motion.div
                 key={step.num}
                 variants={itemVariants}
