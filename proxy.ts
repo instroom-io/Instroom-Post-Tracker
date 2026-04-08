@@ -51,7 +51,6 @@ export async function proxy(request: NextRequest) {
 
   const isPublicPath =
     publicPaths.some((p) => pathname === p || pathname.startsWith(p + '/')) ||
-    pathname.startsWith('/api/webhooks/') ||
     pathname.startsWith('/api/cron/') ||
     pathname.startsWith('/api/dev/')
 

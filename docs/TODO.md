@@ -24,9 +24,10 @@
 - Add / edit influencers per workspace, social handle fields (IG, TikTok, YouTube)
 - Campaign–influencer linking (`campaign_influencers`)
 
-### Phase 6 — Ensemble Webhook + Post Detection
-- HMAC-SHA256 verified webhook at `/api/webhooks/ensemble`
+### Phase 6 — Post Detection (Polling)
+- Scheduled polling via `app/api/cron/posts-worker/route.ts`
 - Inserts posts, enqueues downloads, deduplicates by platform post ID
+- Cursor-based TikTok pagination (`tiktok_next_cursor`, `tiktok_backfill_complete`)
 
 ### Phase 7 — Download Worker + Google Drive
 - Cron worker at `/api/cron/download-worker`
@@ -159,7 +160,6 @@ Schema columns exist (`drive_oauth_token`, `drive_connection_type`, `drive_folde
 
 ### Reliability
 
-- [ ] Webhook rate limiting on `app/api/webhooks/ensemble/route.ts`
 - [ ] `Suspense` boundaries on remaining heavy pages (only `/overview` currently wrapped)
 
 ---

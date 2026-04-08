@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { createHmac, timingSafeEqual } from 'crypto'
 
 // ─── Class Name Utility ───────────────────────────────────────────────────────
 
@@ -123,25 +122,3 @@ export function extractDriveFolderId(input: string): string {
   return match ? match[1] : input.trim()
 }
 
-// ─── Webhook Signature Verification ──────────────────────────────────────────
-
-export async function verifyEnsembleSignature(
-  rawBody: string,
-  signature: string,
-  secret: string
-): Promise<boolean> {
-  try {
-    const expectedSig = createHmac('sha256', secret)
-      .update(rawBody, 'utf8')
-      .digest('hex')
-
-    const expectedBuffer = Buffer.from(`sha256=${expectedSig}`, 'utf8')
-    const receivedBuffer = Buffer.from(signature, 'utf8')
-
-    if (expectedBuffer.length !== receivedBuffer.length) return false
-
-    return timingSafeEqual(expectedBuffer, receivedBuffer)
-  } catch {
-    return false
-  }
-}

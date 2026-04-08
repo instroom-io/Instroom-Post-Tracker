@@ -12,7 +12,7 @@
 4. [Platform Onboarding — Team Member Invitation](#4-platform-onboarding--team-member-invitation)
 5. [Post-Login Routing](#5-post-login-routing)
 6. [Route Protection (Middleware)](#6-route-protection-middleware)
-7. [Post Detection — Ensemble Webhook](#7-post-detection--ensemble-webhook)
+7. [Post Detection — Polling Architecture](#7-post-detection--polling-architecture)
 8. [Download Worker (Cron)](#8-download-worker-cron)
 9. [Metrics Worker (Cron)](#9-metrics-worker-cron)
 10. [Campaign Lifecycle](#10-campaign-lifecycle)
@@ -203,7 +203,6 @@ Supabase session is refreshed on every request (cookie sync via `@supabase/ssr`)
 /invite/*
 /onboarding          ← dev only (disabled in production)
 /no-access
-/api/webhooks/*      ← auth via HMAC signature
 /api/cron/*          ← auth via Bearer CRON_SECRET
 ```
 
@@ -218,22 +217,23 @@ Supabase session is refreshed on every request (cookie sync via `@supabase/ssr`)
 
 ---
 
-## 7. Post Detection — Ensemble Webhook
+## 7. Post Detection — Polling Architecture
 
-**Endpoint:** `POST /api/webhooks/ensemble`
-**File:** `app/api/webhooks/ensemble/route.ts`
-**Auth:** HMAC-SHA256 signature in `x-signature` header
+Instroom uses scheduled polling to detect influencer posts. EnsembleData provides a pull-only REST API — there are no webhooks or push notifications.
 
-### Flow
+**How it works:**
 
-1. Receive POST from Ensemble.
-2. Read raw body; verify HMAC-SHA256 signature using `verifyEnsembleSignature(rawBody, signature, ENSEMBLE_WEBHOOK_SECRET)` from `lib/utils/index.ts` (timing-safe comparison).
-3. Parse JSON payload — identify platform, influencer handle, post URL, platform_post_id.
-4. Look up matching `influencer` by handle + workspace.
-5. Look up active `campaign_influencers` row (monitoring_status = 'active').
-6. INSERT `posts(platform, platform_post_id, post_url, caption, posted_at, campaign_id, influencer_id, workspace_id, download_status='pending', metrics_fetch_after=posted_at+7days)`.
-7. INSERT `retry_queue(job_type='download', post_id, status='pending', scheduled_at=now())`.
-8. Return `200 OK` immediately (async processing via cron).
+1. A Vercel Cron job triggers `app/api/cron/posts-worker/route.ts` on a schedule (daily at 4 PM UTC)
+2. The worker queries `campaign_influencers` for all rows with `monitoring_status = 'active'`
+3. For each influencer, it calls the appropriate EnsembleData endpoint:
+   - TikTok: `/tt/user/posts` with cursor-based pagination (`tiktok_next_cursor`)
+   - Instagram: `/instagram/user/posts` + `/instagram/user/reels`
+4. Posts are matched against the campaign tracking config (hashtags, mentions)
+5. Matched posts are inserted into the `posts` table with `download_status = 'pending'`
+6. The download worker and metrics worker pick up queued posts in subsequent runs
+
+**Cursor-based TikTok pagination:**
+Each `campaign_influencers` row tracks `tiktok_next_cursor` and `tiktok_backfill_complete`. During backfill, one page (~10 posts) is fetched per cron run. Once backfill is complete, only the latest posts are checked on each run.
 
 ---
 

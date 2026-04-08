@@ -34,7 +34,6 @@ export async function createClient() {
 /**
  * Service role client — bypasses ALL RLS.
  * ONLY allowed in:
- *   - app/api/webhooks/ensemble/route.ts
  *   - lib/actions/workspace.ts (createWorkspace, acceptInvitation)
  *   - lib/actions/agencies.ts (agency creation, brand invite acceptance)
  *   - lib/actions/account.ts (Google OAuth token storage, member folder self-update)
