@@ -69,7 +69,7 @@ export function HowItWorksSection() {
             </p>
           </motion.div>
 
-          <div className="mt-12 grid grid-cols-3 gap-8">
+          <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-3">
             {steps.slice(0, 3).map((step) => (
               <motion.div
                 key={step.num}
@@ -89,7 +89,7 @@ export function HowItWorksSection() {
             ))}
           </div>
 
-          <div className="mt-8 mx-auto grid max-w-[66.666%] grid-cols-2 gap-8">
+          <div className="mt-8 grid grid-cols-1 gap-8 lg:mx-auto lg:max-w-[66.666%] lg:grid-cols-2">
             {steps.slice(3).map((step) => (
               <motion.div
                 key={step.num}

@@ -41,14 +41,14 @@ export function MarketingNav() {
         scrolled ? 'bg-background/80 backdrop-blur-md border-b border-border' : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         {/* Wordmark */}
         <Link href="/">
           <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-12 w-auto" />
         </Link>
 
-        {/* Desktop nav links */}
-        <div className="hidden lg:flex gap-8">
+        {/* Desktop nav links — absolutely centered */}
+        <div className="absolute left-1/2 hidden -translate-x-1/2 lg:flex gap-8">
           {navLinks.map((link) => (
             <a
               key={link.href}
