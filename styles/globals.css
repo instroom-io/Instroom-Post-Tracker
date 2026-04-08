@@ -58,6 +58,7 @@
     /* Marketing landing page */
     --marketing-vignette-start: hsl(0 0% 97.5%);
     --marketing-grid-color: rgba(91, 111, 230, 0.04);
+    --marketing-section-dark: 0 0% 12%;    /* #1E1E1E — dark charcoal sections (pain, footer) */
   }
 
   .dark {
@@ -102,6 +103,7 @@
     /* Marketing landing page */
     --marketing-vignette-start: hsl(240 6% 9%);
     --marketing-grid-color: rgba(91, 111, 230, 0.06);
+    --marketing-section-dark: 240 6% 5%;   /* #0C0C0E — even deeper in dark mode for contrast */
   }
 
   * {

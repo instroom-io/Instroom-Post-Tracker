@@ -1,98 +1,126 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import {
-  Crosshair,
-  Shield,
-  CloudArrowDown,
-  Lock,
-  Sparkle,
-  SquaresFour,
-  type Icon,
-} from '@phosphor-icons/react'
+import { cn } from '@/lib/utils'
 
 const containerVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.08 } },
 }
-
 const itemVariants = {
-  hidden: { opacity: 0, y: 32 },
+  hidden: { opacity: 0, y: 28 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 }
 
-const features: { icon: Icon; title: string; description: string }[] = [
+interface FeatureCard {
+  tag: string
+  title: string
+  description: string
+  featured?: boolean
+}
+
+const features: FeatureCard[] = [
   {
-    icon: Crosshair,
-    title: 'Automatic Post Detection',
+    tag: 'Core differentiator',
+    title: 'Influencer-specific monitoring',
     description:
-      'Every influencer post across Instagram, TikTok, and YouTube is detected the moment it goes live. Matched to the right campaign automatically.',
+      "Unlike generic hashtag trackers that surface everyone who used your tag, Post Tracker monitors only the influencers you've hired. No irrelevant noise. No stranger content cluttering your library.",
+    featured: true,
   },
   {
-    icon: Shield,
-    title: 'Usage Rights Gating',
+    tag: 'Automation',
+    title: 'Automatic content download',
     description:
-      'Content downloads are gated behind a per-influencer, per-campaign usage rights toggle. No rights, no download — protecting your agency and your clients.',
+      'When usage rights are confirmed, content is automatically pulled from Instagram, TikTok, and YouTube — no watermarks, no manual saves, no chasing.',
   },
   {
-    icon: CloudArrowDown,
-    title: 'Watermark-Free Downloads',
+    tag: 'Organization',
+    title: 'Structured Google Drive sync',
     description:
-      'Original-quality content downloaded directly to a structured Google Drive folder. No screen recording. No watermarks. No manual work.',
+      'Every piece of content is automatically organized in your Google Drive by influencer, platform, and campaign. Your team always knows exactly where to find it.',
   },
   {
-    icon: Lock,
-    title: 'Frozen Performance Metrics',
+    tag: 'Monitoring',
+    title: 'Hashtag + mention tracking',
     description:
-      'Engagement data captured exactly 7 days after publish — then locked forever. Honest metrics that can\'t be inflated or cherry-picked.',
+      'Track branded hashtags and account mentions across Instagram, TikTok, and YouTube simultaneously. Post Tracker catches everything your influencers publish under your campaign.',
   },
   {
-    icon: Sparkle,
-    title: 'EMV Calculation',
+    tag: 'Repurposing',
+    title: 'Paid ads–ready UGC library',
     description:
-      'Estimated Media Value calculated per post using configurable CPM rates per platform. One clean number for every client report.',
+      'Every approved asset builds your creative library automatically. Hand it directly to your media buyer or ads team — no friction, no manual transfer, no delays.',
   },
   {
-    icon: SquaresFour,
-    title: 'Multi-Brand Workspaces',
+    tag: 'Multi-client',
+    title: 'Built for agencies and freelancers',
     description:
-      'One workspace per brand client. The agency sees everything. Each brand sees only their own world. Clean multi-tenant hierarchy.',
+      "Purchase your own plan or request access to a brand's existing account. Once approved, all your brands live under one login — no juggling separate accounts, no extra payment if the brand is already subscribed.",
   },
 ]
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="relative py-24 lg:py-32">
-      <div className="mx-auto max-w-7xl px-6">
+    <section className="bg-background-surface py-20" id="features">
+      <div className="mx-auto max-w-[1060px] px-[5%]">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">
-              Everything your agency needs to run influencer at scale
+          <motion.div variants={itemVariants}>
+            <span className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-brand">
+              Features
+            </span>
+            <h2 className="mt-2 font-display text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.15] tracking-tight text-foreground">
+              Everything you need.
+              <br />
+              Nothing you don&apos;t.
             </h2>
-            <p className="text-foreground-lighter text-lg mt-4 max-w-2xl mx-auto">
-              Six core capabilities that replace your spreadsheets, manual downloads, and guesswork.
+            <p className="mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
+              We built Post Tracker as a standalone tool because you
+              shouldn&apos;t pay for a full CRM just to solve a tracking
+              problem.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mt-12 grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-5">
             {features.map((feature) => (
               <motion.div
                 key={feature.title}
                 variants={itemVariants}
-                className="marketing-card marketing-card-hover p-6"
+                className={cn(
+                  'rounded-[14px] p-7 transition-colors',
+                  feature.featured
+                    ? 'bg-brand-dark'
+                    : 'border border-border bg-background hover:border-border-strong dark:border-white/8 dark:bg-white/5 dark:hover:border-white/15'
+                )}
               >
-                <div className="bg-brand-muted rounded-xl p-3 w-12 h-12 flex items-center justify-center mb-4">
-                  <feature.icon size={22} className="text-brand" />
-                </div>
-                <h3 className="font-display text-base font-bold text-foreground mb-2">
+                <span
+                  className={cn(
+                    'mb-4 inline-block rounded-full px-2.5 py-1 text-[0.7rem] font-bold uppercase tracking-[0.1em]',
+                    feature.featured
+                      ? 'bg-white/15 text-white/90'
+                      : 'bg-brand/12 text-brand-dark dark:text-brand'
+                  )}
+                >
+                  {feature.tag}
+                </span>
+                <h3
+                  className={cn(
+                    'mb-2 font-display text-[1.05rem] font-bold tracking-tight',
+                    feature.featured ? 'text-white' : 'text-foreground'
+                  )}
+                >
                   {feature.title}
                 </h3>
-                <p className="text-foreground-lighter text-sm leading-relaxed">
+                <p
+                  className={cn(
+                    'text-[0.875rem] leading-relaxed',
+                    feature.featured ? 'text-white/70' : 'text-foreground-lighter'
+                  )}
+                >
                   {feature.description}
                 </p>
               </motion.div>

@@ -6,62 +6,67 @@ import { Check } from '@phosphor-icons/react'
 import { useMarketingContact } from '@/components/marketing/marketing-contact-provider'
 import { cn } from '@/lib/utils'
 
-const containerVariants = { hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }
-const itemVariants = { hidden: { opacity: 0, y: 32 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+}
+const itemVariants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+}
 
-interface Tier {
+interface PricingTier {
   name: string
   price: string
-  period: string | null
+  period: string
   popular: boolean
-  contactCta: boolean
   features: string[]
 }
 
-const tiers: Tier[] = [
+const tiers: PricingTier[] = [
   {
     name: 'Starter',
-    price: '€149',
-    period: '/mo',
+    price: '$29',
+    period: 'per month, billed monthly',
     popular: false,
-    contactCta: false,
     features: [
-      '3 brand workspaces',
-      '5 team members',
+      'Up to 3 brands',
+      '25 tracked influencers',
       'Instagram + TikTok',
+      'Hashtag + mention tracking',
+      'Google Drive sync',
       '30-day post history',
-      'Google Drive integration',
-      'Email support',
     ],
   },
   {
-    name: 'Growth',
-    price: '€349',
-    period: '/mo',
+    name: 'Pro',
+    price: '$79',
+    period: 'per month, billed monthly',
     popular: true,
-    contactCta: false,
     features: [
-      '10 brand workspaces',
-      '20 team members',
-      'All platforms (IG, TikTok, YouTube)',
-      'Unlimited post history',
-      'Priority support',
-      'Custom EMV rates',
+      'Up to 10 brands',
+      '100 tracked influencers',
+      'Instagram + TikTok + YouTube',
+      'Hashtag + mention tracking',
+      'Auto content download',
+      'Usage rights management',
+      'Paid ads–ready UGC library',
+      '90-day post history',
     ],
   },
   {
     name: 'Agency',
-    price: '€749',
-    period: '/mo',
+    price: '$149',
+    period: 'per month, billed monthly',
     popular: false,
-    contactCta: true,
     features: [
-      'Unlimited workspaces',
-      'Unlimited team members',
+      'Unlimited brands',
+      '300 tracked influencers',
       'All platforms',
-      'Custom CPM configuration',
-      'Dedicated onboarding',
-      'SLA guarantee',
+      'Full auto-download',
+      'Team collaboration',
+      'Isolated client workspaces',
+      'Priority support',
     ],
   },
 ]
@@ -70,89 +75,122 @@ export function PricingSection() {
   const { setOpen } = useMarketingContact()
 
   return (
-    <section id="pricing" className="relative py-24 lg:py-32">
-      <div className="mx-auto max-w-7xl px-6">
+    <section id="pricing" className="py-20">
+      <div className="mx-auto max-w-[1060px] px-[5%]">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">
-              Simple pricing for agencies of every size
+          <motion.div variants={itemVariants} className="text-center">
+            <span className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-brand">
+              Pricing
+            </span>
+            <h2 className="mt-2 font-display text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.15] tracking-tight text-foreground">
+              Pay for what you use.
+              <br />
+              Not what you don&apos;t.
             </h2>
-            <p className="text-foreground-lighter text-lg mt-4">
-              Indicative pricing — contact us for a custom quote.
+            <p className="mx-auto mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
+              Post Tracker is a standalone tool. No bloated CRM. No features
+              you&apos;ll never open. Just clean post tracking that works — or
+              bundle it with Instroom CRM at a discount.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start overflow-visible">
+          <div className="mx-auto mt-12 max-w-[900px] grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-5 overflow-visible">
             {tiers.map((tier) => (
               <motion.div
                 key={tier.name}
                 variants={itemVariants}
                 className={cn(
-                  'marketing-card relative p-8',
+                  'relative rounded-[16px] p-8',
                   tier.popular
-                    ? 'border-brand/50 lg:scale-105 dark:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_60px_rgba(31,174,91,0.15),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                    : ''
+                    ? 'bg-brand-dark'
+                    : 'border-[1.5px] border-border bg-background-surface dark:border-white/10 dark:bg-white/5'
                 )}
               >
                 {tier.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white text-[10px] tracking-widest uppercase px-3 py-1 rounded-full font-semibold">
-                    Most Popular
-                  </span>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-white">
+                    Most popular
+                  </div>
                 )}
 
-                <h3 className="font-display text-lg font-bold text-foreground">{tier.name}</h3>
-                <div className="mt-4 mb-6">
-                  <span className="font-display text-4xl font-bold text-foreground">{tier.price}</span>
-                  {tier.period && (
-                    <span className="text-foreground-lighter text-sm ml-1">{tier.period}</span>
+                <h3
+                  className={cn(
+                    'font-display text-[0.9rem] font-bold uppercase tracking-[0.08em]',
+                    tier.popular ? 'text-white/60' : 'text-foreground-lighter'
                   )}
-                </div>
+                >
+                  {tier.name}
+                </h3>
 
-                <ul className="space-y-3 mb-8">
-                  {tier.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <Check size={14} className="text-brand mt-0.5 shrink-0" />
-                      <span className="text-foreground-light text-sm">{f}</span>
+                <div className="mt-3 mb-1 font-display text-[2.4rem] font-bold leading-none tracking-tight">
+                  <span className={tier.popular ? 'text-white' : 'text-foreground'}>
+                    {tier.price}
+                  </span>
+                </div>
+                <p
+                  className={cn(
+                    'mb-6 text-[0.8rem]',
+                    tier.popular ? 'text-white/50' : 'text-foreground-lighter'
+                  )}
+                >
+                  {tier.period}
+                </p>
+
+                <ul className="mb-7 space-y-0">
+                  {tier.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className={cn(
+                        'flex items-start gap-2 border-b py-[0.35rem] text-[0.86rem] last:border-0',
+                        tier.popular
+                          ? 'border-white/8 text-white/85'
+                          : 'border-border text-foreground'
+                      )}
+                    >
+                      <Check
+                        size={14}
+                        weight="bold"
+                        className={cn(
+                          'mt-0.5 shrink-0',
+                          tier.popular ? 'text-white/70' : 'text-brand'
+                        )}
+                      />
+                      {feature}
                     </li>
                   ))}
                 </ul>
 
-                {tier.contactCta ? (
-                  <button
-                    onClick={() => setOpen(true)}
-                    className="w-full bg-background-muted text-foreground py-2.5 rounded-lg text-sm font-semibold hover:bg-border transition-all dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
-                  >
-                    Contact Us
-                  </button>
-                ) : (
-                  <Link
-                    href="/request-access"
-                    className={cn(
-                      'block w-full py-2.5 rounded-lg text-sm font-semibold text-center transition-all',
-                      tier.popular
-                        ? 'bg-brand text-white hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)]'
-                        : 'bg-background-muted text-foreground hover:bg-border dark:bg-white/10 dark:text-white dark:hover:bg-white/20'
-                    )}
-                  >
-                    Get Started
-                  </Link>
-                )}
+                <Link
+                  href="/request-access"
+                  className={cn(
+                    'block w-full rounded-[9px] py-[0.85rem] text-center text-[0.9rem] font-semibold transition-colors',
+                    tier.popular
+                      ? 'bg-brand text-white hover:bg-brand/90'
+                      : 'border-[1.5px] border-brand text-brand-dark hover:bg-brand/5 dark:text-brand'
+                  )}
+                >
+                  Get started
+                </Link>
               </motion.div>
             ))}
           </div>
 
-          <p className="text-center text-foreground-lighter text-sm mt-8">
-            Managing 50+ brand clients?{' '}
-            <button onClick={() => setOpen(true)} className="text-brand hover:underline">
-              Contact our team
-            </button>{' '}
-            for a custom plan.
-          </p>
+          <motion.p
+            variants={itemVariants}
+            className="mt-6 text-center text-[0.82rem] text-foreground-lighter"
+          >
+            Already on Instroom CRM? Bundle Post Tracker at a discounted rate.{' '}
+            <button
+              onClick={() => setOpen(true)}
+              className="font-semibold text-brand hover:underline"
+            >
+              Talk to us →
+            </button>
+          </motion.p>
         </motion.div>
       </div>
     </section>

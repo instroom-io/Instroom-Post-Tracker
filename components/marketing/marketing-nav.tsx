@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { List, X } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMarketingContact } from '@/components/marketing/marketing-contact-provider'
 
 const navLinks = [
   { label: 'Features', href: '#features' },
@@ -15,7 +14,6 @@ const navLinks = [
 ]
 
 export function MarketingNav() {
-  const { setOpen } = useMarketingContact()
   const pathname = usePathname()
   const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
@@ -64,19 +62,15 @@ export function MarketingNav() {
         </div>
 
         {/* Desktop actions */}
-        <div className="hidden lg:flex items-center gap-4">
-          <Link href="/login" className="text-foreground-lighter hover:text-foreground text-sm transition-colors">Sign in</Link>
-          <button
-            onClick={() => setOpen(true)}
-            className="text-foreground-lighter hover:text-foreground text-sm transition-colors"
-          >
-            Contact Us
-          </button>
+        <div className="hidden lg:flex items-center gap-3">
+          <Link href="/login" className="text-foreground-lighter hover:text-foreground text-sm font-medium transition-colors">
+            Log in
+          </Link>
           <Link
             href="/request-access"
-            className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
+            className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
           >
-            Request Access
+            Start free trial
           </Link>
         </div>
 
@@ -114,20 +108,14 @@ export function MarketingNav() {
                 onClick={() => setMobileOpen(false)}
                 className="text-foreground-light text-lg font-medium"
               >
-                Sign in
+                Log in
               </Link>
-              <button
-                onClick={() => { setMobileOpen(false); setOpen(true) }}
-                className="text-foreground-lighter text-lg font-medium"
-              >
-                Contact Us
-              </button>
               <Link
                 href="/request-access"
                 onClick={() => setMobileOpen(false)}
-                className="bg-brand text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-brand/90 transition-all mt-4"
+                className="bg-brand text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand/90 transition-all mt-4"
               >
-                Request Access
+                Start free trial
               </Link>
             </div>
           </motion.div>

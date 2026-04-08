@@ -6,80 +6,85 @@ const containerVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.1 } },
 }
-
 const itemVariants = {
-  hidden: { opacity: 0, y: 32 },
+  hidden: { opacity: 0, y: 28 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 }
 
-const steps: { title: string; description: string }[] = [
+const steps = [
   {
-    title: 'Campaign Setup',
+    num: '01',
+    title: 'Add your campaign influencers',
     description:
-      'Create a campaign, add your influencers with their social handles, and configure tracking. Instroom starts monitoring immediately.',
+      'Import your influencer list from Instroom CRM or add them manually. Post Tracker knows exactly who it should be watching — no noise, no strangers.',
   },
   {
-    title: 'Post Detection',
+    num: '02',
+    title: 'Set your hashtags and mentions',
     description:
-      'Our system scans Instagram, TikTok, and YouTube continuously. When an influencer posts, it\'s detected, matched, and logged within minutes.',
+      'Define the branded hashtags and account mentions tied to the campaign. Post Tracker monitors Instagram, TikTok, and YouTube simultaneously from day one.',
   },
   {
-    title: 'Rights & Download',
+    num: '03',
+    title: 'Posts are captured automatically',
     description:
-      'Toggle usage rights per influencer. Once enabled, content is downloaded watermark-free to your Google Drive — organized by brand and campaign.',
+      'When a tracked influencer posts using your hashtag or tags your brand, Post Tracker logs it instantly — no manual checking, no missed deliverables.',
   },
   {
-    title: 'Metrics & EMV',
+    num: '04',
+    title: 'Content downloads to your Drive',
     description:
-      'Seven days after publish, performance metrics are captured and frozen. EMV is calculated automatically using your configured CPM rates.',
+      "For influencers who've granted usage rights, content is automatically downloaded and organized in your Google Drive — clean, labeled, ready to use.",
+  },
+  {
+    num: '05',
+    title: 'Repurpose directly for paid ads',
+    description:
+      'Your UGC creative library builds itself. Pull assets directly into your paid ads workflow without chasing anyone for files or permission again.',
   },
 ]
 
 export function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="relative py-24 lg:py-32">
-      <div className="mx-auto max-w-7xl px-6">
+    <section className="py-20" id="how-it-works">
+      <div className="mx-auto max-w-[1060px] px-[5%]">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">
-              From post live to performance report — without lifting a finger
+          <motion.div variants={itemVariants}>
+            <span className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-brand">
+              How it works
+            </span>
+            <h2 className="mt-2 font-display text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.15] tracking-tight text-foreground">
+              Set it up once.
+              <br />
+              It runs on its own.
             </h2>
-            <p className="text-foreground-lighter text-lg mt-4 max-w-2xl mx-auto">
-              Four steps. Fully automated. Your team focuses on strategy while Instroom handles the rest.
+            <p className="mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
+              Post Tracker connects to your campaign influencers — not random
+              strangers who used your hashtag. Only the people you worked with.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {steps.map((step, i) => (
+          <div className="mt-12 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8">
+            {steps.map((step) => (
               <motion.div
-                key={step.title}
+                key={step.num}
                 variants={itemVariants}
-                className="relative"
+                className="border-l-2 border-border pl-4 dark:border-white/10"
               >
-                <span className="absolute -top-6 left-2 text-[100px] lg:text-[120px] font-display font-black text-brand/5 leading-none select-none pointer-events-none">
-                  {i + 1}
+                <span className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-brand">
+                  Step {step.num}
                 </span>
-
-                <div className="relative marketing-card p-6">
-                  <div className="bg-brand-muted rounded-full w-8 h-8 flex items-center justify-center mb-4">
-                    <span className="text-brand font-bold text-sm">{i + 1}</span>
-                  </div>
-                  <h3 className="font-display text-base font-bold text-foreground mb-2">
-                    {step.title}
-                  </h3>
-                  <p className="text-foreground-lighter text-sm leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
-
-                {i < 3 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-3 w-6 border-t border-dashed border-brand/30" />
-                )}
+                <h3 className="mt-1 mb-2 font-display text-[1.05rem] font-bold tracking-tight text-foreground">
+                  {step.title}
+                </h3>
+                <p className="text-[0.875rem] leading-relaxed text-foreground-lighter">
+                  {step.description}
+                </p>
               </motion.div>
             ))}
           </div>

@@ -51,6 +51,7 @@ const config: Config = {
           DEFAULT: 'hsl(var(--info))',
           muted: 'hsl(var(--info-muted))',
         },
+        'marketing-dark': 'hsl(var(--marketing-section-dark))',
         platform: {
           instagram: {
             DEFAULT: 'hsl(var(--platform-instagram))',
