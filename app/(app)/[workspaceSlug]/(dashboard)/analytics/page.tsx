@@ -30,10 +30,12 @@ async function AnalyticsBody({
   workspaceId,
   campaigns,
   defaultFilters,
+  timezone,
 }: {
   workspaceId: string
   campaigns: { id: string; name: string }[]
   defaultFilters: AnalyticsFilters
+  timezone: string
 }) {
   const supabase = await createClient()
   const { data: metrics } = await supabase
@@ -80,6 +82,7 @@ async function AnalyticsBody({
       metrics={metricsData}
       campaigns={campaigns}
       defaultFilters={defaultFilters}
+      timezone={timezone}
     />
   )
 }
@@ -130,7 +133,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
   if (!workspace) notFound()
   if (!user) redirect('/login')
 
-  const [{ data: campaigns }, { data: member }] = await Promise.all([
+  const [{ data: campaigns }, { data: member }, { data: userPrefs }] = await Promise.all([
     supabase
       .from('campaigns')
       .select('id, name')
@@ -143,9 +146,15 @@ export default async function AnalyticsPage({ params }: PageProps) {
       .eq('workspace_id', workspace.id)
       .eq('user_id', user.id)
       .single(),
+    supabase
+      .from('users')
+      .select('timezone')
+      .eq('id', user.id)
+      .single(),
   ])
 
   const canEdit = member?.role === 'owner' || member?.role === 'admin'
+  const timezone = userPrefs?.timezone ?? 'UTC'
   const { from, to } = getDefaultDates()
   const defaultFilters: AnalyticsFilters = { from, to, campaignId: 'all', platform: 'all' }
 
@@ -159,6 +168,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
               workspaceId={workspace.id}
               campaigns={campaigns ?? []}
               defaultFilters={defaultFilters}
+              timezone={timezone}
             />
           </Suspense>
         </SectionErrorBoundary>

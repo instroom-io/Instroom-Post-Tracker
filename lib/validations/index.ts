@@ -206,7 +206,7 @@ export const agencySchema = z.object({
 
 export type AgencyInput = z.infer<typeof agencySchema>
 
-// ─── Agency Settings ──────────────────────────────────────────────────────────
+// ─── Account Settings ─────────────────────────────────────────────────────────
 
 export const updatePreferencesSchema = z.object({
   preferred_language: z.string()
@@ -214,7 +214,11 @@ export const updatePreferencesSchema = z.object({
     .max(10, 'Language code must be under 10 characters'),
   timezone: z.string()
     .min(1, 'Timezone is required')
-    .max(100, 'Timezone must be under 100 characters'),
+    .max(100, 'Timezone must be under 100 characters')
+    .refine((tz) => {
+      try { Intl.DateTimeFormat(undefined, { timeZone: tz }); return true }
+      catch { return false }
+    }, { message: 'Invalid timezone identifier' }),
 })
 
 export const updatePasswordSchema = z.object({

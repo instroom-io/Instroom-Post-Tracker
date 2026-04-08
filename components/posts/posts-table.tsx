@@ -41,6 +41,7 @@ interface PostsTableProps {
   showCampaignColumn?: boolean
   canEdit?: boolean
   workspaceId?: string
+  timezone?: string
 }
 
 function SaveToDriveButton({ postId, workspaceId, driveFileId }: {
@@ -166,6 +167,7 @@ export function PostsTable({
   showCampaignColumn = false,
   canEdit = false,
   workspaceId,
+  timezone,
 }: PostsTableProps) {
   const [filters, setFilters] = useState({
     platform: 'all' as Platform | 'all',
@@ -336,7 +338,7 @@ export function PostsTable({
                   </td>
 
                   <td className="px-5 py-3 text-[12px] text-foreground-lighter">
-                    {formatRelativeDate(post.posted_at)}
+                    {formatRelativeDate(post.posted_at, timezone)}
                   </td>
 
                   <td className="px-5 py-3 text-right text-[12px] text-foreground">

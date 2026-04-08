@@ -38,6 +38,7 @@ interface AnalyticsClientProps {
   metrics: PostMetricRow[]
   campaigns: Campaign[]
   defaultFilters: AnalyticsFilters
+  timezone?: string
 }
 
 function ChartCard({
@@ -64,6 +65,7 @@ export function AnalyticsClient({
   metrics,
   campaigns,
   defaultFilters,
+  timezone,
 }: AnalyticsClientProps) {
   const [filters, setFilters] = useState<AnalyticsFilters>(defaultFilters)
 
@@ -104,7 +106,7 @@ export function AnalyticsClient({
   const volumeData = Array.from(dayMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, counts]) => ({
-      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(timezone ? { timeZone: timezone } : {}) }),
       ...counts,
     }))
 

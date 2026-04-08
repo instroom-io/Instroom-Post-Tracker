@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -107,6 +107,15 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
   const [prefTzPending, startPrefTzTransition] = useTransition()
   const [langError, setLangError] = useState<string | null>(null)
   const [tzError, setTzError] = useState<string | null>(null)
+
+  // Auto-detect browser timezone when the saved value is still the default 'UTC'
+  useEffect(() => {
+    if (timezone === 'UTC') {
+      const detected = Intl.DateTimeFormat().resolvedOptions().timeZone
+      if (detected && detected !== 'UTC') setTz(detected)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Security state
   const [currentPassword, setCurrentPassword] = useState('')
@@ -277,6 +286,9 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
                   onChange={(e) => setTz(e.target.value)}
                   disabled={prefTzPending}
                 />
+                {tz !== timezone && !tzError && (
+                  <p className="text-[11px] text-foreground-muted">Detected from your browser — click Save to apply.</p>
+                )}
                 {tzError && <p className="text-[11px] text-destructive">{tzError}</p>}
                 <div>
                   <Button variant="primary" size="sm" loading={prefTzPending} onClick={handleSaveTimezone}>

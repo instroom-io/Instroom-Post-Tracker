@@ -35,7 +35,7 @@ export default async function PostsPage({ params }: PageProps) {
     ? ['owner', 'admin', 'editor'].includes(member.role)
     : false
 
-  const [{ data: posts }, { data: campaigns }] = await Promise.all([
+  const [{ data: posts }, { data: campaigns }, { data: userPrefs }] = await Promise.all([
     supabase
       .from('posts')
       .select(
@@ -49,6 +49,11 @@ export default async function PostsPage({ params }: PageProps) {
       .select('id, name')
       .eq('workspace_id', workspace.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('users')
+      .select('timezone')
+      .eq('id', user.id)
+      .single(),
   ])
 
   return (
@@ -63,6 +68,7 @@ export default async function PostsPage({ params }: PageProps) {
         showCampaignColumn
         canEdit={canEdit}
         workspaceId={workspace.id}
+        timezone={userPrefs?.timezone ?? 'UTC'}
       />
     </div>
   )

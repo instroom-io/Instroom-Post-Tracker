@@ -20,15 +20,16 @@ export function getInfluencerLabel(inf: {
 
 // ─── Date Formatters ──────────────────────────────────────────────────────────
 
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date, timeZone?: string): string {
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    ...(timeZone ? { timeZone } : {}),
   }).format(new Date(date))
 }
 
-export function formatRelativeDate(date: string | Date): string {
+export function formatRelativeDate(date: string | Date, timeZone?: string): string {
   const now = new Date()
   const then = new Date(date)
   const diffMs = now.getTime() - then.getTime()
@@ -42,7 +43,7 @@ export function formatRelativeDate(date: string | Date): string {
   if (diffHours < 24) return `${diffHours}h ago`
   if (diffDays < 7) return `${diffDays}d ago`
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
-  return formatDate(date)
+  return formatDate(date, timeZone)
 }
 
 export function formatDateRange(startDate: string, endDate: string | null): string {
