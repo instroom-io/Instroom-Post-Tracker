@@ -13,7 +13,7 @@ Browser (React / Next.js 15)
   │     ├── Server Actions           ──── Supabase (user-scoped or service role)
   │     ├── Edge Middleware          ──── Supabase session refresh + auth redirect
   │     └── API Routes
-  │           ├── POST /api/webhooks/ensemble  ← Ensemble → Instroom (HMAC signed)
+  │           ├── GET  /api/cron/posts-worker      ← Vercel Cron (every 30 min — polls EnsembleData)
   │           ├── GET  /api/cron/download-worker   ← Vercel Cron (every 5 min)
   │           └── GET  /api/cron/metrics-worker    ← Vercel Cron (every 10 min)
   │
@@ -77,8 +77,8 @@ app/
 │       │   └── settings/page.tsx
 │
 ├── api/
-│   ├── webhooks/ensemble/route.ts      ← External POST, HMAC only, service client
 │   └── cron/
+│       ├── posts-worker/route.ts       ← GET, Vercel Cron Bearer token (polls EnsembleData)
 │       ├── download-worker/route.ts    ← GET, Vercel Cron Bearer token
 │       └── metrics-worker/route.ts    ← GET, Vercel Cron Bearer token
 │
@@ -198,7 +198,7 @@ This is persisted to `localStorage`. It is **no longer used by the WorkspaceSwit
 
 It does **not** check workspace membership (that's the layout's job).
 
-Matcher: `/((?!_next/static|_next/image|favicon|api/webhooks).*)` — excludes static assets and the webhook route.
+Matcher: `/((?!_next/static|_next/image|favicon).*)` — excludes static assets.
 
 ### RLS policies
 

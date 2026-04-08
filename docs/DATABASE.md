@@ -386,7 +386,7 @@ Same RLS pattern as before — `workspace_id in (select public.my_workspace_ids(
 | Connect Google Drive | `admin` |
 
 ### Tables written only via service role
-- `posts` — INSERT by Ensemble webhook handler
+- `posts` — INSERT by posts-worker cron job
 - `post_metrics` — INSERT by metrics worker
 - `retry_queue` — INSERT/UPDATE by workers
 - `brand_requests` — INSERT by `submitBrandRequest()` (unauthenticated public form)
@@ -547,7 +547,7 @@ Used everywhere in UI. RLS automatically enforced.
 
 ### `createServiceClient()` — admin, bypasses RLS
 **Only allowed in:**
-1. `app/api/webhooks/ensemble/route.ts`
+1. `app/api/cron/posts-worker/route.ts` — reads+writes posts via polling
 2. `lib/actions/brand-requests.ts` — public form submission, approval, rejection
 3. `lib/actions/agencies.ts` — agency creation + request approval (no membership row exists yet for agency owner)
 4. `lib/actions/brands.ts` — brand onboarding acceptance (`workspace_members` insert for brand user)

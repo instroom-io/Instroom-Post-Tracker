@@ -46,7 +46,7 @@ Auth:           Supabase Auth via @supabase/ssr (cookie-based, App Router compat
 Client state:   Zustand (workspace context) + TanStack Query v5 (server data cache)
 Forms:          React Hook Form + Zod
 Animations:     Framer Motion (sparingly — rules in DESIGN_SYSTEM.md §7)
-Post ingestion: Ensemble (external API + HMAC-signed webhook)
+Post ingestion: Ensemble (external API + cron-based polling)
 File storage:   Google Drive via service account (not per-user OAuth)
 Deployment:     Vercel (Edge Middleware + Cron Jobs)
 ```
@@ -82,7 +82,7 @@ import { createServiceClient } from '@/lib/supabase/server'   // admin, bypasses
 ```
 
 `createServiceClient()` is **only** allowed in:
-- `app/api/webhooks/ensemble/route.ts` — writes posts across workspace boundaries
+- `app/api/cron/posts-worker/route.ts` — reads+writes posts via polling
 - `lib/actions/workspace.ts` — workspace creation (no membership row exists yet)
 - `lib/actions/workspace.ts` — invitation acceptance (invitee isn't a member yet)
 - `lib/actions/agencies.ts` — agency creation, request approval, and brand invite acceptance (workspace creation crosses user boundaries)
@@ -99,7 +99,7 @@ All user-triggered mutations use `'use server'` functions in `lib/actions/*.ts`.
 export async function createCampaign(...): Promise<{ error: string } | void> { ... }
 ```
 
-`app/api/` is only for: `webhooks/ensemble` and Vercel Cron handlers.
+`app/api/` is only for: Vercel Cron handlers.
 
 ### 4. Design tokens only — never hardcoded colours
 
@@ -201,8 +201,8 @@ instroom/
 │   │       │   ├── analytics/page.tsx
 │   │       │   └── settings/page.tsx
 │   ├── api/
-│   │   ├── webhooks/ensemble/route.ts     ← POST, service client, HMAC-SHA256 verify
 │   │   └── cron/
+│   │       ├── posts-worker/route.ts      ← Vercel Cron — every 30 min (poll EnsembleData)
 │   │       ├── download-worker/route.ts   ← Vercel Cron — every 5 min
 │   │       └── metrics-worker/route.ts   ← Vercel Cron — every 10 min
 │   ├── app/page.tsx                       ← Redirect: admin→/admin, agency→/agency/[slug]/dashboard,
@@ -243,7 +243,7 @@ instroom/
 │   │   ├── index.ts                      ← All domain types
 │   │   └── supabase.ts                   ← GENERATED — run: npm run db:generate
 │   ├── utils/
-│   │   └── index.ts                      ← cn(), formatters, verifyEnsembleSignature, toSlug
+│   │   └── index.ts                      ← cn(), formatters, toSlug
 │   ├── validations/
 │   │   └── index.ts                      ← All Zod schemas
 │   └── drive/
