@@ -18,12 +18,12 @@ export default function MarketingLayout({
 
         {/* Footer */}
         <footer className="bg-marketing-dark px-[5%] py-12">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
+          <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
             {/* Logo */}
             <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-10 w-auto brightness-0 invert" />
 
-            {/* Links */}
-            <div className="flex flex-wrap gap-6">
+            {/* Links — absolutely centered */}
+            <div className="absolute left-1/2 flex -translate-x-1/2 flex-wrap gap-6">
               <a href="#" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
                 Privacy policy
               </a>
