@@ -329,7 +329,7 @@ Rule: if `new.end_date < current_date AND new.status = 'active'` → set `status
 - Auth: owner/admin/editor
 - Schema: `trackingConfigSchema` (campaign_id, platform, hashtags[], mentions[])
 - UPSERT `campaign_tracking_configs` on unique constraint `(campaign_id, platform)`
-- **Required for post detection** — the webhook matches posts using these hashtags/mentions
+- **Required for post detection** — the posts worker matches scraped posts against these hashtags/mentions
 
 ---
 
