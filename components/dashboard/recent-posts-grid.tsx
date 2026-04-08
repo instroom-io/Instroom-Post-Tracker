@@ -6,6 +6,7 @@ interface Post {
   id: string
   thumbnail_url: string | null
   media_url: string | null
+  drive_file_id: string | null
   platform: Platform
   posted_at: string
   influencer: { tiktok_handle?: string | null; ig_handle?: string | null; youtube_handle?: string | null } | null

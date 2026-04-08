@@ -88,13 +88,20 @@ function groupByMonth(posts: PostRow[]): { label: string; posts: PostRow[] }[] {
 function GalleryThumbnail({ post }: { post: PostRow }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hovering, setHovering] = useState(false)
+  const [imgFailed, setImgFailed] = useState(false)
   const src = getThumbnailSrc(post)
-  const canPreview = !!post.media_url && post.platform !== 'youtube'
+  const videoSrc = post.drive_file_id
+    ? `/api/proxy-drive?id=${post.drive_file_id}`
+    : post.media_url
+  const canPreview = !!videoSrc && post.platform !== 'youtube'
 
   function onEnter() {
     if (!canPreview) return
     setHovering(true)
-    videoRef.current?.play()
+    if (videoRef.current) {
+      videoRef.current.load()
+      videoRef.current.play().catch(() => {})
+    }
   }
   function onLeave() {
     if (!canPreview) return
@@ -108,11 +115,12 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
     >
-      {src ? (
+      {src && !imgFailed ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
           alt=""
+          onError={() => setImgFailed(true)}
           className={cn('h-full w-full object-cover transition-opacity duration-200', hovering && canPreview ? 'opacity-0' : 'group-hover:scale-[1.03] transition-transform duration-300')}
         />
       ) : (
@@ -123,15 +131,16 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
       {canPreview && (
         <video
           ref={videoRef}
-          src={post.media_url!}
+          src={videoSrc!}
           muted
           loop
           playsInline
+          preload="none"
           className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
         />
       )}
       {/* Play overlay — centered, always visible on video posts */}
-      {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)) && !hovering && (
+      {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && (!!post.media_url || !!post.drive_file_id))) && !hovering && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50">
             <Play size={12} weight="fill" className="text-white" />

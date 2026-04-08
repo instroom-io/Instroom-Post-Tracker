@@ -10,6 +10,7 @@ interface Post {
   id: string
   thumbnail_url: string | null
   media_url: string | null
+  drive_file_id: string | null
   platform: Platform
   posted_at: string
   influencer: { tiktok_handle?: string | null; ig_handle?: string | null; youtube_handle?: string | null } | null
@@ -24,8 +25,13 @@ const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
 export function RecentPostCard({ post }: { post: Post }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hovering, setHovering] = useState(false)
-  const isVideo = post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)
-  const canPreview = isVideo && !!post.media_url && post.platform !== 'youtube'
+  const [imgFailed, setImgFailed] = useState(false)
+
+  const videoSrc = post.drive_file_id
+    ? `/api/proxy-drive?id=${post.drive_file_id}`
+    : post.media_url
+  const isVideo = post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && (!!post.media_url || !!post.drive_file_id))
+  const canPreview = isVideo && !!videoSrc && post.platform !== 'youtube'
 
   function onEnter() {
     if (!canPreview) return
@@ -59,11 +65,12 @@ export function RecentPostCard({ post }: { post: Post }) {
     >
       {/* Thumbnail + video */}
       <div className="aspect-square w-full bg-background-muted">
-        {thumbnailSrc ? (
+        {thumbnailSrc && !imgFailed ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={thumbnailSrc}
             alt={`Post by @${post.influencer ? getInfluencerLabel(post.influencer) : 'influencer'} on ${post.platform}, ${formatRelativeDate(post.posted_at)}`}
+            onError={() => setImgFailed(true)}
             className={cn('h-full w-full object-cover transition-opacity duration-200', hovering && canPreview && 'opacity-0')}
           />
         ) : (
@@ -74,7 +81,7 @@ export function RecentPostCard({ post }: { post: Post }) {
         {canPreview && (
           <video
             ref={videoRef}
-            src={post.media_url!}
+            src={videoSrc!}
             muted
             loop
             playsInline

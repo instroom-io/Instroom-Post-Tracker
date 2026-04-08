@@ -156,14 +156,29 @@ function ModalSaveToDriveButton({ postId, workspaceId, driveFileId }: {
 
 function ModalThumbnail({ post }: { post: PostRow }) {
   const [playing, setPlaying] = useState(false)
-  const isVideo = post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)
+  const [imgFailed, setImgFailed] = useState(false)
+
+  const videoSrc = post.drive_file_id
+    ? `/api/proxy-drive?id=${post.drive_file_id}`
+    : post.media_url
+
+  const isVideo =
+    post.platform === 'tiktok' ||
+    post.platform === 'youtube' ||
+    (post.platform === 'instagram' && (!!post.media_url || !!post.drive_file_id))
+
+  const thumbnailSrc = post.thumbnail_url
+    ? post.platform === 'instagram'
+      ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
+      : post.thumbnail_url
+    : null
 
   return (
     <div className="relative h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
-      {playing && post.media_url ? (
+      {playing && videoSrc ? (
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <video
-          src={post.media_url}
+          src={videoSrc}
           autoPlay
           controls
           loop
@@ -172,15 +187,12 @@ function ModalThumbnail({ post }: { post: PostRow }) {
         />
       ) : (
         <>
-          {post.thumbnail_url ? (
+          {thumbnailSrc && !imgFailed ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={
-                post.platform === 'instagram'
-                  ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
-                  : post.thumbnail_url
-              }
+              src={thumbnailSrc}
               alt=""
+              onError={() => setImgFailed(true)}
               className="h-full w-full object-cover"
             />
           ) : (

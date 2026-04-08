@@ -49,7 +49,7 @@ async function OverviewBottom({
       supabase
         .from('posts')
         .select(
-          'id, thumbnail_url, media_url, platform, posted_at, influencer:influencers(tiktok_handle, ig_handle, youtube_handle)'
+          'id, thumbnail_url, media_url, drive_file_id, platform, posted_at, influencer:influencers(tiktok_handle, ig_handle, youtube_handle)'
         )
         .eq('workspace_id', workspaceId)
         .order('detected_at', { ascending: false })
@@ -121,6 +121,7 @@ async function OverviewBottom({
               id: p.id,
               thumbnail_url: p.thumbnail_url,
               media_url: p.media_url,
+              drive_file_id: p.drive_file_id,
               platform: p.platform,
               posted_at: p.posted_at,
               influencer: p.influencer as unknown as {
