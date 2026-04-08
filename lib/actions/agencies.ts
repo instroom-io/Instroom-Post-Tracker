@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { agencyRequestSchema, createWorkspaceSchema, inviteMemberSchema } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
 import type { Agency, AgencyRequest } from '@/lib/types'
+import { checkActionLimit, getRequestIp, limiters } from '@/lib/rate-limit'
 
 /**
  * Send a brand invite — stores the invite in brand_invites, no workspace created yet.
@@ -35,6 +36,9 @@ export async function inviteBrand(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const inviteLimit = await checkActionLimit(`invitebrand:user:${user.id}`, limiters.inviteBrand)
+  if (inviteLimit) return inviteLimit
 
   const { data: agency } = await supabase
     .from('agencies')
@@ -88,6 +92,10 @@ export async function acceptBrandInvite(
   token: string,
   data: { logoFile: File | null; websiteUrl: string }
 ): Promise<{ error: string } | void> {
+  const ip = await getRequestIp()
+  const limited = await checkActionLimit(`brandinvite:ip:${ip}`, limiters.brandInviteAccept)
+  if (limited) return limited
+
   const websiteSchema = z.string()
     .transform((v) => (v && /^www\./i.test(v) ? `https://${v}` : v))
     .pipe(z.string().url('Please enter a valid website URL'))
@@ -176,6 +184,10 @@ export async function acceptBrandInvite(
 export async function submitAgencyRequest(
   data: unknown
 ): Promise<{ success: true } | { error: string }> {
+  const ip = await getRequestIp()
+  const limited = await checkActionLimit(`agencyreq:ip:${ip}`, limiters.agencyRequest)
+  if (limited) return limited
+
   const parsed = agencyRequestSchema.safeParse(data)
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
@@ -392,6 +404,10 @@ export async function updateAgency(
  * Uses service client because the form may be unauthenticated.
  */
 export async function getActiveAgenciesPublic(): Promise<Pick<Agency, 'id' | 'name'>[]> {
+  const ip = await getRequestIp()
+  const limited = await checkActionLimit(`agenciespublic:ip:${ip}`, limiters.agenciesPublic)
+  if (limited) return []
+
   const serviceClient = createServiceClient()
   const { data } = await serviceClient
     .from('agencies')
@@ -412,6 +428,9 @@ export async function uploadAgencyLogo(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const uploadLimit = await checkActionLimit(`uploadlogo:user:${user.id}`, limiters.uploadLogo)
+  if (uploadLimit) return uploadLimit
 
   // Verify ownership
   const { data: agency } = await supabase

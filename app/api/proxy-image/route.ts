@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { checkRouteLimit, limiters } from '@/lib/rate-limit'
 
 const ALLOWED_DOMAINS = ['cdninstagram.com', 'fbcdn.net', 'instagram.com']
 
 export async function GET(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
+  const rateLimitRes = await checkRouteLimit(`proxyimg:ip:${ip}`, limiters.proxyImage)
+  if (rateLimitRes) return rateLimitRes
+
   const imageUrl = request.nextUrl.searchParams.get('url')
   if (!imageUrl) return new NextResponse('Missing url', { status: 400 })
 

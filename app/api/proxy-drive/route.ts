@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
 import { createClient } from '@/lib/supabase/server'
+import { checkRouteLimit, limiters } from '@/lib/rate-limit'
 
 function getAuth() {
   const json = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64!, 'base64').toString('utf-8')
@@ -16,6 +17,9 @@ export async function GET(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return new NextResponse('Unauthorized', { status: 401 })
+
+  const rateLimitRes = await checkRouteLimit(`proxydrive:user:${user.id}`, limiters.proxyDrive)
+  if (rateLimitRes) return rateLimitRes
 
   const fileId = request.nextUrl.searchParams.get('id')
   if (!fileId) return new NextResponse('Missing id', { status: 400 })

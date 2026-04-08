@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { processPostDownload } from '@/lib/downloads/process-download'
+import { checkActionLimit, limiters } from '@/lib/rate-limit'
 
 export async function triggerPostDownload(
   postId: string,
@@ -15,6 +16,9 @@ export async function triggerPostDownload(
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const limited = await checkActionLimit(`download:user:${user.id}`, limiters.triggerDownload)
+  if (limited) return limited
 
   // 2. Role check + fetch personal Drive folder
   const { data: member } = await supabase

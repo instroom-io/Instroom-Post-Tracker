@@ -3,10 +3,15 @@
 import { contactInquirySchema } from '@/lib/validations'
 import { sendEmail, escapeHtml } from '@/lib/email'
 import { contactInquiryEmail } from '@/lib/email/templates/contact-inquiry'
+import { checkActionLimit, getRequestIp, limiters } from '@/lib/rate-limit'
 
 export async function submitContactInquiry(
   data: unknown
 ): Promise<{ error: string } | void> {
+  const ip = await getRequestIp()
+  const limited = await checkActionLimit(`contact:ip:${ip}`, limiters.contactInquiry)
+  if (limited) return limited
+
   const parsed = contactInquirySchema.safeParse(data)
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 

@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getFreshAccessToken } from '@/lib/google/tokens'
+import { checkActionLimit, limiters } from '@/lib/rate-limit'
 
 export async function retryDownload(
   _postId: string
@@ -18,6 +19,9 @@ export async function savePostToUserDrive(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const limited = await checkActionLimit(`savetodrv:user:${user.id}`, limiters.saveToUserDrive)
+  if (limited) return limited
 
   const accessToken = await getFreshAccessToken(user.id)
   if (!accessToken) return { error: 'connect_required' }

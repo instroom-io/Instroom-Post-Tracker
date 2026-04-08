@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { limiters } from '@/lib/rate-limit'
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -53,6 +54,18 @@ export async function proxy(request: NextRequest) {
     publicPaths.some((p) => pathname === p || pathname.startsWith(p + '/')) ||
     pathname.startsWith('/api/cron/') ||
     pathname.startsWith('/api/dev/')
+
+  // ── Edge rate limit — broad IP throttle on all public paths ─────────────────
+  if (isPublicPath && limiters.edgeBroad) {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
+    const { success } = await limiters.edgeBroad.limit(`edge:${ip}`)
+    if (!success) {
+      return new NextResponse('Too many requests.', {
+        status: 429,
+        headers: { 'Retry-After': '60' },
+      })
+    }
+  }
 
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone()

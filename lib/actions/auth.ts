@@ -5,11 +5,22 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { signInSchema, signUpSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/validations'
 import { isPersonalEmail } from '@/lib/utils'
+import { checkActionLimit, getRequestIp, limiters } from '@/lib/rate-limit'
 
 export async function signIn(
   _prevState: unknown,
   formData: FormData
 ): Promise<{ error: string } | void> {
+  const ip = await getRequestIp()
+  const email = (formData.get('email') as string | null) ?? ''
+
+  const [ipLimit, emailLimit] = await Promise.all([
+    checkActionLimit(`signin:ip:${ip}`, limiters.signinByIp),
+    checkActionLimit(`signin:email:${email.toLowerCase()}`, limiters.signinByEmail),
+  ])
+  if (ipLimit) return ipLimit
+  if (emailLimit) return emailLimit
+
   const parsed = signInSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
@@ -45,6 +56,10 @@ export async function signUp(
   _prevState: unknown,
   formData: FormData
 ): Promise<{ error: string } | { success: true; email: string } | void> {
+  const ip = await getRequestIp()
+  const limited = await checkActionLimit(`signup:ip:${ip}`, limiters.signup)
+  if (limited) return limited
+
   const parsed = signUpSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
@@ -102,6 +117,10 @@ export async function requestPasswordReset(
   _prevState: unknown,
   formData: FormData
 ): Promise<{ error: string } | { success: true; email: string }> {
+  const ip = await getRequestIp()
+  const limited = await checkActionLimit(`pwreset:ip:${ip}`, limiters.passwordReset)
+  if (limited) return limited
+
   const parsed = forgotPasswordSchema.safeParse({
     email: formData.get('email'),
   })
