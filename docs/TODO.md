@@ -1,6 +1,6 @@
 # Instroom Post Tracker — TODO
 
-> **Last updated:** 2026-03-19
+> **Last updated:** 2026-04-08
 > Accurate as of current codebase state.
 
 ---
@@ -49,10 +49,6 @@
 - Member management (invite, role change, remove)
 - EMV config (CPM rates per platform)
 
-### Phase 11 — Brand Portal
-- Read-only portal at `/(portal)/portal` for `workspace_members(role='brand')`
-- Drive status banner, brand post list
-
 ### Phase 12 — Invite Flow
 - Team member invitation at `/invite/[token]`
 - Email-based invite with token expiry, role assignment
@@ -62,14 +58,24 @@
 - Blocks download worker until rights granted
 - Optimistic UI with `useOptimistic`
 
-### Phase 15 — Multi-Agency Platform
+### Phase 15 — Multi-Agency Platform (core built; portal + requests page pending)
 - 3-tier hierarchy: Instroom (super admin) → Agencies → Brand workspaces
-- **Admin routes:** `/admin`, `/admin/agencies`, `/admin/agencies/[agencyId]`
-- **Agency routes:** `/agency/[slug]/dashboard`, `/requests`, `/brands`, `/settings`
-- **Brand request flow:** `/request-access` (Brand tab) → agency approves → workspace auto-created → brand receives onboarding email → `/onboard/[token]` confirmation → `/[slug]/portal`
+- **Admin routes:** `/admin`, `/admin/agencies`, `/admin/agencies/[agencySlug]`
+- **Agency routes built:** `/agency/[slug]/dashboard`, `/brands`, `/settings`
+- **Agency routes missing:** `/requests` (brand request queue for agency owners — see backlog)
+- **Brand request flow:** `/request-access` (Brand tab) → agency approves → workspace auto-created → brand receives onboarding email
 - **Agency request flow:** `/request-access` (Agency tab) → Instroom admin approves → agency owner gets access
 - **Email flows:** brand request → agency notification email; approval → brand confirmation email with onboarding link; team invite → invitation email (SendGrid)
 - DB migration `0011_multi_agency_platform.sql`: `agencies`, `agency_requests`, `is_platform_admin`, `agency_id` FKs, brand role
+- **Not built:** brand portal (`/[slug]/portal`) — see backlog
+
+### Phase 16 — Rate Limiting
+- Hybrid Edge + per-surface rate limiting using Upstash Redis (`@upstash/ratelimit`)
+- **Edge layer (`proxy.ts`):** broad IP throttle — 60 req / 1 min on all public paths
+- **Per-surface layer:** 14 additional limiters across auth, public forms, Drive proxy, download, and admin actions
+- Shared module at `lib/rate-limit.ts` — pre-configured limiters + `checkActionLimit` / `checkRouteLimit` helpers
+- Graceful degradation: fails **open** when Upstash is unreachable (app never goes down for Redis outage)
+- Dead code cleanup: removed `verifyEnsembleSignature`, `/api/webhooks/` path from proxy, stale webhook docs
 
 ---
 
@@ -127,29 +133,51 @@ Ensure these are configured in the Vercel dashboard before deploying:
 - `SENDGRID_API_KEY`
 - `SENDGRID_FROM_EMAIL`
 - `AGENCY_NOTIFICATION_EMAIL`
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+
+### 6. `/onboard` path missing from `proxy.ts` publicPaths
+
+The brand onboarding confirmation page (`/onboard/[token]`) is absent from the `publicPaths` array in `proxy.ts:39–51`. Any brand clicking their onboarding link in production gets redirected to `/login` before the page loads.
+
+**Fix:** Add `'/onboard'` to the `publicPaths` array in `proxy.ts`.
+
+> Note: `/onboarding` (the dev-only workspace creator, Blocker #4) IS already in the list — do not confuse the two.
 
 ---
 
 ## 🟡 Feature Backlog (post-launch)
 
+### Phase 11 — Brand Portal
+
+No portal route exists. The `/(portal)/portal` route group was never created and the redesigned `/[slug]/portal` path was never built either. Brands who complete onboarding have nowhere to land.
+
+- [ ] Create `app/(app)/[workspaceSlug]/(portal)/portal/page.tsx` — read-only view for `role='brand'` members
+- [ ] Brand portal layout: no sidebar, Drive status banner, read-only post list
+- [ ] Confirm portal path is auth-gated correctly in `proxy.ts`
+
 ### Phase 14 — Google Drive OAuth per Brand Workspace
 
-Schema columns exist (`drive_oauth_token`, `drive_connection_type`, `drive_folder_id`) but nothing is implemented.
+Schema columns exist (`drive_oauth_token`, `drive_connection_type`, `drive_folder_id`). OAuth API routes are implemented but the UI is not wired up.
 
-- [ ] `app/api/auth/google-drive/route.ts` — OAuth initiation
-- [ ] `app/api/auth/google-drive/callback/route.ts` — OAuth callback + token storage
+- [x] `app/api/auth/google-drive/route.ts` — OAuth initiation ✅
+- [x] `app/api/auth/google-drive/callback/route.ts` — OAuth callback + token storage ✅
 - [ ] `lib/drive/client.ts` — per-workspace Drive client factory using stored token
 - [ ] Update `lib/drive/upload.ts` to use per-workspace OAuth token when available
 - [ ] Update download worker to use workspace Drive token
 - [ ] `components/settings/drive-connection-panel.tsx` — UI for connecting Drive
-- [ ] Update `docs/WORKFLOWS.md` with Drive OAuth flow
+
+### Phase 15 — Agency Request Queue
+
+The brand request queue for agency owners was not built.
+
+- [ ] `app/agency/[agencySlug]/requests/page.tsx` — brand request queue (approve / reject)
 
 ### UI Polish
 
 - [ ] **Batch influencer input** — textarea that accepts comma- or newline-separated handles; system parses and adds each as a separate influencer in one action (replaces one-by-one dialog)
 - [ ] Workspace logo upload (currently text URL input only)
 - [ ] `PostsTable` pagination (no pagination for >100 posts)
-- [ ] Brand portal: campaign breakdown view
 - [ ] Onboard token regeneration (resend expired onboarding link to brand)
 
 ### Admin
