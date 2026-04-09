@@ -14,11 +14,9 @@ import {
   DialogBody,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
-  addInfluencer,
   addInfluencersBatch,
   validateInfluencerHandles,
   type HandleValidationResult,
@@ -26,37 +24,8 @@ import {
 
 interface AddInfluencerDialogProps {
   workspaceId: string
-  campaignId?: string                                    // existing: hardcoded campaign (campaign detail page)
-  campaigns?: Array<{ id: string; name: string }>       // new: workspace-level list with optional selector
+  campaignId?: string   // existing: hardcoded campaign (campaign detail page)
   trigger?: React.ReactNode
-}
-
-function CampaignSelector({
-  campaigns,
-  value,
-  onChange,
-}: {
-  campaigns: Array<{ id: string; name: string }>
-  value: string
-  onChange: (v: string) => void
-}) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-[11px] font-medium text-foreground-light">
-        Add to campaign <span className="text-foreground-muted">(optional)</span>
-      </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-8 w-full rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
-      >
-        <option value="">No campaign</option>
-        {campaigns.map((c) => (
-          <option key={c.id} value={c.id}>{c.name}</option>
-        ))}
-      </select>
-    </div>
-  )
 }
 
 type Mode = 'manual' | 'csv'
@@ -69,20 +38,31 @@ const PLATFORMS: { value: CsvPlatform; label: string }[] = [
   { value: 'youtube', label: 'YouTube' },
 ]
 
+function parseHandles(input: string): string[] {
+  return input
+    .split('\n')
+    .map(h => h.trim().replace(/^@/, ''))
+    .filter(Boolean)
+}
+
 export function AddInfluencerDialog({
   workspaceId,
   campaignId,
-  campaigns,
   trigger,
 }: AddInfluencerDialogProps) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<Mode>('manual')
 
-  // ── Manual tab state ──────────────────────────────────────────────────────
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
-  const [form, setForm] = useState({ ig_handle: '', tiktok_handle: '', youtube_handle: '' })
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  // ── Manual batch state ────────────────────────────────────────────────────
+  const [manualActivePlatform, setManualActivePlatform] = useState<CsvPlatform>('tiktok')
+  const [manualHandleInputs, setManualHandleInputs] = useState<Record<CsvPlatform, string>>({
+    tiktok: '', instagram: '', youtube: '',
+  })
+  const [manualStep, setManualStep] = useState<'input' | 'confirm'>('input')
+  const [isManualValidating, setIsManualValidating] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
+  const [manualResults, setManualResults] = useState<(HandleValidationResult & { platform: CsvPlatform })[]>([])
+  const [manualSelected, setManualSelected] = useState<Set<string>>(new Set())
 
   // ── CSV tab state ─────────────────────────────────────────────────────────
   const [csvPlatform, setCsvPlatform] = useState<CsvPlatform>('tiktok')
@@ -94,54 +74,80 @@ export function AddInfluencerDialog({
   const [isValidating, startValidateTransition] = useTransition()
   const [isImporting, startImportTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>('')
 
   // ── Manual handlers ───────────────────────────────────────────────────────
-  function handleChange(field: keyof typeof form, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }))
+  async function handleManualValidate() {
+    setIsManualValidating(true)
+    try {
+      const platformsToValidate = (['tiktok', 'instagram', 'youtube'] as CsvPlatform[]).filter(
+        p => parseHandles(manualHandleInputs[p]).length > 0
+      )
+      const allResults: (HandleValidationResult & { platform: CsvPlatform })[] = []
+      await Promise.all(
+        platformsToValidate.map(async platform => {
+          const handles = parseHandles(manualHandleInputs[platform])
+          const results = await validateInfluencerHandles(workspaceId, platform, handles)
+          allResults.push(...results.map(r => ({ ...r, platform })))
+        })
+      )
+      setManualResults(allResults)
+      const autoSelected = new Set(
+        allResults
+          .filter(r => r.status === 'valid' || r.status === 'private')
+          .map(r => `${r.platform}:${r.handle}`)
+      )
+      setManualSelected(autoSelected)
+      setManualStep('confirm')
+    } catch {
+      toast.error('Validation failed. Please try again.')
+    } finally {
+      setIsManualValidating(false)
+    }
   }
 
-  function handleManualSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setValidationErrors({})
-
-    // Build per-platform check list from filled fields
-    const checks: Array<{ field: 'ig_handle' | 'tiktok_handle' | 'youtube_handle'; platform: 'instagram' | 'tiktok' | 'youtube'; handle: string }> = []
-    if (form.ig_handle)      checks.push({ field: 'ig_handle',      platform: 'instagram', handle: form.ig_handle })
-    if (form.tiktok_handle)  checks.push({ field: 'tiktok_handle',  platform: 'tiktok',    handle: form.tiktok_handle })
-    if (form.youtube_handle) checks.push({ field: 'youtube_handle', platform: 'youtube',   handle: form.youtube_handle })
-
-    if (checks.length === 0) { setError('Enter at least one handle.'); return }
-
-    startTransition(async () => {
-      // Validate all handles in parallel against EnsembleData API
-      const results = await Promise.all(
-        checks.map(({ platform, handle }) =>
-          validateInfluencerHandles(workspaceId, platform, [handle]).then((r) => r[0])
-        )
+  async function handleManualConfirm() {
+    setIsAdding(true)
+    try {
+      const byPlatform: Record<CsvPlatform, string[]> = { tiktok: [], instagram: [], youtube: [] }
+      for (const key of manualSelected) {
+        const colonIdx = key.indexOf(':')
+        const platform = key.slice(0, colonIdx) as CsvPlatform
+        const handle = key.slice(colonIdx + 1)
+        byPlatform[platform].push(handle)
+      }
+      const platformsToAdd = (['tiktok', 'instagram', 'youtube'] as CsvPlatform[]).filter(
+        p => byPlatform[p].length > 0
       )
-
-      // Map results back to fields
-      const errors: Record<string, string> = {}
-      let hasBlockingError = false
-      results.forEach((result, i) => {
-        if (result.status === 'not_found') {
-          errors[checks[i].field] = 'Handle not found'
-          hasBlockingError = true
-        } else if (result.status === 'private') {
-          errors[checks[i].field] = 'Account is private — posts won\'t be visible but will still be tracked'
+      const errors: string[] = []
+      let totalAdded = 0
+      let totalSkipped = 0
+      await Promise.all(
+        platformsToAdd.map(async platform => {
+          const result = await addInfluencersBatch(workspaceId, byPlatform[platform], platform)
+          if (result.error) {
+            errors.push(`${PLATFORMS.find(p => p.value === platform)?.label ?? platform}: ${result.error}`)
+          } else {
+            totalAdded += result.added
+            totalSkipped += result.skipped
+          }
+        })
+      )
+      if (errors.length > 0) errors.forEach(e => toast.error(e))
+      if (errors.length < platformsToAdd.length) {
+        if (totalAdded === 0) {
+          toast.info('All handles already exist in this workspace')
+        } else if (totalSkipped > 0) {
+          toast.success(`Added ${totalAdded} influencer${totalAdded !== 1 ? 's' : ''} — ${totalSkipped} already existed`)
+        } else {
+          toast.success(`Added ${totalAdded} influencer${totalAdded !== 1 ? 's' : ''}`)
         }
-      })
-      setValidationErrors(errors)
-      if (hasBlockingError) return
-
-      // All valid (or private) — proceed to add
-      const result = await addInfluencer(workspaceId, form, effectiveCampaignId)
-      if (result?.error) { setError(result.error); return }
-      toast.success('Influencer added')
-      handleClose()
-    })
+        handleClose()
+      }
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   // ── CSV handlers ──────────────────────────────────────────────────────────
@@ -186,7 +192,7 @@ export function AddInfluencerDialog({
     if (validHandles.length === 0) return
 
     startImportTransition(async () => {
-      const result = await addInfluencersBatch(workspaceId, validHandles, csvPlatform, effectiveCampaignId)
+      const result = await addInfluencersBatch(workspaceId, validHandles, csvPlatform, campaignId)
       if (result?.error) { setCsvError(result.error); return }
 
       const { added, skipped } = result
@@ -203,10 +209,14 @@ export function AddInfluencerDialog({
 
   function handleClose() {
     setOpen(false)
-    // reset manual
-    setForm({ ig_handle: '', tiktok_handle: '', youtube_handle: '' })
-    setError(null)
-    setValidationErrors({})
+    // reset manual batch
+    setManualActivePlatform('tiktok')
+    setManualHandleInputs({ tiktok: '', instagram: '', youtube: '' })
+    setManualStep('input')
+    setIsManualValidating(false)
+    setIsAdding(false)
+    setManualResults([])
+    setManualSelected(new Set())
     // reset csv
     setCsvPlatform('tiktok')
     setParsedHandles([])
@@ -214,14 +224,10 @@ export function AddInfluencerDialog({
     setCsvStep('idle')
     setCsvError(null)
     setValidationResults([])
-    setSelectedCampaignId('')
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   // ── Derived ───────────────────────────────────────────────────────────────
-  // Use hardcoded campaignId if provided; otherwise use the dropdown selection
-  const effectiveCampaignId = campaignId ?? (selectedCampaignId || undefined)
-
   const validCount = validationResults.filter((r) => r.status === 'valid').length
   const privateCount = validationResults.filter((r) => r.status === 'private').length
   const notFoundCount = validationResults.filter((r) => r.status === 'not_found').length
@@ -242,7 +248,7 @@ export function AddInfluencerDialog({
           <DialogTitle>Add influencer</DialogTitle>
           <DialogDescription>
             Add influencers to your workspace.
-            {(campaignId || selectedCampaignId) && ' They will also be added to the selected campaign.'}
+            {campaignId && ' They will also be added to the selected campaign.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -269,69 +275,169 @@ export function AddInfluencerDialog({
 
         {/* ── Manual tab ── */}
         {mode === 'manual' && (
-          <form onSubmit={handleManualSubmit}>
+          <div>
             <DialogBody className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <Input
-                    label="Instagram"
-                    value={form.ig_handle}
-                    onChange={(e) => { handleChange('ig_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, ig_handle: '' })) }}
-                    placeholder="janesmithig"
-                    prefix="@"
-                  />
-                  {validationErrors.ig_handle && (
-                    <p className={cn('mt-1 text-[11px]', validationErrors.ig_handle === 'Handle not found' ? 'text-destructive' : 'text-warning')}>
-                      {validationErrors.ig_handle}
+              {manualStep === 'input' && (
+                <div className="space-y-4">
+                  {/* Platform sub-tabs */}
+                  <div className="flex gap-1 border-b border-border">
+                    {PLATFORMS.map(p => (
+                      <button
+                        key={p.value}
+                        type="button"
+                        onClick={() => setManualActivePlatform(p.value)}
+                        className={cn(
+                          'flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium border-b-2 -mb-px transition-colors',
+                          manualActivePlatform === p.value
+                            ? 'border-brand text-foreground'
+                            : 'border-transparent text-foreground-muted hover:text-foreground'
+                        )}
+                      >
+                        <PlatformIcon platform={p.value} size={13} />
+                        {p.label}
+                        {parseHandles(manualHandleInputs[p.value]).length > 0 && (
+                          <span className="ml-1 text-[11px] bg-brand/10 text-brand rounded-full px-1.5 py-0.5 leading-none">
+                            {parseHandles(manualHandleInputs[p.value]).length}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Textarea */}
+                  <div className="space-y-1.5">
+                    <textarea
+                      value={manualHandleInputs[manualActivePlatform]}
+                      onChange={e =>
+                        setManualHandleInputs(prev => ({ ...prev, [manualActivePlatform]: e.target.value }))
+                      }
+                      placeholder={`Paste ${PLATFORMS.find(p => p.value === manualActivePlatform)?.label} handles, one per line\ne.g. @username`}
+                      rows={6}
+                      className="w-full rounded-lg border border-border bg-background-surface px-3 py-2 text-[13px] text-foreground placeholder:text-foreground-muted resize-none focus:outline-none focus:ring-2 focus:ring-brand/50"
+                    />
+                    <p className="text-[11px] text-foreground-muted">
+                      @ symbols and extra whitespace are stripped automatically
                     </p>
-                  )}
+                  </div>
                 </div>
-                <div>
-                  <Input
-                    label="TikTok"
-                    value={form.tiktok_handle}
-                    onChange={(e) => { handleChange('tiktok_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, tiktok_handle: '' })) }}
-                    placeholder="janesmithtt"
-                    prefix="@"
-                  />
-                  {validationErrors.tiktok_handle && (
-                    <p className={cn('mt-1 text-[11px]', validationErrors.tiktok_handle === 'Handle not found' ? 'text-destructive' : 'text-warning')}>
-                      {validationErrors.tiktok_handle}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Input
-                    label="YouTube"
-                    value={form.youtube_handle}
-                    onChange={(e) => { handleChange('youtube_handle', e.target.value.replace(/^@/, '')); setValidationErrors((prev) => ({ ...prev, youtube_handle: '' })) }}
-                    placeholder="janesmith"
-                    prefix="@"
-                  />
-                  {validationErrors.youtube_handle && (
-                    <p className={cn('mt-1 text-[11px]', validationErrors.youtube_handle === 'Handle not found' ? 'text-destructive' : 'text-warning')}>
-                      {validationErrors.youtube_handle}
-                    </p>
-                  )}
-                </div>
-              </div>
-              {/* Campaign selector — only on workspace-level influencer page */}
-              {campaigns && !campaignId && (
-                <CampaignSelector
-                  campaigns={campaigns}
-                  value={selectedCampaignId}
-                  onChange={setSelectedCampaignId}
-                />
               )}
-              {error && <p className="text-[11px] text-destructive">{error}</p>}
+
+              {manualStep === 'confirm' && (
+                <div className="space-y-3">
+                  {/* Warning banner */}
+                  {manualResults.some(r => r.status === 'not_found' || r.status === 'private') && (
+                    <div className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2.5 text-[12px] text-warning">
+                      Private accounts will still be tracked. Handles marked &quot;not found&quot; won&apos;t be added and are deselected by default.
+                    </div>
+                  )}
+
+                  {/* All-not-found empty state */}
+                  {manualSelected.size === 0 && manualResults.every(r => r.status === 'not_found') && (
+                    <p className="text-center text-[13px] text-foreground-muted py-4">
+                      No valid handles found — go back and check your input.
+                    </p>
+                  )}
+
+                  {/* Results grid */}
+                  <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
+                    {manualResults.map(r => {
+                      const key = `${r.platform}:${r.handle}`
+                      const isChecked = manualSelected.has(key)
+                      return (
+                        <div
+                          key={key}
+                          className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-background-surface transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={e => {
+                              const next = new Set(manualSelected)
+                              if (e.target.checked) next.add(key)
+                              else next.delete(key)
+                              setManualSelected(next)
+                            }}
+                            className="h-4 w-4 rounded border-border cursor-pointer flex-shrink-0"
+                          />
+                          {r.profile_pic_url ? (
+                            <img
+                              src={r.profile_pic_url}
+                              alt={r.handle}
+                              className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="h-8 w-8 rounded-full bg-background-muted border border-border flex-shrink-0" />
+                          )}
+                          <span className="text-[13px] font-medium text-foreground flex-1 truncate">
+                            @{r.handle}
+                          </span>
+                          <PlatformIcon platform={r.platform} size={13} />
+                          <span
+                            className={cn(
+                              'text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0',
+                              r.status === 'valid' && 'bg-brand/10 text-brand',
+                              r.status === 'private' && 'bg-warning/10 text-warning',
+                              r.status === 'not_found' && 'bg-destructive/10 text-destructive'
+                            )}
+                          >
+                            {r.status === 'not_found' ? 'Not found' : r.status === 'private' ? 'Private' : 'Valid'}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </DialogBody>
+
             <DialogFooter>
               <Button type="button" variant="secondary" size="md" onClick={handleClose}>Cancel</Button>
-              <Button type="submit" variant="primary" size="md" loading={isPending}>
-                {isPending ? 'Validating…' : 'Add influencer'}
-              </Button>
+
+              {manualStep === 'input' && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  loading={isManualValidating}
+                  disabled={(['tiktok', 'instagram', 'youtube'] as CsvPlatform[]).every(
+                    p => parseHandles(manualHandleInputs[p]).length === 0
+                  )}
+                  onClick={handleManualValidate}
+                >
+                  Add Influencers
+                </Button>
+              )}
+
+              {manualStep === 'confirm' && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="md"
+                    onClick={() => setManualStep('input')}
+                    disabled={isAdding}
+                  >
+                    Back
+                  </Button>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[12px] text-foreground-muted">
+                      {manualSelected.size} selected · {manualResults.length - manualSelected.size} will be skipped
+                    </span>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="md"
+                      loading={isAdding}
+                      disabled={manualSelected.size === 0}
+                      onClick={handleManualConfirm}
+                    >
+                      Confirm
+                    </Button>
+                  </div>
+                </>
+              )}
             </DialogFooter>
-          </form>
+          </div>
         )}
 
         {/* ── CSV tab ── */}

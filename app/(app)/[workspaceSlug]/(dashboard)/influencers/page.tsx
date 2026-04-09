@@ -84,7 +84,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
           title="Influencers"
           description={activeCampaign ? `0 influencers in ${activeCampaign.name}` : '0 influencers in this workspace'}
           actions={
-            <AddInfluencerDialog workspaceId={workspace.id} campaigns={campaigns ?? []} />
+            <AddInfluencerDialog workspaceId={workspace.id} />
           }
         />
         <InfluencerListTable
@@ -187,7 +187,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
             : `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in this workspace`
         }
         actions={
-          <AddInfluencerDialog workspaceId={workspace.id} campaigns={campaigns ?? []} />
+          <AddInfluencerDialog workspaceId={workspace.id} />
         }
       />
 
