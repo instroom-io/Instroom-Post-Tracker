@@ -61,6 +61,7 @@ async function _getFolderIdOrCreate(path: string[], rootFolderId?: string): Prom
       q: `name = '${segment.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder' and '${parentId}' in parents and trashed = false`,
       fields: 'files(id)',
       pageSize: 1,
+      corpora: 'allDrives',
       supportsAllDrives: true,
       includeItemsFromAllDrives: true,
     })
