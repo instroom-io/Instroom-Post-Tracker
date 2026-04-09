@@ -65,6 +65,7 @@ interface CampaignTabsProps {
   trackingConfigs: CampaignTrackingConfig[]
   workspaceId: string
   campaignId: string
+  campaignStatus: string
   campaignPlatforms: Platform[]
   canEdit: boolean
   postCountsByInfluencerId: Record<string, number>
@@ -82,6 +83,7 @@ export function CampaignTabs({
   trackingConfigs,
   workspaceId,
   campaignId,
+  campaignStatus,
   campaignPlatforms,
   canEdit,
   postCountsByInfluencerId,
@@ -238,6 +240,7 @@ export function CampaignTabs({
               items={influencers}
               workspaceId={workspaceId}
               campaignId={campaignId}
+              campaignStatus={campaignStatus}
               canEdit={canEdit}
               postCountsByInfluencerId={postCountsByInfluencerId}
             />

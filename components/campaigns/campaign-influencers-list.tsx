@@ -41,6 +41,7 @@ interface CampaignInfluencersListProps {
   items: InfluencerRow[]
   workspaceId: string
   campaignId: string
+  campaignStatus: string
   canEdit: boolean
   onAddInfluencer?: () => void
   postCountsByInfluencerId?: Record<string, number>
@@ -131,8 +132,10 @@ type FollowUpStatus = 'first_due' | 'first_sent' | 'second_due' | 'second_sent' 
 
 function getFollowUpStatus(
   item: InfluencerRow,
-  hasPost: boolean
+  hasPost: boolean,
+  campaignStatus: string
 ): FollowUpStatus {
+  if (campaignStatus === 'draft') return null
   if (hasPost) return null
   const clockStart = item.product_sent_at ?? item.added_at
   const daysSince = differenceInDays(new Date(), new Date(clockStart))
@@ -148,6 +151,7 @@ const PAGE_SIZE = 20
 export function CampaignInfluencersList({
   items,
   workspaceId,
+  campaignStatus,
   canEdit,
   onAddInfluencer,
   postCountsByInfluencerId,
@@ -331,7 +335,7 @@ export function CampaignInfluencersList({
                   <td className="px-5 py-3.5">
                     {(() => {
                       const hasPost = (postCountsByInfluencerId?.[item.influencer.id] ?? 0) > 0
-                      const status = getFollowUpStatus(item, hasPost)
+                      const status = getFollowUpStatus(item, hasPost, campaignStatus)
                       if (!status) return null
                       if (status === 'first_due') return <Badge variant="warning">Follow up</Badge>
                       if (status === 'first_sent') return <Badge variant="muted">1st sent</Badge>

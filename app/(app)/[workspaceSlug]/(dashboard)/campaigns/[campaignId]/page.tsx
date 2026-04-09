@@ -273,6 +273,7 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
           trackingConfigs={trackingConfigs ?? []}
           workspaceId={workspace.id}
           campaignId={campaignId}
+          campaignStatus={campaign.status}
           campaignPlatforms={campaign.platforms as Platform[]}
           canEdit={canEdit}
           postCountsByInfluencerId={postCountsByInfluencerId}
