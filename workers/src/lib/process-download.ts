@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { uploadToDrive } from './drive/upload'
+import { getFreshAccessToken } from './google/tokens'
 
 const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
 const ENSEMBLE_API_KEY = process.env.ENSEMBLE_API_KEY!
@@ -74,7 +75,7 @@ export async function processPostDownload(
       workspace_id,
       campaign:campaigns(name),
       influencer:influencers(ig_handle, tiktok_handle, youtube_handle),
-      workspace:workspaces(name, agency:agencies(drive_folder_id))
+      workspace:workspaces(name, agency:agencies(drive_folder_id, owner_id))
     `
     )
     .eq('id', postId)
@@ -86,7 +87,7 @@ export async function processPostDownload(
 
   const campaign = post.campaign as unknown as { name: string } | null
   const influencer = post.influencer as unknown as { ig_handle: string | null; tiktok_handle: string | null; youtube_handle: string | null } | null
-  const workspace = post.workspace as unknown as { name: string; agency: { drive_folder_id: string | null } | null } | null
+  const workspace = post.workspace as unknown as { name: string; agency: { drive_folder_id: string | null; owner_id: string } | null } | null
   const storedMediaUrl = post.media_url as string | null
 
   // Use stored media URL first to avoid burning EnsembleData units.
@@ -120,12 +121,19 @@ export async function processPostDownload(
     'unknown'
   const folderPath = `${workspace?.name}/${campaign?.name}/${handle}/${post.platform}`
 
+  const agency = workspace?.agency ?? null
+  const accessToken = agency?.owner_id
+    ? await getFreshAccessToken(agency.owner_id, supabase)
+    : null
+
   const { fileId, folderPath: savedFolderPath } = await uploadToDrive({
     fileBuffer,
     fileName: `post-${post.id}.${ext}`,
     folderPath,
-    rootFolderId: workspace?.agency?.drive_folder_id ?? undefined,
-    // Falls back to GOOGLE_DRIVE_ROOT_FOLDER_ID env var when agency has no folder set
+    rootFolderId: agency?.drive_folder_id ?? undefined,
+    accessToken: accessToken ?? undefined,
+    // If agency has no OAuth token, falls back to service account
+    // If no drive_folder_id, falls back to GOOGLE_DRIVE_ROOT_FOLDER_ID
   })
 
   await supabase
