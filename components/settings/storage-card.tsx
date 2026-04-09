@@ -5,17 +5,16 @@ import { toast } from 'sonner'
 import { Copy, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { updateWorkspaceStorageFolder } from '@/lib/actions/workspace'
 
 const SERVICE_ACCOUNT_EMAIL = process.env.NEXT_PUBLIC_GOOGLE_SERVICE_ACCOUNT_EMAIL ?? ''
 
 interface StorageCardProps {
-  workspaceId: string
   currentFolderId: string | null
   canEdit: boolean
+  onSave: (value: string | null) => Promise<{ error: string } | void>
 }
 
-export function StorageCard({ workspaceId, currentFolderId, canEdit }: StorageCardProps) {
+export function StorageCard({ currentFolderId, canEdit, onSave }: StorageCardProps) {
   const [value, setValue] = useState(currentFolderId ?? '')
   const [copied, setCopied] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -29,7 +28,7 @@ export function StorageCard({ workspaceId, currentFolderId, canEdit }: StorageCa
 
   function handleSave() {
     startTransition(async () => {
-      const result = await updateWorkspaceStorageFolder(workspaceId, value.trim() || null)
+      const result = await onSave(value.trim() || null)
       if (result?.error) {
         toast.error(result.error)
       } else {

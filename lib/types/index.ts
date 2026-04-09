@@ -28,6 +28,7 @@ export interface Agency {
   logo_url: string | null
   contact_name: string | null
   contact_email: string | null
+  drive_folder_id: string | null
   created_at: string
 }
 

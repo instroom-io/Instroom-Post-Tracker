@@ -4,7 +4,8 @@ import { useState, useTransition, useRef } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { updateAgency, uploadAgencyLogo, removeAgencyLogo } from '@/lib/actions/agencies'
+import { updateAgency, uploadAgencyLogo, removeAgencyLogo, updateAgencyStorageFolder } from '@/lib/actions/agencies'
+import { StorageCard } from '@/components/settings/storage-card'
 import { cn } from '@/lib/utils'
 import type { Agency } from '@/lib/types'
 
@@ -159,6 +160,13 @@ export function AgencySettingsForm({ agency }: AgencySettingsFormProps) {
             </div>
           </div>
         </div>
+
+        {/* Storage */}
+        <StorageCard
+          currentFolderId={agency.drive_folder_id}
+          canEdit={true}
+          onSave={(value) => updateAgencyStorageFolder(agency.id, value)}
+        />
 
         {/* Account Info card */}
         <div className="rounded-xl border border-border bg-background-surface p-5">

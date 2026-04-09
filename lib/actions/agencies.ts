@@ -8,7 +8,7 @@ import { brandInviteEmail } from '@/lib/email/templates/brand-invite'
 import { agencyApprovedEmail } from '@/lib/email/templates/agency-approved'
 import { isPersonalEmail } from '@/lib/utils'
 import { z } from 'zod'
-import { agencyRequestSchema, createWorkspaceSchema, inviteMemberSchema } from '@/lib/validations'
+import { agencyRequestSchema, createWorkspaceSchema, inviteMemberSchema, updateWorkspaceStorageFolderSchema } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
 import type { Agency, AgencyRequest } from '@/lib/types'
 import { checkActionLimit, getRequestIp, limiters } from '@/lib/rate-limit'
@@ -521,4 +521,31 @@ export async function removeAgencyLogo(
 
   revalidatePath('/agency/[agencySlug]/settings', 'page')
   revalidatePath('/agency/[agencySlug]/dashboard', 'page')
+}
+
+export async function updateAgencyStorageFolder(
+  agencyId: string,
+  rawFolderId: string | null
+): Promise<{ error: string } | void> {
+  const parsed = updateWorkspaceStorageFolderSchema.safeParse({ drive_folder_id: rawFolderId })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: agency } = await supabase
+    .from('agencies')
+    .select('owner_id')
+    .eq('id', agencyId)
+    .single()
+  if (!agency || agency.owner_id !== user.id) return { error: 'Unauthorized.' }
+
+  const { error } = await supabase
+    .from('agencies')
+    .update({ drive_folder_id: parsed.data.drive_folder_id })
+    .eq('id', agencyId)
+  if (error) return { error: 'Failed to update storage folder.' }
+
+  revalidatePath('/agency/[agencySlug]/settings', 'page')
 }

@@ -13,7 +13,7 @@ export default async function AgencySettingsPage({ params }: PageProps) {
 
   const { data: agency } = await supabase
     .from('agencies')
-    .select('id, name, slug, owner_id, status, logo_url, created_at')
+    .select('id, name, slug, owner_id, status, logo_url, drive_folder_id, created_at')
     .eq('slug', agencySlug)
     .single()
 
