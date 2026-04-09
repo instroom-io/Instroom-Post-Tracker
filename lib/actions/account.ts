@@ -91,6 +91,7 @@ export async function disconnectGoogleDrive(): Promise<{ error: string } | void>
         google_access_token: null,
         google_token_expiry: null,
         google_connected_email: null,
+        personal_drive_folder_id: null,
       })
       .eq('id', user.id),
     // Clear personal Drive folder selections across all workspaces
@@ -232,6 +233,24 @@ export async function setWorkspaceDriveFolder(
     .update({ drive_folder_id: folderId })
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
+
+  if (error) return { error: 'Failed to update folder.' }
+
+  revalidatePath('/account/settings')
+}
+
+export async function setPersonalDriveFolder(
+  folderId: string | null
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  // Service client required — RLS blocks self-update on users token columns
+  const { error } = await createServiceClient()
+    .from('users')
+    .update({ personal_drive_folder_id: folderId })
+    .eq('id', user.id)
 
   if (error) return { error: 'Failed to update folder.' }
 
