@@ -20,7 +20,7 @@ export default function MarketingLayout({
         <footer className="bg-marketing-dark px-[5%] py-12">
           <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
             {/* Logo */}
-            <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-10 w-auto brightness-0 invert" />
+            <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-16 w-auto brightness-0 invert" />
 
             {/* Links — absolutely centered */}
             <div className="absolute left-1/2 flex -translate-x-1/2 flex-wrap gap-6">
