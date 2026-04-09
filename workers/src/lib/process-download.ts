@@ -74,7 +74,7 @@ export async function processPostDownload(
       workspace_id,
       campaign:campaigns(name),
       influencer:influencers(ig_handle, tiktok_handle, youtube_handle),
-      workspace:workspaces(name)
+      workspace:workspaces(name, drive_folder_id)
     `
     )
     .eq('id', postId)
@@ -86,11 +86,8 @@ export async function processPostDownload(
 
   const campaign = post.campaign as unknown as { name: string } | null
   const influencer = post.influencer as unknown as { ig_handle: string | null; tiktok_handle: string | null; youtube_handle: string | null } | null
-  const workspace = post.workspace as unknown as { name: string } | null
+  const workspace = post.workspace as unknown as { name: string; drive_folder_id: string | null } | null
   const storedMediaUrl = post.media_url as string | null
-
-  // Auto-download always uses GOOGLE_DRIVE_ROOT_FOLDER_ID (Shared Drive, 2TB)
-  // No per-member folder needed here.
 
   // Use stored media URL first to avoid burning EnsembleData units.
   // Skip HEAD probe (CDN may block HEAD from cloud IPs) — attempt GET directly.
@@ -127,7 +124,8 @@ export async function processPostDownload(
     fileBuffer,
     fileName: `post-${post.id}.${ext}`,
     folderPath,
-    // rootFolderId omitted — uploadToDrive falls back to GOOGLE_DRIVE_ROOT_FOLDER_ID
+    rootFolderId: workspace?.drive_folder_id ?? undefined,
+    // Falls back to GOOGLE_DRIVE_ROOT_FOLDER_ID env var when workspace has no folder set
   })
 
   await supabase
