@@ -59,7 +59,7 @@ export function StorageCard({ workspaceId, currentFolderId, canEdit }: StorageCa
             <li className="flex gap-2.5">
               <span className="flex-shrink-0 w-4 h-4 rounded-full bg-background-muted text-foreground-muted flex items-center justify-center text-[10px] font-bold mt-0.5">2</span>
               <div className="space-y-1.5 min-w-0 flex-1">
-                <span>Right-click your Shared Drive → <strong className="text-foreground font-medium">Manage members</strong> → add the Instroom service account with role <strong className="text-foreground font-medium">Content manager</strong>:</span>
+                <span>Right-click your Shared Drive → <strong className="text-foreground font-medium">Manage members</strong> → add the Instroom service account, set role to <strong className="text-foreground font-medium">Content manager</strong>, then click <strong className="text-foreground font-medium">Send</strong>:</span>
                 {SERVICE_ACCOUNT_EMAIL ? (
                   <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
                     <code className="flex-1 text-[11px] text-foreground truncate select-all">{SERVICE_ACCOUNT_EMAIL}</code>
