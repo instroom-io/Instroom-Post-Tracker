@@ -166,6 +166,7 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
         <AgencyDriveCard
           agencyId={agency.id}
           agencyName={agency.name}
+          agencySlug={agency.slug}
           connectedEmail={connectedEmail}
           currentFolderId={agency.drive_folder_id}
         />

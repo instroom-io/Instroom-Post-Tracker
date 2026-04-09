@@ -5,10 +5,11 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
+  const returnTo = searchParams.get('state') ?? '/account/settings'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
 
   if (error || !code) {
-    return NextResponse.redirect(`${appUrl}/account/settings?error=google_drive_denied`)
+    return NextResponse.redirect(`${appUrl}${returnTo}?error=google_drive_denied`)
   }
 
   // Exchange code for tokens
@@ -62,5 +63,5 @@ export async function GET(request: NextRequest) {
     })
     .eq('id', user.id)
 
-  return NextResponse.redirect(`${appUrl}/account/settings?connected=google_drive`)
+  return NextResponse.redirect(`${appUrl}${returnTo}?connected=google_drive`)
 }

@@ -1,14 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState, useTransition } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { AgencyFolderPickerDialog } from '@/components/agency/agency-folder-picker-dialog'
+import { disconnectGoogleDrive } from '@/lib/actions/account'
 import { CheckCircle, HardDrive } from '@phosphor-icons/react'
 
 interface AgencyDriveCardProps {
   agencyId: string
   agencyName: string
+  agencySlug: string
   connectedEmail: string | null
   currentFolderId: string | null
 }
@@ -16,10 +18,23 @@ interface AgencyDriveCardProps {
 export function AgencyDriveCard({
   agencyId,
   agencyName,
+  agencySlug,
   connectedEmail,
   currentFolderId,
 }: AgencyDriveCardProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  function handleDisconnect() {
+    startTransition(async () => {
+      const result = await disconnectGoogleDrive()
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Google account disconnected.')
+      }
+    })
+  }
 
   return (
     <>
@@ -30,32 +45,63 @@ export function AgencyDriveCard({
             Google Shared Drive where posts are automatically downloaded for all brands under this agency.
           </p>
         </div>
-        <div className="p-5">
+        <div className="p-5 space-y-3">
           {connectedEmail ? (
+            <>
+              {/* Connected account row */}
+              <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle size={16} className="text-brand flex-shrink-0" />
+                  <div>
+                    <p className="text-[12px] font-medium text-foreground">{connectedEmail}</p>
+                    <p className="text-[11px] text-foreground-muted">Google account connected</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  loading={isPending}
+                  onClick={handleDisconnect}
+                  className="text-destructive hover:text-destructive"
+                >
+                  Disconnect
+                </Button>
+              </div>
+
+              {/* Folder selection row */}
+              <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+                <div>
+                  <p className="text-[12px] font-medium text-foreground">
+                    {currentFolderId ? 'Shared Drive folder selected' : 'No folder selected'}
+                  </p>
+                  {currentFolderId && (
+                    <p className="text-[11px] text-foreground-muted font-mono truncate max-w-[260px]">
+                      {currentFolderId}
+                    </p>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setPickerOpen(true)}>
+                  {currentFolderId ? 'Change folder' : 'Choose folder'}
+                </Button>
+              </div>
+            </>
+          ) : (
             <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <CheckCircle size={16} className="text-brand flex-shrink-0" />
-                <div>
-                  <p className="text-[12px] font-medium text-foreground">{agencyName}</p>
-                  <p className="text-[11px] text-foreground-muted">
-                    {currentFolderId ? `Folder: ${currentFolderId}` : 'No folder selected'}
-                  </p>
-                </div>
+                <HardDrive size={16} className="flex-shrink-0 text-foreground-muted" />
+                <p className="text-[12px] text-foreground-muted">
+                  Connect a Google account to choose a Shared Drive.
+                </p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setPickerOpen(true)}>
-                {currentFolderId ? 'Change folder' : 'Choose folder'}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.location.href = `/api/auth/google-drive?returnTo=/agency/${agencySlug}/settings`
+                }}
+              >
+                Connect Google
               </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <HardDrive size={20} className="flex-shrink-0 text-foreground-muted" />
-              <p className="text-[12px] text-foreground-muted">
-                Connect your Google account in{' '}
-                <Link href="/account/settings" className="text-brand hover:underline">
-                  Account Settings
-                </Link>{' '}
-                to link a Shared Drive for automatic post downloads.
-              </p>
             </div>
           )}
         </div>
