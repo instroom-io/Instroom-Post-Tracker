@@ -26,28 +26,28 @@ export async function savePostToUserDrive(
   const accessToken = await getFreshAccessToken(user.id)
   if (!accessToken) return { error: 'connect_required' }
 
-  const [{ data: post }, { data: member }] = await Promise.all([
+  const [{ data: post }, { data: userRecord }] = await Promise.all([
     supabase
       .from('posts')
       .select('drive_file_id')
       .eq('id', postId)
       .eq('workspace_id', workspaceId)
       .single(),
-    supabase
-      .from('workspace_members')
-      .select('drive_folder_id')
-      .eq('workspace_id', workspaceId)
-      .eq('user_id', user.id)
+    createServiceClient()
+      .from('users')
+      .select('personal_drive_folder_id')
+      .eq('id', user.id)
       .single(),
   ])
 
   if (!post?.drive_file_id) return { error: 'not_downloaded' }
 
-  // Copy the Shared Drive file to the member's personal Drive folder.
-  // Requires the member's Google account to be added to the Shared Drive (Viewer role).
+  // Copy the Shared Drive file to the user's personal Drive folder.
+  // Requires the user's Google account to be added to the Shared Drive (Viewer role).
   const copyBody: Record<string, unknown> = {}
-  if (member?.drive_folder_id) {
-    copyBody.parents = [member.drive_folder_id]
+  const folderId = (userRecord as unknown as { personal_drive_folder_id: string | null } | null)?.personal_drive_folder_id
+  if (folderId) {
+    copyBody.parents = [folderId]
   }
 
   const copyRes = await fetch(

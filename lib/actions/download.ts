@@ -20,10 +20,10 @@ export async function triggerPostDownload(
   const limited = await checkActionLimit(`download:user:${user.id}`, limiters.triggerDownload)
   if (limited) return limited
 
-  // 2. Role check + fetch personal Drive folder
+  // 2. Role check
   const { data: member } = await supabase
     .from('workspace_members')
-    .select('role, drive_folder_id')
+    .select('role')
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
     .single()
@@ -32,20 +32,22 @@ export async function triggerPostDownload(
     return { error: 'Insufficient permissions.' }
   }
 
-  if (!member.drive_folder_id) {
-    return { error: 'Set your personal Drive folder in Settings → Members before downloading.' }
-  }
-
-  // 3. Fetch user's Google OAuth tokens (service client required — RLS blocks reading own token columns)
+  // 3. Fetch user's personal Drive folder + Google OAuth tokens
   const serviceClient = createServiceClient()
   const { data: userRecord } = await serviceClient
     .from('users')
-    .select('google_access_token, google_refresh_token')
+    .select('google_access_token, google_refresh_token, personal_drive_folder_id')
     .eq('id', user.id)
     .single()
 
   if (!userRecord?.google_refresh_token) {
     return { error: 'Connect your Google Drive in Account Settings before downloading.' }
+  }
+
+  const personalFolderId = (userRecord as unknown as { personal_drive_folder_id: string | null }).personal_drive_folder_id
+
+  if (!personalFolderId) {
+    return { error: 'Set your personal Drive folder in Account Settings → Integrations before downloading.' }
   }
 
   // 4. Validate post belongs to workspace
@@ -61,12 +63,12 @@ export async function triggerPostDownload(
   // 5. Download media and upload to member's personal Drive folder.
   // This is independent of the auto-download (Shared Drive) — no download_status check.
   try {
-    await processPostDownload(serviceClient, postId, member.drive_folder_id, {
+    await processPostDownload(serviceClient, postId, personalFolderId, {
       accessToken: userRecord.google_access_token ?? '',
       refreshToken: userRecord.google_refresh_token,
     })
 
-    return { driveUrl: `https://drive.google.com/drive/folders/${member.drive_folder_id}` }
+    return { driveUrl: `https://drive.google.com/drive/folders/${personalFolderId}` }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Download failed.'
     return { error: message }
