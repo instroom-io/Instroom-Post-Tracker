@@ -311,13 +311,10 @@ export function AddInfluencerDialog({
                       onChange={e =>
                         setManualHandleInputs(prev => ({ ...prev, [manualActivePlatform]: e.target.value }))
                       }
-                      placeholder={`Paste ${PLATFORMS.find(p => p.value === manualActivePlatform)?.label} handles, one per line\ne.g. @username`}
+                      placeholder={`Paste ${PLATFORMS.find(p => p.value === manualActivePlatform)?.label} handles, one per line\ne.g. @username\n\n@ symbols and extra whitespace are stripped automatically`}
                       rows={6}
                       className="w-full rounded-lg border border-border bg-background-surface px-3 py-2 text-[13px] text-foreground placeholder:text-foreground-muted resize-none focus:outline-none focus:ring-2 focus:ring-brand/50"
                     />
-                    <p className="text-[11px] text-foreground-muted">
-                      @ symbols and extra whitespace are stripped automatically
-                    </p>
                   </div>
                 </div>
               )}
