@@ -19,6 +19,27 @@ function getAuth() {
 
 // In-memory folder ID cache: path string → folder ID
 const folderCache = new Map<string, string>()
+// Cache for folder ID → Shared Drive ID lookups
+const driveIdCache = new Map<string, string | null>()
+
+/** Returns the Shared Drive ID that contains the given folder, or undefined if it's in My Drive. */
+async function getSharedDriveId(drive: ReturnType<typeof google.drive>, folderId: string): Promise<string | undefined> {
+  const cached = driveIdCache.get(folderId)
+  if (cached !== undefined) return cached ?? undefined
+  try {
+    const res = await drive.files.get({
+      fileId: folderId,
+      fields: 'driveId',
+      supportsAllDrives: true,
+    })
+    const driveId = res.data.driveId ?? null
+    driveIdCache.set(folderId, driveId)
+    return driveId ?? undefined
+  } catch {
+    driveIdCache.set(folderId, null)
+    return undefined
+  }
+}
 // In-flight promises to prevent parallel creation of the same folder path
 const folderInFlight = new Map<string, Promise<string>>()
 
@@ -44,6 +65,20 @@ async function _getFolderIdOrCreate(path: string[], rootFolderId?: string): Prom
   const drive = google.drive({ version: 'v3', auth })
 
   const root = rootFolderId ?? process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID ?? 'root'
+
+  // Shared Drive root IDs start with '0A'. They cannot be used directly as
+  // a parent in files.create. The agency must set drive_folder_id to a folder
+  // *inside* the Shared Drive, not the drive root itself.
+  if (root.startsWith('0A') && root !== 'root') {
+    throw new Error(
+      `drive_folder_id "${root}" looks like a Shared Drive root ID. ` +
+      `Please create a folder inside the Shared Drive and paste that folder's URL instead.`
+    )
+  }
+
+  // Detect which Shared Drive this folder tree lives in (for scoping list queries).
+  const sharedDriveId = root !== 'root' ? await getSharedDriveId(drive, root) : undefined
+
   let parentId = root
   let currentPath = ''
 
@@ -61,7 +96,7 @@ async function _getFolderIdOrCreate(path: string[], rootFolderId?: string): Prom
       q: `name = '${segment.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder' and '${parentId}' in parents and trashed = false`,
       fields: 'files(id)',
       pageSize: 1,
-      corpora: 'allDrives',
+      ...(sharedDriveId ? { corpora: 'drive', driveId: sharedDriveId } : { corpora: 'user' }),
       supportsAllDrives: true,
       includeItemsFromAllDrives: true,
     })
