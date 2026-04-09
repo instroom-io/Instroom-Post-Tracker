@@ -23,6 +23,7 @@ export function AgencyDriveCard({
   currentFolderId,
 }: AgencyDriveCardProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [folderId, setFolderId] = useState(currentFolderId)
   const [isPending, startTransition] = useTransition()
 
   function handleDisconnect() {
@@ -72,16 +73,16 @@ export function AgencyDriveCard({
               <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
                 <div>
                   <p className="text-[12px] font-medium text-foreground">
-                    {currentFolderId ? 'Shared Drive folder selected' : 'No folder selected'}
+                    {folderId ? 'Shared Drive folder selected' : 'No folder selected'}
                   </p>
-                  {currentFolderId && (
+                  {folderId && (
                     <p className="text-[11px] text-foreground-muted font-mono truncate max-w-[260px]">
-                      {currentFolderId}
+                      {folderId}
                     </p>
                   )}
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setPickerOpen(true)}>
-                  {currentFolderId ? 'Change folder' : 'Choose folder'}
+                  {folderId ? 'Change folder' : 'Choose folder'}
                 </Button>
               </div>
             </>
@@ -111,9 +112,10 @@ export function AgencyDriveCard({
         <AgencyFolderPickerDialog
           agencyId={agencyId}
           agencyName={agencyName}
-          currentFolderId={currentFolderId}
+          currentFolderId={folderId}
           defaultOpen
           onClose={() => setPickerOpen(false)}
+          onFolderSelected={(id) => setFolderId(id)}
         />
       )}
     </>

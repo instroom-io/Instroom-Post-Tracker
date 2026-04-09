@@ -20,6 +20,7 @@ interface AgencyFolderPickerDialogProps {
   currentFolderId: string | null
   defaultOpen?: boolean
   onClose: () => void
+  onFolderSelected?: (folderId: string) => void
 }
 
 type ViewMode = 'drives' | 'folders'
@@ -30,6 +31,7 @@ export function AgencyFolderPickerDialog({
   currentFolderId,
   defaultOpen = false,
   onClose,
+  onFolderSelected,
 }: AgencyFolderPickerDialogProps) {
   const [open, setOpen] = useState(defaultOpen)
   const [viewMode, setViewMode] = useState<ViewMode>('drives')
@@ -107,6 +109,7 @@ export function AgencyFolderPickerDialog({
         return
       }
       toast.success('Storage folder updated.')
+      if (selected) onFolderSelected?.(selected)
       setOpen(false)
       onClose()
     })
