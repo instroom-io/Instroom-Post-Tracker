@@ -4,16 +4,17 @@ import { useState, useTransition, useRef } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { updateAgency, uploadAgencyLogo, removeAgencyLogo, updateAgencyStorageFolder } from '@/lib/actions/agencies'
-import { StorageCard } from '@/components/settings/storage-card'
+import { updateAgency, uploadAgencyLogo, removeAgencyLogo } from '@/lib/actions/agencies'
+import { AgencyDriveCard } from '@/components/agency/agency-drive-card'
 import { cn } from '@/lib/utils'
 import type { Agency } from '@/lib/types'
 
 interface AgencySettingsFormProps {
   agency: Agency
+  connectedEmail: string | null
 }
 
-export function AgencySettingsForm({ agency }: AgencySettingsFormProps) {
+export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFormProps) {
   const [name, setName] = useState(agency.name)
   const [logoUrl, setLogoUrl] = useState(agency.logo_url ?? '')
   const [nameError, setNameError] = useState<string | null>(null)
@@ -162,10 +163,11 @@ export function AgencySettingsForm({ agency }: AgencySettingsFormProps) {
         </div>
 
         {/* Storage */}
-        <StorageCard
+        <AgencyDriveCard
+          agencyId={agency.id}
+          agencyName={agency.name}
+          connectedEmail={connectedEmail}
           currentFolderId={agency.drive_folder_id}
-          canEdit={true}
-          onSave={(value) => updateAgencyStorageFolder(agency.id, value)}
         />
 
         {/* Account Info card */}

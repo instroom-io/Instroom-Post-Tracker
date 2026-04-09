@@ -19,5 +19,22 @@ export default async function AgencySettingsPage({ params }: PageProps) {
 
   if (!agency) redirect('/app')
 
-  return <AgencySettingsForm agency={agency as Agency} />
+  const { data: ownerProfile } = await supabase
+    .from('users')
+    .select('google_connected_email, google_refresh_token')
+    .eq('id', agency.owner_id)
+    .single()
+
+  const connectedEmail =
+    (ownerProfile as unknown as { google_connected_email: string | null } | null)?.google_connected_email ??
+    ((ownerProfile as unknown as { google_refresh_token: string | null } | null)?.google_refresh_token
+      ? 'Connected'
+      : null)
+
+  return (
+    <AgencySettingsForm
+      agency={agency as Agency}
+      connectedEmail={connectedEmail}
+    />
+  )
 }
