@@ -549,3 +549,27 @@ export async function updateAgencyStorageFolder(
 
   revalidatePath('/agency/[agencySlug]/settings', 'page')
 }
+
+export async function setAgencyDriveFolder(
+  agencyId: string,
+  folderId: string | null
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: agency } = await supabase
+    .from('agencies')
+    .select('owner_id')
+    .eq('id', agencyId)
+    .single()
+  if (!agency || agency.owner_id !== user.id) return { error: 'Unauthorized.' }
+
+  const { error } = await supabase
+    .from('agencies')
+    .update({ drive_folder_id: folderId })
+    .eq('id', agencyId)
+  if (error) return { error: 'Failed to update storage folder.' }
+
+  revalidatePath('/agency/[agencySlug]/settings', 'page')
+}
