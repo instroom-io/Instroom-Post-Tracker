@@ -9,7 +9,7 @@ export default async function AccountSettingsPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('preferred_language, timezone, google_connected_email, google_refresh_token')
+    .select('preferred_language, timezone, google_connected_email, google_refresh_token, personal_drive_folder_id')
     .eq('id', user.id)
     .single()
 
@@ -30,6 +30,7 @@ export default async function AccountSettingsPage() {
       avatarUrl={avatarUrl}
       email={user.email ?? ''}
       connectedEmail={connectedEmail}
+      personalDriveFolderId={(profile as unknown as { personal_drive_folder_id: string | null } | null)?.personal_drive_folder_id ?? null}
     />
   )
 }

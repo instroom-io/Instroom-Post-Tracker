@@ -9,6 +9,7 @@ import { updatePreferences, updatePassword, updateProfile } from '@/lib/actions/
 import { getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { GoogleDriveCard } from '@/components/account/google-drive-card'
+import { PersonalDriveCard } from '@/components/account/personal-drive-card'
 
 const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' },
@@ -90,9 +91,10 @@ interface AccountSettingsFormProps {
   avatarUrl: string | null
   email: string
   connectedEmail: string | null
+  personalDriveFolderId: string | null
 }
 
-export function AccountSettingsForm({ preferredLanguage, timezone, displayName, avatarUrl, email, connectedEmail }: AccountSettingsFormProps) {
+export function AccountSettingsForm({ preferredLanguage, timezone, displayName, avatarUrl, email, connectedEmail, personalDriveFolderId }: AccountSettingsFormProps) {
   const [activeSection, setActiveSection] = useState<Section>('profile')
 
   // Profile state
@@ -353,6 +355,9 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
               <p className="text-[12px] text-foreground-lighter mt-0.5">Connect third-party services to your account.</p>
             </div>
             <GoogleDriveCard connectedEmail={connectedEmail} />
+            {connectedEmail && (
+              <PersonalDriveCard currentFolderId={personalDriveFolderId} />
+            )}
           </>
         )}
 
