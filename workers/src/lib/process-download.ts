@@ -122,7 +122,10 @@ export async function processPostDownload(
   const folderPath = `${workspace?.name}/${campaign?.name}/${handle}/${post.platform}`
 
   const agency = workspace?.agency ?? null
-  const accessToken = agency?.owner_id
+  // Only use agency owner's OAuth token when a drive_folder_id is configured.
+  // Without a folder, the upload would target GOOGLE_DRIVE_ROOT_FOLDER_ID (Instroom's
+  // default Shared Drive), which the agency owner's Google account cannot access.
+  const accessToken = (agency?.owner_id && agency?.drive_folder_id)
     ? await getFreshAccessToken(agency.owner_id, supabase)
     : null
 
@@ -132,8 +135,8 @@ export async function processPostDownload(
     folderPath,
     rootFolderId: agency?.drive_folder_id ?? undefined,
     accessToken: accessToken ?? undefined,
-    // If agency has no OAuth token, falls back to service account
-    // If no drive_folder_id, falls back to GOOGLE_DRIVE_ROOT_FOLDER_ID
+    // If agency has drive_folder_id + OAuth token → upload to agency Shared Drive via OAuth
+    // Otherwise → upload to GOOGLE_DRIVE_ROOT_FOLDER_ID via service account
   })
 
   await supabase
