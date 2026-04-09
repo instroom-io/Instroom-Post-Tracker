@@ -54,12 +54,12 @@ export function StorageCard({ workspaceId, currentFolderId, canEdit }: StorageCa
           <ol className="space-y-2.5 text-[12px] text-foreground-lighter list-none">
             <li className="flex gap-2.5">
               <span className="flex-shrink-0 w-4 h-4 rounded-full bg-background-muted text-foreground-muted flex items-center justify-center text-[10px] font-bold mt-0.5">1</span>
-              <span>Create a <strong className="text-foreground font-medium">Google Shared Drive</strong> (or designate an existing one) for this workspace&apos;s posts. Personal Google Drive folders are not supported — a Shared Drive is required.</span>
+              <span>In Google Drive, go to <strong className="text-foreground font-medium">Shared drives</strong> and create a new Shared Drive for this workspace. Personal Drive folders are not supported.</span>
             </li>
             <li className="flex gap-2.5">
               <span className="flex-shrink-0 w-4 h-4 rounded-full bg-background-muted text-foreground-muted flex items-center justify-center text-[10px] font-bold mt-0.5">2</span>
               <div className="space-y-1.5 min-w-0 flex-1">
-                <span>Add the Instroom service account as a member of that Shared Drive — grant <strong className="text-foreground font-medium">Content Manager</strong> access:</span>
+                <span>Right-click your Shared Drive → <strong className="text-foreground font-medium">Manage members</strong> → add the Instroom service account with role <strong className="text-foreground font-medium">Content manager</strong>:</span>
                 {SERVICE_ACCOUNT_EMAIL ? (
                   <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
                     <code className="flex-1 text-[11px] text-foreground truncate select-all">{SERVICE_ACCOUNT_EMAIL}</code>
@@ -78,7 +78,7 @@ export function StorageCard({ workspaceId, currentFolderId, canEdit }: StorageCa
             </li>
             <li className="flex gap-2.5">
               <span className="flex-shrink-0 w-4 h-4 rounded-full bg-background-muted text-foreground-muted flex items-center justify-center text-[10px] font-bold mt-0.5">3</span>
-              <span>Paste the folder URL or ID below and save.</span>
+              <span>Copy the Shared Drive URL and paste it below, then save.</span>
             </li>
           </ol>
         </div>
