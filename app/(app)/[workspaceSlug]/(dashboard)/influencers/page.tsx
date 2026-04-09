@@ -26,52 +26,47 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
 
   const supabase = await createClient()
 
-  // 1. Workspace
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('id, name')
-    .eq('slug', workspaceSlug)
-    .single()
+  // ── Round 1: workspace + auth user (no mutual dependency) ────────────────
+  const [{ data: workspace }, { data: { user } }] = await Promise.all([
+    supabase.from('workspaces').select('id, name').eq('slug', workspaceSlug).single(),
+    supabase.auth.getUser(),
+  ])
 
   if (!workspace) redirect('/app')
-
-  // 2. User + membership
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: member } = await supabase
-    .from('workspace_members')
-    .select('role')
-    .eq('workspace_id', workspace.id)
-    .eq('user_id', user.id)
-    .single()
+  // ── Round 2: membership + campaigns + optional campaign filter ────────────
+  const [{ data: member }, { data: campaigns }, filterResult] = await Promise.all([
+    supabase
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspace.id)
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('campaigns')
+      .select('id, name')
+      .eq('workspace_id', workspace.id)
+      .order('created_at', { ascending: false }),
+    campaignFilter
+      ? supabase
+          .from('campaign_influencers')
+          .select('influencer_id')
+          .eq('campaign_id', campaignFilter)
+          .neq('monitoring_status', 'removed')
+      : Promise.resolve(null),
+  ])
 
   const canEdit = member?.role
     ? ['owner', 'admin', 'editor'].includes(member.role)
     : false
 
-  // 3. Resolve influencer IDs for campaign filter (if set)
+  // Resolve filter IDs from the conditional Round 2 fetch
   let filteredInfluencerIds: string[] | null = null
-  if (campaignFilter) {
-    const { data: ci } = await supabase
-      .from('campaign_influencers')
-      .select('influencer_id')
-      .eq('campaign_id', campaignFilter)
-      .neq('monitoring_status', 'removed')
-
-    filteredInfluencerIds = ci?.map((r) => r.influencer_id) ?? []
+  if (campaignFilter && filterResult && 'data' in filterResult) {
+    filteredInfluencerIds = filterResult.data?.map((r) => r.influencer_id) ?? []
   }
 
-  // 4. Fetch campaigns for dropdown (always needed)
-  const { data: campaigns } = await supabase
-    .from('campaigns')
-    .select('id, name')
-    .eq('workspace_id', workspace.id)
-    .order('created_at', { ascending: false })
-
-  // Resolve active campaign name for header description
   const activeCampaign = campaignFilter
     ? (campaigns ?? []).find((c) => c.id === campaignFilter) ?? null
     : null
@@ -82,10 +77,12 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
       <div className="space-y-6">
         <PageHeader
           title="Influencers"
-          description={activeCampaign ? `0 influencers in ${activeCampaign.name}` : '0 influencers in this workspace'}
-          actions={
-            <AddInfluencerDialog workspaceId={workspace.id} />
+          description={
+            activeCampaign
+              ? `0 influencers in ${activeCampaign.name}`
+              : '0 influencers in this workspace'
           }
+          actions={<AddInfluencerDialog workspaceId={workspace.id} />}
         />
         <InfluencerListTable
           influencers={[]}
@@ -102,7 +99,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
     )
   }
 
-  // 5. Parallel fetch: count + page of influencers
+  // ── Round 3: parallel count + page ───────────────────────────────────────
   const buildBaseQuery = () => {
     let q = supabase
       .from('influencers')
@@ -136,7 +133,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
   const totalCount = countResult.count ?? 0
   const pageInfluencers = pageResult.data ?? []
 
-  // 6. Fetch campaign memberships for this page's influencers
+  // ── Round 4: campaign memberships for this page's influencers ────────────
   type CampaignMembership = {
     id: string
     influencer_id: string
@@ -156,13 +153,10 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
       )
       .neq('monitoring_status', 'removed')
 
-    // PostgREST returns campaigns as an array for 1:M relations in generated types,
-    // but each campaign_influencer row has exactly one campaign (FK constraint).
-    // Cast via unknown to reconcile the array vs. object shape difference.
     campaignMemberships = (ci ?? []) as unknown as CampaignMembership[]
   }
 
-  // 7. Join: build InfluencerWithCampaigns[]
+  // ── Join: build InfluencerWithCampaigns[] ────────────────────────────────
   const influencers: InfluencerWithCampaigns[] = pageInfluencers.map((inf) => {
     const entries: CampaignEntry[] = campaignMemberships
       .filter((ci) => ci.influencer_id === inf.id && ci.campaigns)
@@ -186,9 +180,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
             ? `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in ${activeCampaign.name}`
             : `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in this workspace`
         }
-        actions={
-          <AddInfluencerDialog workspaceId={workspace.id} />
-        }
+        actions={<AddInfluencerDialog workspaceId={workspace.id} />}
       />
 
       <Suspense fallback={<InfluencerListSkeleton />}>
