@@ -142,6 +142,71 @@ export async function listUserDriveFolders(
   return { folders: data.files ?? [] }
 }
 
+export interface SharedDrive {
+  id: string
+  name: string
+}
+
+export async function listSharedDrives(): Promise<{ drives: SharedDrive[] } | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const accessToken = await getFreshAccessToken(user.id)
+  if (!accessToken) return { error: 'not_connected' }
+
+  const params = new URLSearchParams({
+    pageSize: '20',
+    fields: 'drives(id,name)',
+  })
+
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/drives?${params.toString()}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  )
+
+  if (!res.ok) return { error: 'Failed to fetch Shared Drives.' }
+
+  const data = await res.json() as { drives: SharedDrive[] }
+  return { drives: data.drives ?? [] }
+}
+
+export async function listSharedDriveFolders(
+  driveId: string,
+  parentId?: string
+): Promise<{ folders: DriveFolder[] } | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const accessToken = await getFreshAccessToken(user.id)
+  if (!accessToken) return { error: 'not_connected' }
+
+  const parent = parentId ?? driveId
+  const q = `'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`
+
+  const params = new URLSearchParams({
+    q,
+    fields: 'files(id,name)',
+    orderBy: 'name',
+    pageSize: '50',
+    corpora: 'drive',
+    driveId,
+    supportsAllDrives: 'true',
+    includeItemsFromAllDrives: 'true',
+  })
+
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files?${params.toString()}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  )
+
+  if (!res.ok) return { error: 'Failed to fetch folders.' }
+
+  const data = await res.json() as { files: DriveFolder[] }
+  return { folders: data.files ?? [] }
+}
+
 export async function setWorkspaceDriveFolder(
   workspaceId: string,
   folderId: string | null
