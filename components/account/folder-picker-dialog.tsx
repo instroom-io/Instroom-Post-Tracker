@@ -9,21 +9,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { listUserDriveFolders, setWorkspaceDriveFolder } from '@/lib/actions/account'
+import { listUserDriveFolders, setPersonalDriveFolder } from '@/lib/actions/account'
 import { Folder, CaretRight, ArrowClockwise } from '@phosphor-icons/react'
 import type { DriveFolder } from '@/lib/actions/account'
 
 interface FolderPickerDialogProps {
-  workspaceId: string
-  workspaceName: string
   currentFolderId: string | null
   defaultOpen?: boolean
   onClose: () => void
 }
 
 export function FolderPickerDialog({
-  workspaceId,
-  workspaceName,
   currentFolderId,
   defaultOpen = false,
   onClose,
@@ -67,7 +63,7 @@ export function FolderPickerDialog({
 
   function handleConfirm() {
     startTransition(async () => {
-      const result = await setWorkspaceDriveFolder(workspaceId, selected)
+      const result = await setPersonalDriveFolder(selected)
       if (result?.error) {
         toast.error(result.error)
         return
@@ -87,7 +83,7 @@ export function FolderPickerDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Choose folder — {workspaceName}</DialogTitle>
+          <DialogTitle>Choose personal Drive folder</DialogTitle>
         </DialogHeader>
         <div className="px-5 py-4 space-y-3">
           {/* Breadcrumb */}
