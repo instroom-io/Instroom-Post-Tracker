@@ -63,8 +63,6 @@ export function WorkspaceDriveCard({
 
       {pickerOpen && (
         <FolderPickerDialog
-          workspaceId={workspaceId}
-          workspaceName={workspaceName}
           currentFolderId={currentFolderId}
           defaultOpen
           onClose={() => setPickerOpen(false)}
