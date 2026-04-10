@@ -83,9 +83,7 @@ export function MemberTable({
             <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
               Role
             </th>
-            <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
-              Actions
-            </th>
+            <th className="w-10" />
           </tr>
         </thead>
         <tbody>
@@ -128,16 +126,16 @@ export function MemberTable({
                 <td className="px-4 py-3">
                   <Badge variant={roleVariant[member.role]}>{member.role}</Badge>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-3 py-3 text-right w-10">
                   {canRemove && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
                           type="button"
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-foreground-muted hover:bg-background-muted hover:text-foreground transition-colors"
+                          className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                           disabled={isPending}
                         >
-                          <DotsThree size={14} />
+                          <DotsThree size={16} weight="bold" />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
