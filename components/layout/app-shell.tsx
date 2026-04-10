@@ -34,7 +34,7 @@ interface NavItemsProps {
   workspaceSlug: string
   pathname: string
   isCollapsed: boolean
-  startTour: (id: string) => void
+  startTour: (tourId: 'agency' | 'workspace' | 'campaign' | 'campaigns-list') => void
   onItemClick?: () => void
 }
 
