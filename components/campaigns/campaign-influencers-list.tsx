@@ -416,7 +416,7 @@ export function CampaignInfluencersList({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-border px-5 py-3">
           <p className="text-[11px] text-foreground-muted">
             Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, optimisticItems.length)} of{' '}
             {optimisticItems.length} influencers

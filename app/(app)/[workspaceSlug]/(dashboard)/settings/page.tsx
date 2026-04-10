@@ -44,7 +44,7 @@ async function MembersSection({
 
   return (
     <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-y-2 border-b border-border px-5 py-4">
         <div>
           <h2 className="font-display text-[15px] font-bold text-foreground">Members</h2>
           <p className="mt-0.5 text-[12px] text-foreground-lighter">

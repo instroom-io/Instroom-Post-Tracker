@@ -549,7 +549,7 @@ export function InfluencerListTable({
 
         {/* ── Pagination ─────────────────────────────────────────────────────── */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border px-5 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-border px-5 py-3">
             <span className="text-[12px] text-foreground-lighter">
               Page {page} of {totalPages}
             </span>

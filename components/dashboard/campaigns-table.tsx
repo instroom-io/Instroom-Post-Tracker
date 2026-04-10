@@ -147,8 +147,8 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
     <>
       <div>
         {/* Search bar + Show archived toggle */}
-        <div className="flex items-center justify-between border-b border-border px-5 py-3">
-          <div className="relative max-w-xs">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-border px-5 py-3">
+          <div className="relative w-full sm:max-w-xs">
             <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
             <input
               type="text"

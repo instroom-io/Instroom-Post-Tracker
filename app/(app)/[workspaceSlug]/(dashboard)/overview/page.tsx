@@ -80,7 +80,7 @@ async function OverviewBottom({
     <>
       {/* Campaigns */}
       <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-        <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-border px-5 py-3.5">
           <h2 className="font-display text-[15px] font-bold text-foreground">Campaigns</h2>
           <div className="flex items-center gap-3">
             <Link

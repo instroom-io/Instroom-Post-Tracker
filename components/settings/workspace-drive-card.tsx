@@ -32,17 +32,17 @@ export function WorkspaceDriveCard({
         </div>
         <div className="p-5">
           {connectedEmail ? (
-            <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
-              <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 rounded-lg border border-border px-4 py-3">
+              <div className="flex min-w-0 items-center gap-2.5">
                 <CheckCircle size={16} className="text-brand flex-shrink-0" />
-                <div>
-                  <p className="text-[12px] font-medium text-foreground">{workspaceName}</p>
-                  <p className="text-[11px] text-foreground-muted">
+                <div className="min-w-0">
+                  <p className="text-[12px] font-medium text-foreground truncate">{workspaceName}</p>
+                  <p className="text-[11px] text-foreground-muted truncate">
                     {currentFolderId ? `Folder ID: ${currentFolderId}` : 'My Drive root'}
                   </p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setPickerOpen(true)}>
+              <Button variant="outline" size="sm" className="flex-shrink-0" onClick={() => setPickerOpen(true)}>
                 Change folder
               </Button>
             </div>

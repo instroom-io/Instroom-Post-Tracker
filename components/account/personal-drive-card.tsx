@@ -19,14 +19,14 @@ export function PersonalDriveCard({ currentFolderId }: PersonalDriveCardProps) {
         <p className="text-[12px] text-foreground-lighter mb-4">
           Where your &quot;Save to Drive&quot; posts are saved across all workspaces.
         </p>
-        <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
-          <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 rounded-lg border border-border px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2.5">
             <CheckCircle size={16} className="text-brand flex-shrink-0" />
-            <p className="text-[12px] text-foreground-muted font-mono truncate max-w-[260px]">
+            <p className="text-[12px] text-foreground-muted font-mono truncate">
               {currentFolderId ?? 'My Drive root'}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setPickerOpen(true)}>
+          <Button variant="outline" size="sm" className="flex-shrink-0" onClick={() => setPickerOpen(true)}>
             {currentFolderId ? 'Change folder' : 'Choose folder'}
           </Button>
         </div>

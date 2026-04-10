@@ -79,17 +79,17 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
   ]
 
   return (
-    <div className="flex gap-10">
+    <div className="flex flex-col gap-6 sm:flex-row sm:gap-10">
       {/* Sidebar */}
-      <nav className="w-[180px] flex-shrink-0">
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">Agency</p>
-        <ul className="flex flex-col gap-0.5">
+      <nav className="sm:w-[180px] sm:flex-shrink-0">
+        <p className="mb-2 hidden text-[11px] font-semibold uppercase tracking-wider text-foreground-muted sm:block">Agency</p>
+        <ul className="flex flex-row gap-1 overflow-x-auto sm:flex-col sm:gap-0.5 sm:overflow-x-visible">
           {SIDEBAR_ITEMS.map((item) => (
-            <li key={item.id}>
+            <li key={item.id} className="flex-shrink-0 sm:flex-shrink">
               <button
                 onClick={() => setActiveSection(item.id)}
                 className={cn(
-                  'w-full rounded-lg px-3 py-2 text-left text-[13px] transition-colors',
+                  'whitespace-nowrap rounded-lg px-3 py-2 text-left text-[13px] transition-colors sm:w-full',
                   activeSection === item.id
                     ? 'bg-background-muted font-medium text-foreground'
                     : 'text-foreground-lighter hover:bg-background-muted hover:text-foreground'
