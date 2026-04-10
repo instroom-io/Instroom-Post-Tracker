@@ -41,6 +41,7 @@ interface InfluencerRow {
   added_at: string
   follow_up_1_sent_at: string | null
   follow_up_2_sent_at: string | null
+  stop_after_post: boolean
   influencer: {
     id: string
     ig_handle: string | null

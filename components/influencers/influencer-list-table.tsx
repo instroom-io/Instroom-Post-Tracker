@@ -71,6 +71,7 @@ const STATUS_DOT: Record<MonitoringStatus, string> = {
   pending: 'bg-warning',
   paused:  'bg-foreground-muted/50',
   removed: 'bg-destructive',
+  stopped: 'bg-foreground-muted/50',
 }
 
 const STATUS_LABEL: Record<MonitoringStatus, string> = {
@@ -78,6 +79,7 @@ const STATUS_LABEL: Record<MonitoringStatus, string> = {
   pending: 'text-warning',
   paused:  'text-foreground-muted',
   removed: 'text-destructive',
+  stopped: 'text-foreground-muted',
 }
 
 function MonitoringBadge({ status }: { status: MonitoringStatus }) {
@@ -86,6 +88,7 @@ function MonitoringBadge({ status }: { status: MonitoringStatus }) {
     pending: 'bg-warning/10 text-warning',
     paused:  'bg-foreground-muted/10 text-foreground-muted',
     removed: 'bg-destructive/10 text-destructive',
+    stopped: 'bg-foreground-muted/10 text-foreground-muted',
   }
   return (
     <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide', styles[status])}>
