@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
   const searchParams = new URL(request.url).searchParams
   const returnTo = searchParams.get('returnTo') ?? '/account/settings'
   const agencyId = searchParams.get('agencyId') ?? null
-  const state = JSON.stringify({ returnTo, agencyId })
+  const section = searchParams.get('section') ?? null
+  const state = JSON.stringify({ returnTo, agencyId, section })
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!,

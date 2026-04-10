@@ -10,10 +10,12 @@ export async function GET(request: NextRequest) {
   // State is JSON-encoded { returnTo, agencyId }. Fall back to plain string for safety.
   let returnTo = '/account/settings'
   let agencyId: string | null = null
+  let section: string | null = null
   try {
-    const parsed = JSON.parse(searchParams.get('state') ?? '{}') as { returnTo?: string; agencyId?: string | null }
+    const parsed = JSON.parse(searchParams.get('state') ?? '{}') as { returnTo?: string; agencyId?: string | null; section?: string | null }
     returnTo = parsed.returnTo ?? returnTo
     agencyId = parsed.agencyId ?? null
+    section = parsed.section ?? null
   } catch {
     returnTo = searchParams.get('state') ?? returnTo
   }
@@ -87,5 +89,8 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
   }
 
-  return NextResponse.redirect(`${appUrl}${returnTo}?connected=google_drive`)
+  const redirectUrl = new URL(`${appUrl}${returnTo}`)
+  if (section) redirectUrl.searchParams.set('section', section)
+  redirectUrl.searchParams.set('connected', 'google_drive')
+  return NextResponse.redirect(redirectUrl.toString())
 }

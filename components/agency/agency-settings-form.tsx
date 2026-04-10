@@ -17,7 +17,12 @@ interface AgencySettingsFormProps {
 type Section = 'general' | 'storage' | 'account'
 
 export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFormProps) {
-  const [activeSection, setActiveSection] = useState<Section>('general')
+  const VALID_SECTIONS: Section[] = ['general', 'storage', 'account']
+  const [activeSection, setActiveSection] = useState<Section>(() => {
+    if (typeof window === 'undefined') return 'general'
+    const s = new URLSearchParams(window.location.search).get('section') as Section | null
+    return s && VALID_SECTIONS.includes(s) ? s : 'general'
+  })
   const [name, setName] = useState(agency.name)
   const [logoUrl, setLogoUrl] = useState(agency.logo_url ?? '')
   const [nameError, setNameError] = useState<string | null>(null)

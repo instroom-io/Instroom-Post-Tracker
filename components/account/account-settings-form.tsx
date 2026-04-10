@@ -95,7 +95,12 @@ interface AccountSettingsFormProps {
 }
 
 export function AccountSettingsForm({ preferredLanguage, timezone, displayName, avatarUrl, email, connectedEmail, personalDriveFolderId }: AccountSettingsFormProps) {
-  const [activeSection, setActiveSection] = useState<Section>('profile')
+  const VALID_SECTIONS: Section[] = ['profile', 'preferences', 'security', 'integrations']
+  const [activeSection, setActiveSection] = useState<Section>(() => {
+    if (typeof window === 'undefined') return 'profile'
+    const s = new URLSearchParams(window.location.search).get('section') as Section | null
+    return s && VALID_SECTIONS.includes(s) ? s : 'profile'
+  })
 
   // Profile state
   const [name, setName] = useState(displayName)

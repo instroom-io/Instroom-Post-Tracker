@@ -98,7 +98,7 @@ export function AgencyDriveCard({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  window.location.href = `/api/auth/google-drive?agencyId=${agencyId}&returnTo=/agency/${agencySlug}/settings`
+                  window.location.href = `/api/auth/google-drive?agencyId=${agencyId}&returnTo=/agency/${agencySlug}/settings&section=storage`
                 }}
               >
                 Connect Google

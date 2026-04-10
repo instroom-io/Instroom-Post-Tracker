@@ -57,7 +57,7 @@ export function GoogleDriveCard({ connectedEmail }: GoogleDriveCardProps) {
           </div>
         ) : (
           <div className="flex items-center gap-4">
-            <a href="/api/auth/google-drive">
+            <a href="/api/auth/google-drive?returnTo=/account/settings&section=integrations">
               <Button variant="outline" size="sm">
                 Connect Google Drive
               </Button>
