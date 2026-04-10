@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition, useState } from 'react'
 import { toast } from 'sonner'
-import { DotsThree, Trash, WarningCircle, Users, ArrowClockwise, MagnifyingGlass, Prohibit, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { DotsThree, Trash, WarningCircle, Users, ArrowClockwise, MagnifyingGlass, Prohibit } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { PlatformLogo } from '@/components/ui/platform-icon'
@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
 import { removeInfluencerFromCampaign, updateProductSentAt, refreshInfluencerProfile, toggleStopAfterPost } from '@/lib/actions/influencers'
@@ -371,15 +372,22 @@ export function CampaignInfluencersList({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
+                            className="justify-between gap-8 pr-2"
                             onClick={() => handleStopAfterPost(item.id, item.stop_after_post)}
                           >
-                            {item.stop_after_post ? (
-                              <ArrowCounterClockwise size={13} />
-                            ) : (
+                            <span className="flex items-center gap-2">
                               <Prohibit size={13} />
-                            )}
-                            {item.stop_after_post ? 'Resume after post' : 'Stop after first post'}
+                              Stop after first post
+                            </span>
+                            <span className="pointer-events-none" aria-hidden>
+                              <Switch
+                                size="sm"
+                                checked={item.stop_after_post}
+                                onCheckedChange={() => {}}
+                              />
+                            </span>
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={() =>
