@@ -87,13 +87,13 @@ export function AgencyRequestsTable({ requests }: Props) {
       {requests.map((req) => (
         <div
           key={req.id}
-          className="flex items-center justify-between rounded-lg border border-border bg-background-surface px-4 py-3"
+          className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3 rounded-lg border border-border bg-background-surface px-4 py-3"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <LogoAvatar websiteUrl={req.website_url} agencyName={req.agency_name} />
-            <div>
+            <div className="min-w-0">
               <p className="text-[13px] font-semibold text-foreground">{req.agency_name}</p>
-              <p className="text-[11px] text-foreground-lighter">
+              <p className="truncate text-[11px] text-foreground-lighter">
                 {req.contact_name} · {req.contact_email} · {new Date(req.created_at).toLocaleDateString()}
               </p>
               {req.description && (
@@ -101,7 +101,7 @@ export function AgencyRequestsTable({ requests }: Props) {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-shrink-0 items-center gap-2">
             <Button
               variant="primary"
               size="sm"
