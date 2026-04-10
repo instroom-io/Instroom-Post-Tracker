@@ -104,7 +104,7 @@ Campaign managers get a real-time dashboard and analytics at wrap-up — without
 
 ### 4.4 Post Detection (Polling — posts-worker)
 
-Cron runs every 30 minutes (`GET /api/cron/posts-worker`):
+Railway runs `workers/src/posts-worker.ts` daily at 4 PM UTC:
 
 1. Load all active campaign-influencer targets (`monitoring_status IN ('pending', 'active')`)
 2. For each target, scrape recent posts from EnsembleData per platform (IG posts + reels, TikTok, YouTube)

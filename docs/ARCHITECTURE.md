@@ -13,9 +13,9 @@ Browser (React / Next.js 15)
   │     ├── Server Actions           ──── Supabase (user-scoped or service role)
   │     ├── Edge Middleware          ──── Supabase session refresh + auth redirect
   │     └── API Routes
-  │           ├── GET  /api/cron/posts-worker      ← Vercel Cron (every 30 min — polls EnsembleData)
-  │           ├── GET  /api/cron/download-worker   ← Vercel Cron (every 5 min)
-  │           └── GET  /api/cron/metrics-worker    ← Vercel Cron (every 10 min)
+  │           ├── GET  /api/auth/google-drive/callback  ← Google OAuth callback
+  │           ├── GET  /api/proxy-image                 ← Thumbnail proxy
+  │           └── GET  /api/proxy-drive                 ← Drive file proxy
   │
   ├── Supabase (hosted Postgres)
   │     ├── Auth (JWT + cookie sessions via @supabase/ssr)
@@ -77,10 +77,9 @@ app/
 │       │   └── settings/page.tsx
 │
 ├── api/
-│   └── cron/
-│       ├── posts-worker/route.ts       ← GET, Vercel Cron Bearer token (polls EnsembleData)
-│       ├── download-worker/route.ts    ← GET, Vercel Cron Bearer token
-│       └── metrics-worker/route.ts    ← GET, Vercel Cron Bearer token
+│   ├── auth/google-drive/callback/route.ts  ← Google OAuth callback
+│   ├── proxy-image/route.ts                 ← Thumbnail proxy
+│   └── proxy-drive/route.ts                 ← Drive file proxy
 │
 ├── app/page.tsx                  ← Redirect: platform admin → /admin, agency owner → /agency/[slug]/dashboard,
 │                                    member → /[slug]/overview, else → /no-access
@@ -228,18 +227,17 @@ Write permissions by role:
 ### Service role — admin client
 
 Only these places use `createServiceClient()` (bypasses all RLS):
-1. `app/api/cron/posts-worker/route.ts` — writes posts across workspace boundaries
-2. `lib/actions/workspace.ts` — workspace creation + team member invitation acceptance
-3. `lib/actions/agencies.ts` — agency creation, request approval, brand invite acceptance (workspace creation crosses user boundaries)
+1. `lib/actions/workspace.ts` — workspace creation + team member invitation acceptance
+2. `lib/actions/agencies.ts` — agency creation, request approval, brand invite acceptance (workspace creation crosses user boundaries)
 
 ---
 
 ## 6. Post Detection Pipeline
 
-Triggered by Vercel Cron every 30 min → `GET /api/cron/posts-worker`.
+Triggered by Railway Cron (daily at 4 PM UTC) → runs `workers/src/posts-worker.ts`.
 
 ```
-Cron → GET /api/cron/posts-worker
+Railway Cron → posts-worker
    │
    Step 1: Load targets
    │         SELECT campaign_influencers WHERE monitoring_status IN ('pending','active')
@@ -282,7 +280,7 @@ The cron worker must stay within its time budget. A Drive upload can take 5–30
 
 ## 7. Content Download Worker
 
-**Trigger:** Vercel Cron `GET /api/cron/download-worker` — every 5 minutes.
+**Trigger:** Railway Cron — runs `workers/src/download-worker.ts` every 5 minutes.
 
 ```
 Claim up to 10 pending download jobs (FOR UPDATE SKIP LOCKED — prevents double-processing)
@@ -313,7 +311,7 @@ pg_cron (hourly) — enqueue-metrics-fetch job:
     AND metrics_fetch_after ≤ now()
     AND no existing pending/processing job for this post
 
-Vercel Cron (every 10 min) — GET /api/cron/metrics-worker:
+Railway Cron (every 10 min) — metrics-worker:
   Claim up to 10 pending metrics_fetch jobs
     For each:
       1. Call Ensemble metrics API for post
@@ -386,8 +384,8 @@ All workspace tables have `workspace_id`. RLS ensures users only see data in wor
 | `pause-ended-monitoring` | pg_cron, daily 00:05 UTC | `monitoring_status = 'paused'` for ended campaign influencers |
 | `enqueue-metrics-fetch` | pg_cron, hourly | INSERT `retry_queue` rows for posts ready for metrics |
 | `cleanup-retry-queue` | pg_cron, daily 01:00 UTC | DELETE `done`/`failed` rows older than 30 days |
-| `download-worker` | Vercel Cron, `*/5 * * * *` | Process pending download jobs |
-| `metrics-worker` | Vercel Cron, `*/10 * * * *` | Process pending metrics_fetch jobs |
+| `download-worker` | Railway Cron, `*/5 * * * *` | Process pending download jobs |
+| `metrics-worker` | Railway Cron, `*/10 * * * *` | Process pending metrics_fetch jobs |
 
 ---
 
@@ -398,16 +396,6 @@ All workspace tables have `workspace_id`. RLS ensures users only see data in wor
 | Local dev | `localhost:3000` | any |
 | Preview | `*.vercel.app` | any PR |
 | Production | `app.instroom.co` | `main` |
-
-### Vercel config (`vercel.json`)
-```json
-{
-  "crons": [
-    { "path": "/api/cron/download-worker", "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/metrics-worker", "schedule": "*/10 * * * *" }
-  ]
-}
-```
 
 ### Supabase config
 - Connection pooler (Supavisor) for production

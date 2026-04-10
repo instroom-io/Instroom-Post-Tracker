@@ -547,13 +547,13 @@ Used everywhere in UI. RLS automatically enforced.
 
 ### `createServiceClient()` — admin, bypasses RLS
 **Only allowed in:**
-1. `app/api/cron/posts-worker/route.ts` — reads+writes posts via polling
-2. `lib/actions/brand-requests.ts` — public form submission, approval, rejection
-3. `lib/actions/agencies.ts` — agency creation + request approval (no membership row exists yet for agency owner)
-4. `lib/actions/brands.ts` — brand onboarding acceptance (`workspace_members` insert for brand user)
-5. `lib/actions/workspace.ts` — team member invitation acceptance
-6. `app/api/cron/download-worker/route.ts`
-7. `app/api/cron/metrics-worker/route.ts`
+1. `lib/actions/brand-requests.ts` — public form submission, approval, rejection
+2. `lib/actions/agencies.ts` — agency creation + request approval (no membership row exists yet for agency owner)
+3. `lib/actions/brands.ts` — brand onboarding acceptance (`workspace_members` insert for brand user)
+4. `lib/actions/workspace.ts` — team member invitation acceptance
+5. `workers/src/posts-worker.ts` — reads+writes posts via polling (Railway cron)
+6. `workers/src/download-worker.ts` — download jobs (Railway cron)
+7. `workers/src/metrics-worker.ts` — metrics jobs (Railway cron)
 
 **Never in a component that renders UI.**
 

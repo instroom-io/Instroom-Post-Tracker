@@ -91,7 +91,6 @@ See `.env.local.example` for all required variables with setup instructions.
 | `SENDGRID_FROM_EMAIL` | Yes | Verified sender address |
 | `AGENCY_NOTIFICATION_EMAIL` | Yes | Inbox that receives new brand request alerts |
 | `ADMIN_EMAIL` | Yes | Only this email can sign up without an invite |
-| `CRON_SECRET` | Yes | `openssl rand -hex 32` |
 
 ---
 

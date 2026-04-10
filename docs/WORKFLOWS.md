@@ -203,7 +203,8 @@ Supabase session is refreshed on every request (cookie sync via `@supabase/ssr`)
 /invite/*
 /onboarding          ← dev only (disabled in production)
 /no-access
-/api/cron/*          ← auth via Bearer CRON_SECRET
+/api/auth/*          ← OAuth callbacks
+/api/proxy-*         ← image + drive proxies
 ```
 
 ### Auth Boundaries
@@ -223,7 +224,7 @@ Instroom uses scheduled polling to detect influencer posts. EnsembleData provide
 
 **How it works:**
 
-1. A Vercel Cron job triggers `app/api/cron/posts-worker/route.ts` on a schedule (daily at 4 PM UTC)
+1. Railway runs `workers/src/posts-worker.ts` on a schedule (daily at 4 PM UTC)
 2. The worker queries `campaign_influencers` for all rows with `monitoring_status = 'active'`
 3. For each influencer, it calls the appropriate EnsembleData endpoint:
    - TikTok: `/tt/user/posts` with cursor-based pagination (`tiktok_next_cursor`)
@@ -239,9 +240,8 @@ Each `campaign_influencers` row tracks `tiktok_next_cursor` and `tiktok_backfill
 
 ## 8. Download Worker (Cron)
 
-**File:** `app/api/cron/download-worker/route.ts`
-**Auth:** `Authorization: Bearer CRON_SECRET`
-**Schedule:** Every 5 minutes (`vercel.json`; Free plan: every 30 min)
+**File:** `workers/src/download-worker.ts`
+**Runner:** Railway Cron — every 5 minutes
 
 ### Process
 
@@ -270,9 +270,8 @@ For each claimed job (up to 10 per run):
 
 ## 9. Metrics Worker (Cron)
 
-**File:** `app/api/cron/metrics-worker/route.ts`
-**Auth:** `Authorization: Bearer CRON_SECRET`
-**Schedule:** Every 10 minutes (`vercel.json`; Free plan: merged into single cron)
+**File:** `workers/src/metrics-worker.ts`
+**Runner:** Railway Cron — every 10 minutes
 
 ### When It Runs
 
@@ -352,6 +351,6 @@ Rule: if `new.end_date < current_date AND new.status = 'active'` → set `status
 |---|-----|--------|
 | 1 | **Agency request email** | No email is sent when an agency submits a request or is approved. Planned but not implemented. |
 | 2 | **Google Drive in local dev** | `GOOGLE_SERVICE_ACCOUNT_JSON_B64` is not set locally — Drive uploads will fail. Manually set `posts.download_status = 'downloaded'` in Supabase to test downstream flows. |
-| 3 | **Vercel Free plan cron limit** | Free plan allows only 1 cron job. Currently: `posts-worker` runs every 30 min and handles both download + metrics. On Pro upgrade: restore to 3 separate crons at 5 min / 10 min intervals and set `maxDuration=300`. |
+| 3 | **YouTube download** | YouTube posts are detected and metrics are fetched, but direct video download is not supported via EnsembleData. `download_status` stays `'pending'` perpetually for YouTube posts unless manually updated. |
 | 4 | **YouTube download** | YouTube posts are detected and metrics are fetched, but direct video download is not supported via EnsembleData. `download_status` stays `'pending'` perpetually for YouTube posts unless manually updated. |
 | 5 | **Manual onboarding page** | `/onboarding` is a dev-only page for manually creating workspaces. It must be disabled (guarded or removed) before production deployment. |

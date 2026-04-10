@@ -125,7 +125,7 @@
 - `useTransition` + `useOptimistic` patterns work natively
 - No separate API client layer to maintain
 
-**Implication:** `app/api/` contains only: the Ensemble webhook handler, and Vercel Cron endpoints. Everything user-triggered goes through `'use server'` functions.
+**Implication:** `app/api/` contains only: OAuth callbacks and proxy routes. Everything user-triggered goes through `'use server'` functions. Workers run as standalone Railway cron scripts in `workers/`.
 
 ---
 

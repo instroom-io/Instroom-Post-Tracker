@@ -48,7 +48,7 @@ Forms:          React Hook Form + Zod
 Animations:     Framer Motion (sparingly — rules in DESIGN_SYSTEM.md §7)
 Post ingestion: Ensemble (external API + cron-based polling)
 File storage:   Google Drive via service account (not per-user OAuth)
-Deployment:     Vercel (Edge Middleware + Cron Jobs)
+Deployment:     Vercel (Edge Middleware) + Railway (workers / cron)
 ```
 
 ---
@@ -82,7 +82,6 @@ import { createServiceClient } from '@/lib/supabase/server'   // admin, bypasses
 ```
 
 `createServiceClient()` is **only** allowed in:
-- `app/api/cron/posts-worker/route.ts` — reads+writes posts via polling
 - `lib/actions/workspace.ts` — workspace creation (no membership row exists yet)
 - `lib/actions/workspace.ts` — invitation acceptance (invitee isn't a member yet)
 - `lib/actions/agencies.ts` — agency creation, request approval, and brand invite acceptance (workspace creation crosses user boundaries)
@@ -99,7 +98,7 @@ All user-triggered mutations use `'use server'` functions in `lib/actions/*.ts`.
 export async function createCampaign(...): Promise<{ error: string } | void> { ... }
 ```
 
-`app/api/` is only for: Vercel Cron handlers.
+`app/api/` is only for: OAuth callbacks and proxy image/drive routes.
 
 ### 4. Design tokens only — never hardcoded colours
 
@@ -201,10 +200,9 @@ instroom/
 │   │       │   ├── analytics/page.tsx
 │   │       │   └── settings/page.tsx
 │   ├── api/
-│   │   └── cron/
-│   │       ├── posts-worker/route.ts      ← Vercel Cron — every 30 min (poll EnsembleData)
-│   │       ├── download-worker/route.ts   ← Vercel Cron — every 5 min
-│   │       └── metrics-worker/route.ts   ← Vercel Cron — every 10 min
+│   │   ├── auth/google-drive/callback/route.ts  ← Google OAuth callback
+│   │   ├── proxy-image/route.ts                 ← Thumbnail proxy
+│   │   └── proxy-drive/route.ts                 ← Drive file proxy
 │   ├── app/page.tsx                       ← Redirect: admin→/admin, agency→/agency/[slug]/dashboard,
 │   │                                         member→/[slug]/overview, else→/no-access
 │   ├── brand-invite/[token]/page.tsx      ← Public brand onboard form (no auth required)
@@ -404,7 +402,6 @@ export default function Page() {
 | `NEXT_PUBLIC_APP_URL` | Invite links | e.g. `https://app.instroom.co` |
 | `ENSEMBLE_API_KEY` | Posts scraping, download + metrics API | From Ensemble dashboard |
 | `GOOGLE_SERVICE_ACCOUNT_JSON_B64` | Drive upload | Base64 of service account JSON file |
-| `CRON_SECRET` | Vercel Cron auth | Random secret — `openssl rand -hex 32` |
 
 ---
 

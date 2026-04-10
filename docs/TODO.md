@@ -25,18 +25,18 @@
 - Campaign–influencer linking (`campaign_influencers`)
 
 ### Phase 6 — Post Detection (Polling)
-- Scheduled polling via `app/api/cron/posts-worker/route.ts`
+- Scheduled polling via `workers/src/posts-worker.ts` (Railway cron)
 - Inserts posts, enqueues downloads, deduplicates by platform post ID
 - Cursor-based TikTok pagination (`tiktok_next_cursor`, `tiktok_backfill_complete`)
 
 ### Phase 7 — Download Worker + Google Drive
-- Cron worker at `/api/cron/download-worker`
+- Railway worker at `workers/src/download-worker.ts`
 - Downloads media via Ensemble API, uploads to Google Drive service account
 - Parallel execution via `Promise.allSettled`, 10 jobs/run
 - Usage rights gate: skips download if rights not granted
 
 ### Phase 8 — Metrics Worker + EMV
-- Cron worker at `/api/cron/metrics-worker`
+- Railway worker at `workers/src/metrics-worker.ts`
 - Fetches frozen performance metrics 7 days after publish
 - EMV calculation using configurable CPM rates per platform
 
@@ -83,23 +83,7 @@
 
 These must be resolved before going live.
 
-### 1. `vercel.json` only schedules 1 of 3 cron workers
-
-`posts-worker` (scraping) runs daily at 8 AM. `download-worker` and `metrics-worker` are **never scheduled** — media never downloads and metrics are never fetched in production.
-
-**Worker responsibilities:**
-- `posts-worker` — scrapes EnsembleData API, inserts new posts, enqueues downloads (sequential, runs per influencer)
-- `download-worker` — downloads media to Google Drive (parallel, `Promise.allSettled`, 10 jobs/run)
-- `metrics-worker` — fetches post performance 7 days after publish (parallel, 10 jobs/run)
-
-**Fix for Vercel Hobby (2 cron slots):**
-```json
-{ "path": "/api/cron/posts-worker",    "schedule": "0 */6 * * *" },
-{ "path": "/api/cron/download-worker", "schedule": "*/30 * * * *" }
-```
-`metrics-worker` gets its own slot on Pro, or can be triggered from within `download-worker` as a combined pass.
-
-### 2. Supabase Site URL still set to `http://localhost:3000`
+### 1. Supabase Site URL still set to `http://localhost:3000`
 
 Auth emails (magic links, email confirmation) will redirect to localhost.
 **Fix:** Supabase Dashboard → Authentication → URL Configuration → set Site URL to production URL.
@@ -129,7 +113,6 @@ Ensure these are configured in the Vercel dashboard before deploying:
 - `NEXT_PUBLIC_APP_URL`
 - `ENSEMBLE_API_KEY`
 - `GOOGLE_SERVICE_ACCOUNT_JSON_B64`
-- `CRON_SECRET`
 - `SENDGRID_API_KEY`
 - `SENDGRID_FROM_EMAIL`
 - `AGENCY_NOTIFICATION_EMAIL`
