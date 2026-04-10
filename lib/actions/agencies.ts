@@ -573,3 +573,37 @@ export async function setAgencyDriveFolder(
 
   revalidatePath('/agency/[agencySlug]/settings', 'page')
 }
+
+/**
+ * Disconnect the agency's Google account — clears OAuth columns on the agencies table only.
+ * Does NOT touch the owner's personal Google account on the users table.
+ * Agency owner only.
+ */
+export async function disconnectAgencyGoogleAccount(
+  agencyId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: agency } = await supabase
+    .from('agencies')
+    .select('owner_id')
+    .eq('id', agencyId)
+    .single()
+  if (!agency || agency.owner_id !== user.id) return { error: 'Unauthorized.' }
+
+  const { error } = await supabase
+    .from('agencies')
+    .update({
+      google_connected_email: null,
+      google_refresh_token: null,
+      google_access_token: null,
+      google_token_expiry: null,
+      drive_folder_id: null,
+    })
+    .eq('id', agencyId)
+  if (error) return { error: 'Failed to disconnect Google account.' }
+
+  revalidatePath('/agency/[agencySlug]/settings', 'page')
+}

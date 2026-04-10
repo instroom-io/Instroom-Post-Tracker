@@ -9,7 +9,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_APP_URL!))
   }
 
-  const returnTo = new URL(request.url).searchParams.get('returnTo') ?? '/account/settings'
+  const searchParams = new URL(request.url).searchParams
+  const returnTo = searchParams.get('returnTo') ?? '/account/settings'
+  const agencyId = searchParams.get('agencyId') ?? null
+  const state = JSON.stringify({ returnTo, agencyId })
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!,
@@ -18,7 +21,7 @@ export async function GET(request: NextRequest) {
     scope: 'https://www.googleapis.com/auth/drive email profile',
     access_type: 'offline',
     prompt: 'consent',
-    state: returnTo,
+    state,
   })
 
   return NextResponse.redirect(

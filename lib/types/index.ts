@@ -29,6 +29,9 @@ export interface Agency {
   contact_name: string | null
   contact_email: string | null
   drive_folder_id: string | null
+  google_connected_email: string | null
+  // google_refresh_token / google_access_token / google_token_expiry are server-only
+  // credentials — intentionally excluded from UI-layer types.
   created_at: string
 }
 

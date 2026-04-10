@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { AgencyFolderPickerDialog } from '@/components/agency/agency-folder-picker-dialog'
-import { disconnectGoogleDrive } from '@/lib/actions/account'
+import { disconnectAgencyGoogleAccount } from '@/lib/actions/agencies'
 import { CheckCircle, HardDrive } from '@phosphor-icons/react'
 
 interface AgencyDriveCardProps {
@@ -28,7 +28,7 @@ export function AgencyDriveCard({
 
   function handleDisconnect() {
     startTransition(async () => {
-      const result = await disconnectGoogleDrive()
+      const result = await disconnectAgencyGoogleAccount(agencyId)
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -98,7 +98,7 @@ export function AgencyDriveCard({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  window.location.href = `/api/auth/google-drive?returnTo=/agency/${agencySlug}/settings`
+                  window.location.href = `/api/auth/google-drive?agencyId=${agencyId}&returnTo=/agency/${agencySlug}/settings`
                 }}
               >
                 Connect Google

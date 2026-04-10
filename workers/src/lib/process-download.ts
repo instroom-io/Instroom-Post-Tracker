@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { uploadToDrive } from './drive/upload'
-import { getFreshAccessToken } from './google/tokens'
+import { getAgencyFreshAccessToken } from './google/tokens'
 
 const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
 const ENSEMBLE_API_KEY = process.env.ENSEMBLE_API_KEY!
@@ -75,7 +75,7 @@ export async function processPostDownload(
       workspace_id,
       campaign:campaigns(name),
       influencer:influencers(ig_handle, tiktok_handle, youtube_handle),
-      workspace:workspaces(name, agency:agencies(drive_folder_id, owner_id))
+      workspace:workspaces(name, agency:agencies(id, drive_folder_id))
     `
     )
     .eq('id', postId)
@@ -87,7 +87,7 @@ export async function processPostDownload(
 
   const campaign = post.campaign as unknown as { name: string } | null
   const influencer = post.influencer as unknown as { ig_handle: string | null; tiktok_handle: string | null; youtube_handle: string | null } | null
-  const workspace = post.workspace as unknown as { name: string; agency: { drive_folder_id: string | null; owner_id: string } | null } | null
+  const workspace = post.workspace as unknown as { name: string; agency: { id: string; drive_folder_id: string | null } | null } | null
   const storedMediaUrl = post.media_url as string | null
 
   // Use stored media URL first to avoid burning EnsembleData units.
@@ -122,11 +122,11 @@ export async function processPostDownload(
   const folderPath = `${workspace?.name}/${campaign?.name}/${handle}/${post.platform}`
 
   const agency = workspace?.agency ?? null
-  // Only use agency owner's OAuth token when a drive_folder_id is configured.
+  // Only use the agency's OAuth token when a drive_folder_id is configured.
   // Without a folder, the upload would target GOOGLE_DRIVE_ROOT_FOLDER_ID (Instroom's
-  // default Shared Drive), which the agency owner's Google account cannot access.
-  const accessToken = (agency?.owner_id && agency?.drive_folder_id)
-    ? await getFreshAccessToken(agency.owner_id, supabase)
+  // default Shared Drive), which the agency's Google account cannot access.
+  const accessToken = (agency?.id && agency?.drive_folder_id)
+    ? await getAgencyFreshAccessToken(agency.id, supabase)
     : null
 
   const { fileId, folderPath: savedFolderPath } = await uploadToDrive({

@@ -16,7 +16,14 @@ export type Database = {
     Tables: {
       agencies: {
         Row: {
+          contact_email: string | null
+          contact_name: string | null
           created_at: string
+          drive_folder_id: string | null
+          google_access_token: string | null
+          google_connected_email: string | null
+          google_refresh_token: string | null
+          google_token_expiry: number | null
           id: string
           logo_url: string | null
           name: string
@@ -25,7 +32,14 @@ export type Database = {
           status: Database["public"]["Enums"]["agency_status"]
         }
         Insert: {
+          contact_email?: string | null
+          contact_name?: string | null
           created_at?: string
+          drive_folder_id?: string | null
+          google_access_token?: string | null
+          google_connected_email?: string | null
+          google_refresh_token?: string | null
+          google_token_expiry?: number | null
           id?: string
           logo_url?: string | null
           name: string
@@ -34,7 +48,14 @@ export type Database = {
           status?: Database["public"]["Enums"]["agency_status"]
         }
         Update: {
+          contact_email?: string | null
+          contact_name?: string | null
           created_at?: string
+          drive_folder_id?: string | null
+          google_access_token?: string | null
+          google_connected_email?: string | null
+          google_refresh_token?: string | null
+          google_token_expiry?: number | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -156,13 +177,16 @@ export type Database = {
           follow_up_1_sent_at: string | null
           follow_up_2_sent_at: string | null
           id: string
+          ig_last_post_at: string | null
           influencer_id: string
           monitoring_status: Database["public"]["Enums"]["monitoring_status"]
           product_sent_at: string | null
+          stop_after_post: boolean
           tiktok_backfill_complete: boolean
           tiktok_next_cursor: number | null
           usage_rights: boolean
           usage_rights_updated_at: string | null
+          yt_last_post_at: string | null
         }
         Insert: {
           added_at?: string
@@ -171,13 +195,16 @@ export type Database = {
           follow_up_1_sent_at?: string | null
           follow_up_2_sent_at?: string | null
           id?: string
+          ig_last_post_at?: string | null
           influencer_id: string
           monitoring_status?: Database["public"]["Enums"]["monitoring_status"]
           product_sent_at?: string | null
+          stop_after_post?: boolean
           tiktok_backfill_complete?: boolean
           tiktok_next_cursor?: number | null
           usage_rights?: boolean
           usage_rights_updated_at?: string | null
+          yt_last_post_at?: string | null
         }
         Update: {
           added_at?: string
@@ -186,13 +213,16 @@ export type Database = {
           follow_up_1_sent_at?: string | null
           follow_up_2_sent_at?: string | null
           id?: string
+          ig_last_post_at?: string | null
           influencer_id?: string
           monitoring_status?: Database["public"]["Enums"]["monitoring_status"]
           product_sent_at?: string | null
+          stop_after_post?: boolean
           tiktok_backfill_complete?: boolean
           tiktok_next_cursor?: number | null
           usage_rights?: boolean
           usage_rights_updated_at?: string | null
+          yt_last_post_at?: string | null
         }
         Relationships: [
           {
@@ -489,8 +519,6 @@ export type Database = {
           blocked_reason: string | null
           campaign_id: string
           caption: string | null
-          collab_checked_by: string | null
-          collab_status: Database["public"]["Enums"]["collab_status"]
           detected_at: string
           download_status: Database["public"]["Enums"]["download_status"]
           downloaded_at: string | null
@@ -512,8 +540,6 @@ export type Database = {
           blocked_reason?: string | null
           campaign_id: string
           caption?: string | null
-          collab_checked_by?: string | null
-          collab_status?: Database["public"]["Enums"]["collab_status"]
           detected_at?: string
           download_status?: Database["public"]["Enums"]["download_status"]
           downloaded_at?: string | null
@@ -535,8 +561,6 @@ export type Database = {
           blocked_reason?: string | null
           campaign_id?: string
           caption?: string | null
-          collab_checked_by?: string | null
-          collab_status?: Database["public"]["Enums"]["collab_status"]
           detected_at?: string
           download_status?: Database["public"]["Enums"]["download_status"]
           downloaded_at?: string | null
@@ -560,13 +584,6 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "posts_collab_checked_by_fkey"
-            columns: ["collab_checked_by"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -639,6 +656,7 @@ export type Database = {
           id: string
           is_platform_admin: boolean
           onboarding_completed: boolean
+          personal_drive_folder_id: string | null
           preferred_language: string
           timezone: string
         }
@@ -654,6 +672,7 @@ export type Database = {
           id: string
           is_platform_admin?: boolean
           onboarding_completed?: boolean
+          personal_drive_folder_id?: string | null
           preferred_language?: string
           timezone?: string
         }
@@ -669,6 +688,7 @@ export type Database = {
           id?: string
           is_platform_admin?: boolean
           onboarding_completed?: boolean
+          personal_drive_folder_id?: string | null
           preferred_language?: string
           timezone?: string
         }
@@ -856,13 +876,12 @@ export type Database = {
       agency_status: "pending" | "active" | "suspended"
       brand_request_status: "pending" | "approved" | "rejected" | "invited"
       brand_status: "pending" | "active"
-      campaign_status: "draft" | "active" | "ended"
-      collab_status: "n/a" | "pending" | "confirmed" | "not_added"
+      campaign_status: "draft" | "active" | "ended" | "archived"
       download_status: "pending" | "downloaded" | "blocked" | "failed"
       drive_connection_type: "agency" | "brand"
       job_status: "pending" | "processing" | "done" | "failed"
       job_type: "download" | "metrics_fetch"
-      monitoring_status: "pending" | "active" | "paused" | "removed"
+      monitoring_status: "pending" | "active" | "paused" | "removed" | "stopped"
       platform_type: "instagram" | "tiktok" | "youtube"
       workspace_role: "owner" | "admin" | "editor" | "viewer" | "brand"
     }
@@ -996,13 +1015,12 @@ export const Constants = {
       agency_status: ["pending", "active", "suspended"],
       brand_request_status: ["pending", "approved", "rejected", "invited"],
       brand_status: ["pending", "active"],
-      campaign_status: ["draft", "active", "ended"],
-      collab_status: ["n/a", "pending", "confirmed", "not_added"],
+      campaign_status: ["draft", "active", "ended", "archived"],
       download_status: ["pending", "downloaded", "blocked", "failed"],
       drive_connection_type: ["agency", "brand"],
       job_status: ["pending", "processing", "done", "failed"],
       job_type: ["download", "metrics_fetch"],
-      monitoring_status: ["pending", "active", "paused", "removed"],
+      monitoring_status: ["pending", "active", "paused", "removed", "stopped"],
       platform_type: ["instagram", "tiktok", "youtube"],
       workspace_role: ["owner", "admin", "editor", "viewer", "brand"],
     },
