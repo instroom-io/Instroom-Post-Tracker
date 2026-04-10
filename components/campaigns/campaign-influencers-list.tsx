@@ -128,7 +128,7 @@ const platformsForInfluencer = (inf: InfluencerRow['influencer']): Platform[] =>
 }
 
 
-type FollowUpStatus = 'first_due' | 'first_sent' | 'second_due' | 'second_sent' | null
+type FollowUpStatus = 'posted' | 'first_due' | 'first_sent' | 'second_due' | 'second_sent' | null
 
 function getFollowUpStatus(
   item: InfluencerRow,
@@ -136,7 +136,7 @@ function getFollowUpStatus(
   campaignStatus: string
 ): FollowUpStatus {
   if (campaignStatus === 'draft') return null
-  if (hasPost) return null
+  if (hasPost) return 'posted'
   const clockStart = item.product_sent_at ?? item.added_at
   const daysSince = differenceInDays(new Date(), new Date(clockStart))
   if (daysSince < 10) return null
@@ -337,6 +337,7 @@ export function CampaignInfluencersList({
                       const hasPost = (postCountsByInfluencerId?.[item.influencer.id] ?? 0) > 0
                       const status = getFollowUpStatus(item, hasPost, campaignStatus)
                       if (!status) return null
+                      if (status === 'posted') return <Badge variant="success">Posted</Badge>
                       if (status === 'first_due') return <Badge variant="warning">Follow up</Badge>
                       if (status === 'first_sent') return <Badge variant="muted">1st sent</Badge>
                       if (status === 'second_due') return <Badge variant="destructive">Follow up again</Badge>
