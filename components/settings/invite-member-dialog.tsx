@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
+import { ShieldCheck, PencilLine, Eye } from 'lucide-react'
 import {
   Dialog,
   DialogTrigger,
@@ -13,7 +14,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { inviteMember } from '@/lib/actions/workspace'
 import type { WorkspaceRole } from '@/lib/types'
@@ -72,25 +72,33 @@ export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogP
               <span className="text-[12px] font-medium text-foreground-light">Role</span>
               <div className="flex gap-2">
                 {([
-                  { value: 'admin', label: 'Admin', description: 'Full access' },
-                  { value: 'editor', label: 'Editor', description: 'Can edit data' },
-                  { value: 'viewer', label: 'Viewer', description: 'Read-only' },
-                ] as const).map(({ value, label, description }) => (
-                  <Tooltip key={value} content={description} side="bottom">
-                    <button
-                      type="button"
-                      onClick={() => setRole(value)}
-                      disabled={isPending}
-                      className={cn(
-                        'flex-1 h-9 rounded-lg border text-[13px] font-medium transition-colors',
-                        role === value
-                          ? 'border-brand bg-brand/10 text-brand'
-                          : 'border-border bg-background-surface text-foreground-light hover:border-border-strong hover:text-foreground'
-                      )}
-                    >
-                      {label}
-                    </button>
-                  </Tooltip>
+                  { value: 'admin', label: 'Admin', description: 'Full access', Icon: ShieldCheck },
+                  { value: 'editor', label: 'Editor', description: 'Can edit data', Icon: PencilLine },
+                  { value: 'viewer', label: 'Viewer', description: 'Read-only', Icon: Eye },
+                ] as const).map(({ value, label, description, Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setRole(value)}
+                    disabled={isPending}
+                    className={cn(
+                      'group flex-1 flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border transition-colors',
+                      role === value
+                        ? 'border-brand bg-brand/10 text-brand'
+                        : 'border-border bg-background-surface text-foreground-light hover:border-border-strong hover:text-foreground'
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="text-[13px] font-medium">{label}</span>
+                    <span className={cn(
+                      'text-[10px] font-normal transition-opacity duration-150',
+                      role === value
+                        ? 'text-brand/70 opacity-100'
+                        : 'text-foreground-muted opacity-0 group-hover:opacity-100'
+                    )}>
+                      {description}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
