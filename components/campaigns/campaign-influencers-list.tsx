@@ -365,9 +365,9 @@ export function CampaignInfluencersList({
                         <DropdownMenuTrigger>
                           <button
                             type="button"
-                            className="rounded-md p-1 text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground"
+                            className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
-                            <DotsThree size={14} />
+                            <DotsThree size={16} weight="bold" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
