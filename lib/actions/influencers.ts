@@ -507,3 +507,20 @@ export async function refreshInfluencerProfile(
   revalidatePath('/', 'layout')
   return { profile_pic_url }
 }
+
+export async function toggleStopAfterPost(
+  campaignInfluencerId: string,
+  value: boolean
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { error } = await supabase
+    .from('campaign_influencers')
+    .update({ stop_after_post: value })
+    .eq('id', campaignInfluencerId)
+  if (error) return { error: 'Failed to update.' }
+
+  revalidatePath('/', 'layout')
+}

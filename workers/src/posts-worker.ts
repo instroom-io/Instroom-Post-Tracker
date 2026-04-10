@@ -99,7 +99,7 @@ function parseIgItem(
   }
 }
 
-async function scrapeInstagram(handle: string, cachedUserId?: string | null): Promise<ScrapeResult> {
+async function scrapeInstagram(handle: string, cachedUserId?: string | null, depth: number = 3): Promise<ScrapeResult> {
   let userId: string | null = cachedUserId ?? null
   if (!userId) {
     const infoRes = await fetch(
@@ -118,8 +118,8 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null): Pr
     }
   }
   const [postsRes, reelsRes] = await Promise.all([
-    fetch(`${ENSEMBLE_API_URL}/instagram/user/posts?user_id=${encodeURIComponent(userId)}&depth=5&token=${ENSEMBLE_API_KEY}`),
-    fetch(`${ENSEMBLE_API_URL}/instagram/user/reels?user_id=${encodeURIComponent(userId)}&depth=5&token=${ENSEMBLE_API_KEY}`),
+    fetch(`${ENSEMBLE_API_URL}/instagram/user/posts?user_id=${encodeURIComponent(userId)}&depth=${depth}&token=${ENSEMBLE_API_KEY}`),
+    fetch(`${ENSEMBLE_API_URL}/instagram/user/reels?user_id=${encodeURIComponent(userId)}&depth=${depth}&token=${ENSEMBLE_API_KEY}`),
   ])
   const seenShortcodes = new Set<string>()
   const posts: NormalizedPost[] = []
@@ -300,6 +300,9 @@ async function main() {
       monitoring_status,
       tiktok_next_cursor,
       tiktok_backfill_complete,
+      ig_last_post_at,
+      yt_last_post_at,
+      stop_after_post,
       product_sent_at,
       added_at,
       campaigns!inner (
@@ -366,6 +369,9 @@ async function main() {
       ? BigInt(String(row.tiktok_next_cursor))
       : null
     const tiktokBackfillComplete: boolean = (row.tiktok_backfill_complete as boolean | null) ?? false
+    const igLastPostAt: string | null = row.ig_last_post_at as string | null
+    const ytLastPostAt: string | null = row.yt_last_post_at as string | null
+    const stopAfterPost: boolean = (row.stop_after_post as boolean | null) ?? false
 
     const platformsToScrape: Array<'instagram' | 'tiktok' | 'youtube'> = (
       campaign.platforms as Array<'instagram' | 'tiktok' | 'youtube'>
@@ -385,7 +391,9 @@ async function main() {
       try {
         let result: ScrapeResult = { posts: [], resolvedId: null }
         if (platform === 'instagram') {
-          result = await scrapeInstagram(handle, influencer.instagram_user_id)
+          // depth=1 (live monitoring) once we've done the initial backfill, depth=3 for first run
+          const igDepth = igLastPostAt ? 1 : 3
+          result = await scrapeInstagram(handle, influencer.instagram_user_id, igDepth)
         } else if (platform === 'tiktok') {
           const cursorForThisRun = tiktokBackfillComplete ? null : tiktokNextCursor
           const depth = tiktokBackfillComplete ? 1 : 5
@@ -420,11 +428,34 @@ async function main() {
           )
         }
 
+        // Update incremental cursor for Instagram and YouTube: store the most recently
+        // seen post timestamp so future runs skip already-checked content.
+        if (platform === 'instagram' && rawPosts.length > 0) {
+          const newest = rawPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, rawPosts[0].posted_at)
+          await supabase.from('campaign_influencers').update({ ig_last_post_at: newest }).eq('id', row.id)
+          console.log(`[posts-worker] IG @${handle} cursor updated to ${newest}`)
+        }
+        if (platform === 'youtube' && rawPosts.length > 0) {
+          const newest = rawPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, rawPosts[0].posted_at)
+          await supabase.from('campaign_influencers').update({ yt_last_post_at: newest }).eq('id', row.id)
+          console.log(`[posts-worker] YT ${handle} cursor updated to ${newest}`)
+        }
+
+        // Filter out posts already seen on a previous run (incremental scraping).
+        // TikTok uses cursor-based pagination so no timestamp filter needed there.
+        const lastSeenMs =
+          platform === 'instagram' && igLastPostAt ? new Date(igLastPostAt).getTime() :
+          platform === 'youtube' && ytLastPostAt ? new Date(ytLastPostAt).getTime() :
+          0
+        const unseenPosts = lastSeenMs > 0
+          ? rawPosts.filter((p) => new Date(p.posted_at).getTime() > lastSeenMs)
+          : rawPosts
+
         const config = campaign.campaign_tracking_configs?.find((c) => c.platform === platform)
         const hashtags = config?.hashtags ?? []
         const mentions = config?.mentions ?? []
 
-        const filtered = rawPosts.filter((post) =>
+        const filtered = unseenPosts.filter((post) =>
           isWithinCampaignWindow(post.posted_at, campaign.start_date, campaign.end_date) &&
           matchesTrackingConfig(post.caption, hashtags, mentions)
         )
@@ -458,6 +489,15 @@ async function main() {
 
         const newPosts = inserted ?? []
         totalNewPosts += newPosts.length
+
+        // Auto-stop monitoring when stop_after_post is enabled and a new matching post was found.
+        if (stopAfterPost && newPosts.length > 0) {
+          await supabase
+            .from('campaign_influencers')
+            .update({ monitoring_status: 'stopped' })
+            .eq('id', row.id)
+          console.log(`[posts-worker] @${handle} auto-stopped after post detected`)
+        }
 
         // Backfill media_url + thumbnail_url for existing posts that were scraped before these columns existed
         const toBackfill = filtered.filter((p) => p.media_url !== null || p.thumbnail_url !== null)

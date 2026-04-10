@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition, useState } from 'react'
 import { toast } from 'sonner'
-import { DotsThree, Trash, WarningCircle, Users, ArrowClockwise, MagnifyingGlass } from '@phosphor-icons/react'
+import { DotsThree, Trash, WarningCircle, Users, ArrowClockwise, MagnifyingGlass, Prohibit, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { PlatformLogo } from '@/components/ui/platform-icon'
@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
-import { removeInfluencerFromCampaign, updateProductSentAt, refreshInfluencerProfile } from '@/lib/actions/influencers'
+import { removeInfluencerFromCampaign, updateProductSentAt, refreshInfluencerProfile, toggleStopAfterPost } from '@/lib/actions/influencers'
 import { cn, getInfluencerLabel, getInitials } from '@/lib/utils'
 import { Switch } from '@/components/ui/switch'
 import { differenceInDays } from 'date-fns'
@@ -28,6 +28,7 @@ interface InfluencerRow {
   added_at: string
   follow_up_1_sent_at: string | null
   follow_up_2_sent_at: string | null
+  stop_after_post: boolean
   influencer: {
     id: string
     ig_handle: string | null
@@ -213,6 +214,17 @@ export function CampaignInfluencersList({
     })
   }
 
+  function handleStopAfterPost(campaignInfluencerId: string, currentValue: boolean) {
+    startTransition(async () => {
+      const result = await toggleStopAfterPost(campaignInfluencerId, !currentValue)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success(!currentValue ? 'Will stop after first post' : 'Stop after post disabled')
+      }
+    })
+  }
+
   if (optimisticItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
@@ -302,10 +314,12 @@ export function CampaignInfluencersList({
                             ? 'success'
                             : item.monitoring_status === 'paused'
                             ? 'warning'
+                            : item.monitoring_status === 'stopped'
+                            ? 'muted'
                             : 'muted'
                         }
                       >
-                        {item.monitoring_status}
+                        {item.monitoring_status === 'stopped' ? 'Auto-stopped' : item.monitoring_status}
                       </Badge>
                       {item.monitoring_status === 'active' &&
                         (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0 && (
@@ -356,6 +370,16 @@ export function CampaignInfluencersList({
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleStopAfterPost(item.id, item.stop_after_post)}
+                          >
+                            {item.stop_after_post ? (
+                              <ArrowCounterClockwise size={13} />
+                            ) : (
+                              <Prohibit size={13} />
+                            )}
+                            {item.stop_after_post ? 'Resume after post' : 'Stop after first post'}
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={() =>

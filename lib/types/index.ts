@@ -9,7 +9,7 @@ export type AgencyRequestStatus = 'pending' | 'approved' | 'rejected'
 
 export type CampaignStatus = 'draft' | 'active' | 'ended' | 'archived'
 
-export type MonitoringStatus = 'pending' | 'active' | 'paused' | 'removed'
+export type MonitoringStatus = 'pending' | 'active' | 'paused' | 'removed' | 'stopped'
 
 export type DownloadStatus = 'pending' | 'downloaded' | 'blocked' | 'failed'
 
@@ -134,6 +134,9 @@ export interface CampaignInfluencer {
   monitoring_status: MonitoringStatus
   added_by: string
   added_at: string
+  ig_last_post_at: string | null
+  yt_last_post_at: string | null
+  stop_after_post: boolean
   influencer?: Influencer
 }
 
