@@ -3,6 +3,8 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { getAgencyFreshAccessToken } from '@/lib/google/tokens'
+import type { SharedDrive, DriveFolder } from '@/lib/actions/account'
 import { sendEmail, escapeHtml } from '@/lib/email'
 import { brandInviteEmail } from '@/lib/email/templates/brand-invite'
 import { agencyApprovedEmail } from '@/lib/email/templates/agency-approved'
@@ -572,6 +574,70 @@ export async function setAgencyDriveFolder(
   if (error) return { error: 'Failed to update storage folder.' }
 
   revalidatePath('/agency/[agencySlug]/settings', 'page')
+}
+
+/**
+ * List Shared Drives accessible by the agency's connected Google account.
+ * Agency owner only.
+ */
+export async function listAgencySharedDrives(
+  agencyId: string
+): Promise<{ drives: SharedDrive[] } | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const accessToken = await getAgencyFreshAccessToken(agencyId)
+  if (!accessToken) return { error: 'not_connected' }
+
+  const params = new URLSearchParams({ pageSize: '20', fields: 'drives(id,name)' })
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/drives?${params.toString()}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  )
+  if (!res.ok) return { error: 'Failed to fetch Shared Drives.' }
+
+  const data = await res.json() as { drives: SharedDrive[] }
+  return { drives: data.drives ?? [] }
+}
+
+/**
+ * List folders inside a Shared Drive using the agency's connected Google account.
+ * Agency owner only.
+ */
+export async function listAgencySharedDriveFolders(
+  agencyId: string,
+  driveId: string,
+  parentId?: string
+): Promise<{ folders: DriveFolder[] } | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const accessToken = await getAgencyFreshAccessToken(agencyId)
+  if (!accessToken) return { error: 'not_connected' }
+
+  const parent = parentId ?? driveId
+  const q = `'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`
+  const params = new URLSearchParams({
+    q,
+    fields: 'files(id,name)',
+    orderBy: 'name',
+    pageSize: '50',
+    corpora: 'drive',
+    driveId,
+    supportsAllDrives: 'true',
+    includeItemsFromAllDrives: 'true',
+  })
+
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files?${params.toString()}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  )
+  if (!res.ok) return { error: 'Failed to fetch folders.' }
+
+  const data = await res.json() as { files: DriveFolder[] }
+  return { folders: data.files ?? [] }
 }
 
 /**

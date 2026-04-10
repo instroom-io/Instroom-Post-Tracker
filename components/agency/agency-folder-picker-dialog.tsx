@@ -9,8 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { listSharedDrives, listSharedDriveFolders } from '@/lib/actions/account'
-import { setAgencyDriveFolder } from '@/lib/actions/agencies'
+import { listAgencySharedDrives, listAgencySharedDriveFolders, setAgencyDriveFolder } from '@/lib/actions/agencies'
 import { HardDrive, Folder, CaretRight, ArrowClockwise } from '@phosphor-icons/react'
 import type { DriveFolder, SharedDrive } from '@/lib/actions/account'
 
@@ -45,7 +44,7 @@ export function AgencyFolderPickerDialog({
 
   async function loadDrives() {
     setLoading(true)
-    const result = await listSharedDrives()
+    const result = await listAgencySharedDrives(agencyId)
     setLoading(false)
     if ('error' in result) {
       toast.error('Failed to load Shared Drives.')
@@ -56,7 +55,7 @@ export function AgencyFolderPickerDialog({
 
   async function loadFolders(driveId: string, parentId?: string) {
     setLoading(true)
-    const result = await listSharedDriveFolders(driveId, parentId)
+    const result = await listAgencySharedDriveFolders(agencyId, driveId, parentId)
     setLoading(false)
     if ('error' in result) {
       toast.error('Failed to load folders.')
