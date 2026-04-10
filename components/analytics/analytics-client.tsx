@@ -67,7 +67,20 @@ export function AnalyticsClient({
   defaultFilters,
   timezone,
 }: AnalyticsClientProps) {
-  const [filters, setFilters] = useState<AnalyticsFilters>(defaultFilters)
+  const [filters, setFilters] = useState<AnalyticsFilters>(() => {
+    // Compute date defaults client-side so they reflect the user's local timezone
+    // and are never stale due to server-side RSC caching.
+    const to = new Date()
+    const from = new Date()
+    from.setDate(from.getDate() - 30)
+    // en-CA locale gives YYYY-MM-DD in local timezone (not UTC like toISOString does)
+    return {
+      from: from.toLocaleDateString('en-CA'),
+      to: to.toLocaleDateString('en-CA'),
+      campaignId: defaultFilters.campaignId,
+      platform: defaultFilters.platform,
+    }
+  })
 
   const filtered = metrics.filter((m) => {
     if (!m.post) return false

@@ -14,15 +14,6 @@ interface PageProps {
   params: Promise<{ workspaceSlug: string }>
 }
 
-function getDefaultDates() {
-  const to = new Date()
-  const from = new Date()
-  from.setDate(from.getDate() - 30)
-  return {
-    from: from.toISOString().split('T')[0],
-    to: to.toISOString().split('T')[0],
-  }
-}
 
 // ─── Streaming server components ──────────────────────────────────────────────
 
@@ -155,8 +146,8 @@ export default async function AnalyticsPage({ params }: PageProps) {
 
   const canEdit = member?.role === 'owner' || member?.role === 'admin'
   const timezone = userPrefs?.timezone ?? 'UTC'
-  const { from, to } = getDefaultDates()
-  const defaultFilters: AnalyticsFilters = { from, to, campaignId: 'all', platform: 'all' }
+  // Dates are intentionally omitted — the client computes them in the user's local timezone
+  const defaultFilters: AnalyticsFilters = { from: '', to: '', campaignId: 'all', platform: 'all' }
 
   return (
     <div>
