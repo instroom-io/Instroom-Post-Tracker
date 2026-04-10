@@ -9,9 +9,9 @@ interface PlatformIconProps {
 }
 
 const PLATFORM_COLORS: Record<Platform, string> = {
-  instagram: '#A855F7',
-  tiktok:    '#3B82F6',
-  youtube:   '#EF4444',
+  instagram: '#E1306C',
+  tiktok:    '#FFFFFF',
+  youtube:   '#FF0000',
 }
 
 const PLATFORM_LABELS: Record<Platform, string> = {
