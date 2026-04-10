@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { User } from '@supabase/supabase-js'
-import { Question, SquaresFour, Megaphone, Users, ChartBar, GearSix, SidebarSimple } from '@phosphor-icons/react'
+import { Question, SquaresFour, Megaphone, Users, ChartBar, GearSix, SidebarSimple, List } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { useTour } from '@/lib/hooks/use-tour'
 import { TourProvider } from '@/components/tour/tour-provider'
@@ -30,6 +30,85 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Settings',     href: (s) => `/${s}/settings`,     icon: GearSix,     tourId: 'ws-settings'     },
 ]
 
+interface NavItemsProps {
+  workspaceSlug: string
+  pathname: string
+  isCollapsed: boolean
+  startTour: (id: string) => void
+  onItemClick?: () => void
+}
+
+function NavItems({ workspaceSlug, pathname, isCollapsed, startTour, onItemClick }: NavItemsProps) {
+  return (
+    <>
+      {NAV_ITEMS.map((item) => {
+        const href = item.href(workspaceSlug)
+        const isActive = pathname === href || pathname.startsWith(href + '/')
+        return (
+          <Link key={item.label} href={href} aria-current={isActive ? 'page' : undefined} onClick={onItemClick} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 rounded-lg block">
+            <motion.div
+              data-tour={item.tourId}
+              whileTap={{ scale: 0.98 }}
+              className={cn(
+                'mb-0.5 flex items-center rounded-lg px-2.5 py-[7px] text-[12px] transition-colors',
+                isCollapsed ? 'justify-center gap-0' : 'gap-2.5',
+                isActive
+                  ? 'relative bg-background-muted font-medium text-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-r-full before:bg-brand'
+                  : 'text-foreground-lighter hover:bg-brand-muted hover:text-brand'
+              )}
+            >
+              <item.icon
+                size={14}
+                weight={isActive ? 'fill' : 'regular'}
+                className={cn(isActive ? 'text-brand' : '')}
+              />
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="overflow-hidden whitespace-nowrap"
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </Link>
+        )
+      })}
+
+      {/* Tour re-launch button */}
+      <div className="mt-2 border-t border-border pt-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => { startTour('workspace'); onItemClick?.() }}
+          className={cn(
+            'w-full text-foreground-muted hover:text-brand',
+            isCollapsed ? 'justify-center px-0' : 'justify-start gap-2'
+          )}
+        >
+          <Question size={14} className="flex-shrink-0" />
+          <AnimatePresence>
+            {!isCollapsed && (
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                className="overflow-hidden whitespace-nowrap text-[11px]"
+              >
+                Take a tour
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Button>
+      </div>
+    </>
+  )
+}
+
 interface AppShellProps {
   children: React.ReactNode
   user: User
@@ -51,27 +130,70 @@ export function AppShell({
 }: AppShellProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const { startTour } = useTour()
 
   const displayName = (user.user_metadata?.full_name as string | undefined) ?? user.email?.split('@')[0] ?? ''
   const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null
 
-  // Auto-collapse sidebar on small screens
+  // Auto-collapse sidebar on small screens; close mobile drawer when resizing up
   useEffect(() => {
-    const checkWidth = () => setCollapsed(window.innerWidth < 1024)
+    const checkWidth = () => {
+      setCollapsed(window.innerWidth < 1024)
+      if (window.innerWidth >= 768) setMobileNavOpen(false)
+    }
     checkWidth()
     window.addEventListener('resize', checkWidth)
     return () => window.removeEventListener('resize', checkWidth)
   }, [])
 
+  // Close mobile nav on route change
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [pathname])
+
   return (
     <>
     <div className="flex h-screen overflow-hidden bg-background">
 
-      {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
+      {/* ── Mobile overlay drawer ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+              onClick={() => setMobileNavOpen(false)}
+            />
+            {/* Drawer panel */}
+            <motion.aside
+              initial={{ x: -220 }}
+              animate={{ x: 0 }}
+              exit={{ x: -220 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed left-0 top-0 bottom-0 z-50 flex w-[220px] flex-col border-r border-border bg-background-overlay md:hidden"
+            >
+              <div className="flex h-14 flex-shrink-0 items-center border-b border-border px-4">
+                <Link href={`/${workspaceSlug}/overview`} onClick={() => setMobileNavOpen(false)} className="opacity-100 transition-opacity hover:opacity-75">
+                  <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={140} height={32} />
+                </Link>
+              </div>
+              <nav className="flex-1 overflow-y-auto px-2 pt-3">
+                <NavItems workspaceSlug={workspaceSlug} pathname={pathname} isCollapsed={false} startTour={startTour} onItemClick={() => setMobileNavOpen(false)} />
+              </nav>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Sidebar (tablet + desktop only) ──────────────────────────────────── */}
       <aside
         className={cn(
-          'relative flex flex-shrink-0 flex-col border-r border-border bg-background-overlay transition-all duration-200 ease-in-out',
+          'relative hidden md:flex flex-shrink-0 flex-col border-r border-border bg-background-overlay transition-all duration-200 ease-in-out',
           collapsed ? 'w-[56px]' : 'w-[220px]'
         )}
       >
@@ -92,72 +214,7 @@ export function AppShell({
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-2 pt-3">
-
-          {NAV_ITEMS.map((item) => {
-            const href = item.href(workspaceSlug)
-            const isActive = pathname === href || pathname.startsWith(href + '/')
-            return (
-              <Link key={item.label} href={href} aria-current={isActive ? 'page' : undefined} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 rounded-lg block">
-                <motion.div
-                  data-tour={item.tourId}
-                  whileTap={{ scale: 0.98 }}
-                  className={cn(
-                    'mb-0.5 flex items-center rounded-lg px-2.5 py-[7px] text-[12px] transition-colors',
-                    collapsed ? 'justify-center gap-0' : 'gap-2.5',
-                    isActive
-                      ? 'relative bg-background-muted font-medium text-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-r-full before:bg-brand'
-                      : 'text-foreground-lighter hover:bg-brand-muted hover:text-brand'
-                  )}
-                >
-                  <item.icon
-                    size={14}
-                    weight={isActive ? 'fill' : 'regular'}
-                    className={cn(isActive ? 'text-brand' : '')}
-                  />
-                  <AnimatePresence>
-                    {!collapsed && (
-                      <motion.span
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: 'auto' }}
-                        exit={{ opacity: 0, width: 0 }}
-                        className="overflow-hidden whitespace-nowrap"
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              </Link>
-            )
-          })}
-
-          {/* Tour re-launch button */}
-          <div className="mt-2 border-t border-border pt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => startTour('workspace')}
-              className={cn(
-                'w-full text-foreground-muted hover:text-brand',
-                collapsed ? 'justify-center px-0' : 'justify-start gap-2'
-              )}
-            >
-              <Question size={14} className="flex-shrink-0" />
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    className="overflow-hidden whitespace-nowrap text-[11px]"
-                  >
-                    Take a tour
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </Button>
-          </div>
-
+          <NavItems workspaceSlug={workspaceSlug} pathname={pathname} isCollapsed={collapsed} startTour={startTour} />
         </nav>
 
       </aside>
@@ -167,10 +224,19 @@ export function AppShell({
 
         {/* Top bar — sidebar toggle left, controls right */}
         <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border bg-background-surface px-4 shadow-xs">
+          {/* Mobile: hamburger to open drawer */}
+          <button
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open navigation"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 md:hidden"
+          >
+            <List size={16} />
+          </button>
+          {/* Tablet/desktop: collapse toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+            className="hidden md:flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
           >
             <SidebarSimple size={16} weight={collapsed ? 'fill' : 'regular'} />
           </button>

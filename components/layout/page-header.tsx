@@ -6,7 +6,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, actions }: PageHeaderProps) {
   return (
-    <div className="flex min-h-14 items-center justify-between border-b border-border bg-background-surface px-5 py-3">
+    <div className="flex min-h-14 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border bg-background-surface px-4 py-3 sm:px-5">
       <div>
         <h1 className="font-display text-[16px] font-extrabold text-foreground">
           {title}

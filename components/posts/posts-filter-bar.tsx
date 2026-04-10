@@ -31,7 +31,7 @@ export function PostsFilterBar({
 
   return (
     <div className="flex flex-wrap gap-3">
-      <div className="w-36">
+      <div className="w-full sm:w-36">
         <Select
           value={filters.platform}
           onChange={(e) =>
@@ -47,7 +47,7 @@ export function PostsFilterBar({
       </div>
 
       {campaigns.length > 0 && (
-        <div className="w-44">
+        <div className="w-full sm:w-44">
           <Select
             value={filters.campaignId}
             onChange={(e) => update('campaignId', e.target.value)}
@@ -59,7 +59,7 @@ export function PostsFilterBar({
         </div>
       )}
 
-      <div className="w-40">
+      <div className="w-full sm:w-40">
         <Select
           value={filters.downloadStatus}
           onChange={(e) =>

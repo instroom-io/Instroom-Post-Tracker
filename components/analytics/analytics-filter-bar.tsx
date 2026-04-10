@@ -36,31 +36,31 @@ export function AnalyticsFilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="relative">
+      <div className="relative w-full sm:w-auto">
         <CalendarDots size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
         <input
           type="date"
           value={filters.from}
           onChange={(e) => update('from', e.target.value)}
           aria-label="From date"
-          className="h-9 rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="h-9 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
       </div>
 
-      <span className="text-[11px] text-foreground-muted">to</span>
+      <span className="hidden sm:inline text-[11px] text-foreground-muted">to</span>
 
-      <div className="relative">
+      <div className="relative w-full sm:w-auto">
         <CalendarDots size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
         <input
           type="date"
           value={filters.to}
           onChange={(e) => update('to', e.target.value)}
           aria-label="To date"
-          className="h-9 rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="h-9 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
       </div>
 
-      <div className="w-44">
+      <div className="w-full sm:w-44">
         <Select
           value={filters.campaignId}
           onChange={(e) => update('campaignId', e.target.value)}
@@ -71,7 +71,7 @@ export function AnalyticsFilterBar({
         />
       </div>
 
-      <div className="w-36">
+      <div className="w-full sm:w-36">
         <Select
           value={filters.platform}
           onChange={(e) =>
