@@ -92,7 +92,7 @@ export function HeroVideo() {
 
     observer.observe(el)
     return () => observer.disconnect()
-  }, [opacity])
+  }, [opacity, isDark])
 
   return (
     <motion.div

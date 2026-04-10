@@ -53,7 +53,10 @@ export default async function AgencyBrandsPage({ params }: PageProps) {
                 >
                   <div className="flex items-center gap-3">
                     {ws.logo_url ? (
-                      <img src={ws.logo_url} alt={ws.name} className="h-8 w-8 flex-shrink-0 rounded-md object-contain" />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={ws.logo_url} alt={ws.name} className="h-8 w-8 flex-shrink-0 rounded-md object-contain" />
+                      </>
                     ) : (
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-border bg-background-subtle text-[11px] font-semibold uppercase text-foreground-muted">
                         {ws.name.slice(0, 2)}

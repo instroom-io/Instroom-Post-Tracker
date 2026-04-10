@@ -1,17 +1,16 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import coreWebVitals from "eslint-config-next/core-web-vitals";
+import tseslint from "typescript-eslint";
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    ignores: [".worktrees/**", "node_modules/**"],
+  },
+  ...coreWebVitals,
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+    },
     rules: {
       // Allow _-prefixed vars/args to indicate intentionally unused
       "@typescript-eslint/no-unused-vars": ["error", {
@@ -20,8 +19,15 @@ const eslintConfig = [
         "caughtErrorsIgnorePattern": "^_",
         "destructuredArrayIgnorePattern": "^_"
       }],
+    }
+  },
+  {
+    rules: {
       // Apostrophes in UI text are valid — disabling pedantic HTML-entity requirement
       "react/no-unescaped-entities": "off",
+      // setState-in-effect is a valid pattern for SSR hydration guards, navigation cleanup,
+      // and DOM measurement (useLayoutEffect for positioning). Disable globally.
+      "react-hooks/set-state-in-effect": "off",
     }
   }
 ];

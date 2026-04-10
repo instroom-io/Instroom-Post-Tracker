@@ -1,7 +1,6 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { processPostDownload } from '@/lib/downloads/process-download'
 import { checkActionLimit, limiters } from '@/lib/rate-limit'

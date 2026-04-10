@@ -261,7 +261,7 @@ export async function approveAgencyRequest(
     // invalid URL — leave null
   }
 
-  const { data: agency, error: agencyError } = await serviceClient
+  const { data: _agency, error: agencyError } = await serviceClient
     .from('agencies')
     .insert({
       name: request.agency_name,

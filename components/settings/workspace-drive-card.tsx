@@ -14,7 +14,7 @@ interface WorkspaceDriveCardProps {
 }
 
 export function WorkspaceDriveCard({
-  workspaceId,
+  workspaceId: _workspaceId,
   workspaceName,
   connectedEmail,
   currentFolderId,

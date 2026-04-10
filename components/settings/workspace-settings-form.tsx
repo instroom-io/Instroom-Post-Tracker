@@ -89,6 +89,7 @@ export function WorkspaceSettingsForm({ workspace, canEdit, members = [] }: Work
           <div className="relative h-[52px] w-[52px] flex-shrink-0">
             {logoUrl ? (
               <div className="h-full w-full overflow-hidden rounded-lg bg-background-muted">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={logoUrl} alt={workspace.name} className="h-full w-full object-cover dark:mix-blend-luminosity" />
               </div>
             ) : (

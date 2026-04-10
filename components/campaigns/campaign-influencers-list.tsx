@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
 import { removeInfluencerFromCampaign, updateProductSentAt, refreshInfluencerProfile, toggleStopAfterPost } from '@/lib/actions/influencers'
-import { cn, getInfluencerLabel, getInitials } from '@/lib/utils'
+import { getInfluencerLabel, getInitials } from '@/lib/utils'
 import { Switch } from '@/components/ui/switch'
 import { differenceInDays } from 'date-fns'
 import type { Platform } from '@/lib/types'

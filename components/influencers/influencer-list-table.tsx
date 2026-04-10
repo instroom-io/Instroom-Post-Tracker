@@ -82,20 +82,6 @@ const STATUS_LABEL: Record<MonitoringStatus, string> = {
   stopped: 'text-foreground-muted',
 }
 
-function MonitoringBadge({ status }: { status: MonitoringStatus }) {
-  const styles: Record<MonitoringStatus, string> = {
-    active:  'bg-brand/10 text-brand',
-    pending: 'bg-warning/10 text-warning',
-    paused:  'bg-foreground-muted/10 text-foreground-muted',
-    removed: 'bg-destructive/10 text-destructive',
-    stopped: 'bg-foreground-muted/10 text-foreground-muted',
-  }
-  return (
-    <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide', styles[status])}>
-      {status}
-    </span>
-  )
-}
 
 interface CampaignCardProps {
   entry: CampaignEntry

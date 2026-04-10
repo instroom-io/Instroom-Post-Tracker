@@ -47,7 +47,6 @@ export function FolderPickerDialog({
       setBreadcrumb([])
       loadFolders(undefined)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   function handleOpenFolder(folder: DriveFolder) {

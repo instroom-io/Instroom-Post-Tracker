@@ -57,6 +57,7 @@ export function GoogleDriveCard({ connectedEmail }: GoogleDriveCardProps) {
           </div>
         ) : (
           <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirect requires full page navigation */}
             <a href="/api/auth/google-drive?returnTo=/account/settings&section=integrations">
               <Button variant="outline" size="sm">
                 Connect Google Drive

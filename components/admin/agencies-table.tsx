@@ -20,6 +20,7 @@ function LogoAvatar({ logoUrl, agencyName }: { logoUrl: string | null; agencyNam
   if (!logoUrl || showFallback) return initial
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={logoUrl}
       alt=""

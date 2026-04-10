@@ -165,7 +165,7 @@ export function PostsTable({
   posts,
   campaigns,
   showCampaignColumn = false,
-  canEdit = false,
+  canEdit: _canEdit = false,
   workspaceId,
   timezone,
 }: PostsTableProps) {

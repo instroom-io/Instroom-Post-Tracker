@@ -357,6 +357,7 @@ export function AddInfluencerDialog({
                             className="h-4 w-4 rounded border-border cursor-pointer flex-shrink-0"
                           />
                           {r.profile_pic_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={r.profile_pic_url}
                               alt={r.handle}

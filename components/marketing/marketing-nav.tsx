@@ -44,6 +44,7 @@ export function MarketingNav() {
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         {/* Wordmark */}
         <Link href="/">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-16 w-auto" />
         </Link>
 

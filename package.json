@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "db:generate": "supabase gen types typescript --project-id xwrrccmhsnognnfuihvz > lib/types/supabase.ts",
     "db:push": "supabase db push"

@@ -101,7 +101,7 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
   if (!campaign) redirect(`/${workspaceSlug}/campaigns`)
 
   // Pre-filter downloaded posts (no extra DB query needed)
-  const downloadedPosts = (posts ?? []).filter((p) => p.download_status === 'downloaded')
+  const _downloadedPosts = (posts ?? []).filter((p) => p.download_status === 'downloaded')
 
   // Build post count map per influencer for zero-post warning
   const postCountsByInfluencerId = (posts ?? []).reduce<Record<string, number>>((acc, p) => {

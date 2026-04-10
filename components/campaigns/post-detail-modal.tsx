@@ -13,7 +13,7 @@ import {
   DialogBody,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { cn, formatNumber, formatEMV, formatPercent, formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
+import { formatNumber, formatEMV, formatPercent, formatRelativeDate, getInfluencerLabel } from '@/lib/utils'
 import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/types'
 
 interface PostRow {
@@ -176,7 +176,6 @@ function ModalThumbnail({ post }: { post: PostRow }) {
   return (
     <div className="relative h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
       {playing && videoSrc ? (
-        // eslint-disable-next-line jsx-a11y/media-has-caption
         <video
           src={videoSrc}
           autoPlay

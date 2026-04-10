@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DownloadSimple, Tray, Stack, HardDrives, Eye, TrendUp } from '@phosphor-icons/react'
+import { DownloadSimple, Stack, HardDrives, Eye, TrendUp } from '@phosphor-icons/react'
 import { CampaignPostsTable } from './campaign-posts-table'
 import { CampaignPostsGallery } from './campaign-posts-gallery'
 import { CampaignInfluencersList } from './campaign-influencers-list'

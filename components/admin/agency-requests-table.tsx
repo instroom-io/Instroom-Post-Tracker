@@ -26,6 +26,7 @@ function LogoAvatar({ websiteUrl, agencyName }: { websiteUrl: string; agencyName
   if (!hostname || showFallback) return initial
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=64`}
       alt=""

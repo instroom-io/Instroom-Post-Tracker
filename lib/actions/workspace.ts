@@ -10,7 +10,7 @@ import {
   updateAssignedMemberSchema,
   updateWorkspaceStorageFolderSchema,
 } from '@/lib/validations'
-import { toSlug, isPersonalEmail } from '@/lib/utils'
+import { toSlug } from '@/lib/utils'
 import { sendEmail, escapeHtml } from '@/lib/email'
 import { teamInviteEmail } from '@/lib/email/templates/team-invite'
 import type { WorkspaceRole } from '@/lib/types'
