@@ -24,6 +24,50 @@ interface ScrapeResult {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
+/**
+ * Download a CDN thumbnail and upload to Supabase Storage so we own a
+ * permanent, publicly-accessible copy that never expires or requires auth.
+ * Falls back to the original CDN URL on any error.
+ */
+async function mirrorThumbnail(
+  supabase: ReturnType<typeof createServiceClient>,
+  cdnUrl: string,
+  workspaceId: string,
+  platformPostId: string,
+  platform: string,
+): Promise<string> {
+  try {
+    const headers: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+    }
+    if (platform === 'instagram') headers['Referer'] = 'https://www.instagram.com/'
+    if (platform === 'tiktok') headers['Referer'] = 'https://www.tiktok.com/'
+
+    const res = await fetch(cdnUrl, { headers })
+    if (!res.ok) return cdnUrl
+
+    const buffer = await res.arrayBuffer()
+    const contentType = res.headers.get('content-type') ?? 'image/jpeg'
+    const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg'
+    const storagePath = `${workspaceId}/${platformPostId}.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('post-thumbnails')
+      .upload(storagePath, buffer, { contentType, upsert: true })
+
+    if (uploadError) return cdnUrl
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('post-thumbnails')
+      .getPublicUrl(storagePath)
+
+    return publicUrl
+  } catch {
+    return cdnUrl
+  }
+}
+
 function matchesTrackingConfig(
   caption: string | null,
   hashtags: string[],
@@ -462,20 +506,26 @@ async function main() {
 
         if (filtered.length === 0) continue
 
-        const insertRows = filtered.map((post) => ({
-          workspace_id: campaign.workspace_id,
-          campaign_id: campaign.id,
-          influencer_id: influencer.id,
-          platform,
-          post_url: post.post_url,
-          platform_post_id: post.ensemble_post_id,
-          caption: post.caption,
-          thumbnail_url: post.thumbnail_url,
-          media_url: post.media_url,
-          posted_at: post.posted_at,
-          download_status: row.usage_rights ? 'pending' : 'blocked',
-          blocked_reason: row.usage_rights ? null : 'no_usage_rights',
-        }))
+        // Download thumbnails to Supabase Storage so we own permanent copies
+        // that never expire or require CDN authentication.
+        const insertRows = await Promise.all(
+          filtered.map(async (post) => ({
+            workspace_id: campaign.workspace_id,
+            campaign_id: campaign.id,
+            influencer_id: influencer.id,
+            platform,
+            post_url: post.post_url,
+            platform_post_id: post.ensemble_post_id,
+            caption: post.caption,
+            thumbnail_url: post.thumbnail_url
+              ? await mirrorThumbnail(supabase, post.thumbnail_url, campaign.workspace_id, post.ensemble_post_id, platform)
+              : null,
+            media_url: post.media_url,
+            posted_at: post.posted_at,
+            download_status: row.usage_rights ? 'pending' : 'blocked',
+            blocked_reason: row.usage_rights ? null : 'no_usage_rights',
+          }))
+        )
 
         const { data: inserted, error: insertError } = await supabase
           .from('posts')
