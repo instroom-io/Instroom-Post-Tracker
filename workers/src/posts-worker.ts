@@ -1,5 +1,4 @@
 import { createServiceClient } from './lib/supabase'
-import { differenceInDays } from 'date-fns'
 
 const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
 const ENSEMBLE_API_KEY = process.env.ENSEMBLE_API_KEY!
@@ -338,26 +337,15 @@ async function main() {
 
   console.log(`[posts-worker] run started at ${new Date().toISOString()}`)
 
-  // Bulk-activate all pending influencers that have passed the 7-day wait.
-  // Two queries to replicate COALESCE(product_sent_at, added_at) <= NOW() - 7 days.
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const [r1, r2] = await Promise.all([
-    supabase
-      .from('campaign_influencers')
-      .update({ monitoring_status: 'active' })
-      .eq('monitoring_status', 'pending')
-      .not('product_sent_at', 'is', null)
-      .lte('product_sent_at', sevenDaysAgo),
-    supabase
-      .from('campaign_influencers')
-      .update({ monitoring_status: 'active' })
-      .eq('monitoring_status', 'pending')
-      .is('product_sent_at', null)
-      .lte('added_at', sevenDaysAgo),
-  ])
-  if (r1.error) console.error('[posts-worker] bulk-activate error (product_sent_at path):', r1.error.message)
-  if (r2.error) console.error('[posts-worker] bulk-activate error (added_at path):', r2.error.message)
-  if (!r1.error && !r2.error) console.log('[posts-worker] bulk-activation complete')
+  // Bulk-activate all pending influencers immediately — no delay.
+  // The 7-day wait applies only to the metrics-worker (post metrics stabilisation),
+  // not to post scraping. Influencers are scraped on the very next worker run after being added.
+  const { error: activateError } = await supabase
+    .from('campaign_influencers')
+    .update({ monitoring_status: 'active' })
+    .eq('monitoring_status', 'pending')
+  if (activateError) console.error('[posts-worker] bulk-activate error:', activateError.message)
+  else console.log('[posts-worker] bulk-activation complete')
 
   const { data: rows, error: loadError } = await supabase
     .from('campaign_influencers')
@@ -371,7 +359,6 @@ async function main() {
       yt_last_post_at,
       stop_after_post,
       product_sent_at,
-      added_at,
       campaigns!inner (
         id,
         workspace_id,
@@ -415,10 +402,6 @@ async function main() {
   const errors: string[] = []
 
   for (const row of rows) {
-    const clockStart = (row.product_sent_at as string | null) ?? (row.added_at as string)
-    const daysSince = differenceInDays(new Date(), new Date(clockStart))
-    if (daysSince < 7) continue
-
     const campaign = row.campaigns as unknown as {
       id: string
       workspace_id: string

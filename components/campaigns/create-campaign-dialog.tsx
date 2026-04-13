@@ -220,8 +220,8 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
                           <p className="font-medium text-background/70">How it works:</p>
                           <ul className="space-y-1 pl-1">
                             <li>• Posts before this date will not be detected</li>
-                            <li>• The system waits 7 days after an influencer is added before the first scan</li>
-                            <li>• Posts made the next day or 2 after delivery will still be captured — they remain in the influencer's recent feed when the first scan runs</li>
+                            <li>• Influencers are included in the very next worker scan immediately after being added</li>
+                            <li>• Posts made within a day or two of delivery will still be captured — they remain in the influencer's recent feed when the scan runs</li>
                             <li>• If no posts are found by day 10, a follow-up reminder is sent to your team</li>
                             <li>• A second reminder follows at day 13</li>
                           </ul>
