@@ -558,15 +558,40 @@ async function main() {
           console.log(`[posts-worker] @${handle} auto-stopped after post detected`)
         }
 
-        // Backfill media_url + thumbnail_url for existing posts that were scraped before these columns existed
-        const toBackfill = filtered.filter((p) => p.media_url !== null || p.thumbnail_url !== null)
+        // Backfill media_url for existing posts that were scraped before this column existed
+        const toBackfill = filtered.filter((p) => p.media_url !== null)
         for (const post of toBackfill) {
           await supabase
             .from('posts')
-            .update({ media_url: post.media_url, thumbnail_url: post.thumbnail_url })
+            .update({ media_url: post.media_url })
             .eq('platform_post_id', post.ensemble_post_id)
             .eq('campaign_id', campaign.id)
             .is('media_url', null)
+        }
+
+        // Mirror thumbnail_url to Supabase Storage for existing posts that still have expiring CDN URLs.
+        // Runs over ALL rawPosts (not just unseenPosts) because previously-seen posts may have been
+        // inserted before the storage bucket existed. EnsembleData always returns fresh CDN URLs, so
+        // rawPosts[i].thumbnail_url is valid even when the stored DB URL has already expired.
+        const rawWithThumb = rawPosts.filter(p => p.thumbnail_url !== null)
+        if (rawWithThumb.length > 0) {
+          const { data: needsMirror } = await supabase
+            .from('posts')
+            .select('platform_post_id')
+            .eq('campaign_id', campaign.id)
+            .in('platform_post_id', rawWithThumb.map(p => p.ensemble_post_id))
+            .not('thumbnail_url', 'like', '%supabase.co%')
+          const mirrorSet = new Set((needsMirror ?? []).map(p => p.platform_post_id))
+          for (const post of rawWithThumb.filter(p => mirrorSet.has(p.ensemble_post_id))) {
+            const permanentUrl = await mirrorThumbnail(supabase, post.thumbnail_url!, campaign.workspace_id, post.ensemble_post_id, platform)
+            if (permanentUrl !== post.thumbnail_url) {
+              await supabase
+                .from('posts')
+                .update({ thumbnail_url: permanentUrl })
+                .eq('platform_post_id', post.ensemble_post_id)
+                .eq('campaign_id', campaign.id)
+            }
+          }
         }
 
         const downloadable = newPosts.filter((p) => p.download_status === 'pending')

@@ -29,6 +29,25 @@ function PlatformLegend({ payload }: { payload?: Array<{ value: string; color: s
   )
 }
 
+interface TooltipEntry { name: string; value: number; color: string; dataKey: string }
+
+function PlatformTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) {
+  if (!active || !payload?.length) return null
+  const entries = payload.filter(p => (p.value ?? 0) > 0)
+  return (
+    <div style={TOOLTIP_STYLE} className="px-3 py-2.5">
+      <p className="mb-1.5 text-[11px] font-medium" style={{ color: 'var(--color-foreground)' }}>{label}</p>
+      {entries.length === 0 ? (
+        <p className="text-[11px]" style={{ color: 'var(--color-foreground-muted)' }}>No posts</p>
+      ) : entries.map(entry => (
+        <p key={entry.dataKey} className="text-[11px]" style={{ color: entry.color }}>
+          {entry.name} : {entry.value}
+        </p>
+      ))}
+    </div>
+  )
+}
+
 interface DayData {
   date: string
   total?: number
@@ -79,6 +98,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
         <Tooltip
           contentStyle={TOOLTIP_STYLE}
           cursor={{ stroke: 'hsl(0, 0%, 80%)', strokeWidth: 1 }}
+          content={multiPlatform ? <PlatformTooltip /> : undefined}
         />
         {multiPlatform && <Legend content={<PlatformLegend />} />}
 
@@ -93,7 +113,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
             fill={PLATFORM_COLORS.instagram}
             fillOpacity={0.85}
             dot={false}
-            activeDot={{ r: 3, strokeWidth: 0 }}
+            activeDot={(props: any) => (props.payload?.instagram ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.instagram} strokeWidth={0} /> : <g />}
             name="instagram"
           />
         )}
@@ -107,7 +127,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
             fill={PLATFORM_COLORS.tiktok}
             fillOpacity={0.85}
             dot={false}
-            activeDot={{ r: 3, strokeWidth: 0 }}
+            activeDot={(props: any) => (props.payload?.tiktok ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.tiktok} strokeWidth={0} /> : <g />}
             name="tiktok"
           />
         )}
@@ -121,7 +141,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
             fill={PLATFORM_COLORS.youtube}
             fillOpacity={0.85}
             dot={false}
-            activeDot={{ r: 3, strokeWidth: 0 }}
+            activeDot={(props: any) => (props.payload?.youtube ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.youtube} strokeWidth={0} /> : <g />}
             name="youtube"
           />
         )}

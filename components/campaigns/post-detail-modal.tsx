@@ -182,7 +182,7 @@ function ModalThumbnail({ post }: { post: PostRow }) {
     (post.platform === 'instagram' && (!!post.media_url || !!post.drive_file_id))
 
   const thumbnailSrc = post.thumbnail_url
-    ? post.platform !== 'youtube'
+    ? post.platform !== 'youtube' && !post.thumbnail_url.includes('supabase.co')
       ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
       : post.thumbnail_url
     : null

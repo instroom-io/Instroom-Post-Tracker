@@ -39,9 +39,9 @@ interface CampaignPostsGalleryProps {
 
 function getThumbnailSrc(post: PostRow): string | null {
   if (!post.thumbnail_url) return null
-  // YouTube CDN (i.ytimg.com) is publicly accessible; Instagram + TikTok CDNs
-  // block direct browser requests and must go through our proxy.
-  if (post.platform !== 'youtube') {
+  // YouTube CDN and Supabase Storage are publicly accessible — no proxy needed.
+  // Instagram CDN (fbcdn.net) and TikTok CDN block direct browser requests and must go through our proxy.
+  if (post.platform !== 'youtube' && !post.thumbnail_url.includes('supabase.co')) {
     return `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
   }
   return post.thumbnail_url
@@ -155,9 +155,9 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
           muted
           loop
           playsInline
-          preload="none"
+          preload={imgFailed ? 'metadata' : 'none'}
           onError={handleVideoError}
-          className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
+          className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && !imgFailed && 'opacity-0')}
         />
       )}
       {/* Play overlay — centered, always visible on video posts */}

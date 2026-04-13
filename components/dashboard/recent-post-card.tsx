@@ -66,7 +66,7 @@ export function RecentPostCard({ post }: { post: Post }) {
   }
 
   const thumbnailSrc = post.thumbnail_url
-    ? post.platform !== 'youtube'
+    ? post.platform !== 'youtube' && !post.thumbnail_url.includes('supabase.co')
       ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
       : post.thumbnail_url
     : null
@@ -99,9 +99,9 @@ export function RecentPostCard({ post }: { post: Post }) {
             muted
             loop
             playsInline
-            preload="none"
+            preload={imgFailed ? 'metadata' : 'none'}
             onError={handleVideoError}
-            className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
+            className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && !imgFailed && 'opacity-0')}
           />
         )}
       </div>

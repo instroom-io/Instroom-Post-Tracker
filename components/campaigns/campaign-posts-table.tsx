@@ -49,7 +49,7 @@ const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
 function PostThumbnail({ post }: { post: PostRow }) {
   const [imgFailed, setImgFailed] = useState(false)
   const src = post.thumbnail_url
-    ? post.platform !== 'youtube'
+    ? post.platform !== 'youtube' && !post.thumbnail_url.includes('supabase.co')
       ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
       : post.thumbnail_url
     : null
