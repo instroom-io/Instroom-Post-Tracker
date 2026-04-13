@@ -38,7 +38,7 @@ export function MarketingNav() {
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-background/80 backdrop-blur-md border-b border-border' : 'bg-transparent'
+        scrolled && !mobileOpen ? 'bg-background/80 backdrop-blur-md border-b border-border' : 'bg-transparent'
       }`}
     >
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
@@ -88,10 +88,10 @@ export function MarketingNav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-background/95 backdrop-blur-xl pt-20"
+            className="fixed inset-0 z-40 bg-marketing-dark pt-20"
           >
             <button className="absolute top-5 right-6" onClick={() => setMobileOpen(false)} aria-label="Close menu">
-              <X size={20} className="text-foreground-lighter" />
+              <X size={20} className="text-white/50 hover:text-white transition-colors" />
             </button>
             <div className="flex flex-col items-center gap-6">
               {navLinks.map((link) => (
@@ -99,7 +99,7 @@ export function MarketingNav() {
                   key={link.href}
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className="text-foreground-light text-lg font-medium"
+                  className="text-white/70 hover:text-white text-lg font-medium transition-colors"
                 >
                   {link.label}
                 </a>
@@ -107,7 +107,7 @@ export function MarketingNav() {
               <Link
                 href="/login"
                 onClick={() => setMobileOpen(false)}
-                className="text-foreground-light text-lg font-medium"
+                className="text-white/70 hover:text-white text-lg font-medium transition-colors"
               >
                 Log in
               </Link>

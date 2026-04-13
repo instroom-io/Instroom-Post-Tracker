@@ -18,13 +18,13 @@ export default function MarketingLayout({
 
         {/* Footer */}
         <footer className="bg-marketing-dark px-[5%] py-12">
-          <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
-            {/* Logo */}
+          <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
+            {/* Logo — left on desktop, centered on mobile */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-16 w-auto brightness-0 invert" />
+            <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-16 w-auto brightness-0 invert md:justify-self-start" />
 
-            {/* Links — absolutely centered */}
-            <div className="absolute left-1/2 flex -translate-x-1/2 flex-wrap gap-6">
+            {/* Links — center column on desktop, centered on mobile */}
+            <div className="flex flex-wrap justify-center gap-6">
               <a href="#" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
                 Privacy policy
               </a>
@@ -36,8 +36,8 @@ export default function MarketingLayout({
               </a>
             </div>
 
-            {/* Copyright */}
-            <p className="text-[0.78rem] text-white/25">
+            {/* Copyright — right on desktop, centered on mobile */}
+            <p className="text-[0.78rem] text-white/25 md:justify-self-end md:text-right">
               © {new Date().getFullYear()} Instroom. Built by Armful Media.
             </p>
           </div>
