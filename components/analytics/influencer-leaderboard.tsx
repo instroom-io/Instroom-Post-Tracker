@@ -1,5 +1,6 @@
 import { ChartBar } from '@phosphor-icons/react/dist/ssr'
 import { formatNumber, formatEMV, formatPercent } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 interface LeaderboardRow {
   rank: number
@@ -15,11 +16,26 @@ interface InfluencerLeaderboardProps {
   rows: LeaderboardRow[]
 }
 
-function rankClass(rank: number): string {
-  if (rank === 1) return 'text-warning font-bold'
-  if (rank === 2) return 'text-foreground-lighter font-bold'
-  if (rank === 3) return 'text-foreground-light font-bold'
-  return 'text-foreground-muted'
+function RankBadge({ rank }: { rank: number }) {
+  if (rank === 1)
+    return (
+      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-warning/15 text-[10px] font-bold text-warning">
+        1
+      </span>
+    )
+  if (rank === 2)
+    return (
+      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-foreground/[0.08] text-[10px] font-bold text-foreground-lighter">
+        2
+      </span>
+    )
+  if (rank === 3)
+    return (
+      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-foreground/[0.05] text-[10px] font-bold text-foreground-light">
+        3
+      </span>
+    )
+  return <span className="text-[11px] text-foreground-muted">{rank}</span>
 }
 
 export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
@@ -66,10 +82,13 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
           {rows.map((row) => (
             <tr
               key={row.fullName}
-              className="border-b border-border/50 last:border-0 transition-colors hover:bg-background-muted/30"
+              className={cn(
+                'border-b border-border/50 last:border-0 transition-colors hover:bg-background-muted/30',
+                row.rank === 1 && 'bg-warning/[0.03]'
+              )}
             >
-              <td className={`px-4 py-3 text-[11px] ${rankClass(row.rank)}`}>
-                {row.rank}
+              <td className="px-4 py-3">
+                <RankBadge rank={row.rank} />
               </td>
               <td className="px-4 py-3">
                 <p className="text-[12px] font-medium text-foreground">{row.fullName}</p>

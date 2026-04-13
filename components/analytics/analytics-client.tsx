@@ -51,12 +51,14 @@ function ChartCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="overflow-hidden rounded-xl border border-border bg-background-surface shadow-sm">
+      <div className="flex items-center justify-between border-b border-border/60 px-5 py-3.5">
         <p className="text-[13px] font-display font-bold text-foreground">{title}</p>
         {badge && <Badge variant="muted">{badge}</Badge>}
       </div>
-      {children}
+      <div className="p-5">
+        {children}
+      </div>
     </div>
   )
 }
@@ -245,6 +247,12 @@ export function AnalyticsClient({
         campaigns={campaigns}
       />
 
+      {/* Section label */}
+      <div className="flex items-center gap-3">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-foreground-lighter">Performance Overview</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
       {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {statCards.map((card, i) => (
@@ -264,6 +272,12 @@ export function AnalyticsClient({
             <p className="mt-0.5 text-[11px] text-foreground-muted">{card.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Section label */}
+      <div className="flex items-center gap-3">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-foreground-lighter">Trends & Breakdowns</span>
+        <div className="h-px flex-1 bg-border" />
       </div>
 
       {/* Charts — 2-col grid */}

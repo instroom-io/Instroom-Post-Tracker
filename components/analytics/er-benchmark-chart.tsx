@@ -1,18 +1,8 @@
 'use client'
 
-import {
-  BarChart,
-  Bar,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from 'recharts'
+import { ChartBar } from '@phosphor-icons/react/dist/ssr'
 import { formatPercent } from '@/lib/utils'
-import { CHART_COLORS, ER_BENCHMARK_COLORS } from '@/lib/constants/platform-colors'
+import { ER_BENCHMARK_COLORS } from '@/lib/constants/platform-colors'
 
 interface ErData {
   handle: string
@@ -23,89 +13,83 @@ interface ErBenchmarkChartProps {
   data: ErData[]
 }
 
-function getBarColor(er: number): string {
-  if (er >= 0.08) return 'hsl(145, 72%, 40%)'  // macro → brand green
-  if (er >= 0.04) return ER_BENCHMARK_COLORS.mid  // mid → warning
-  return ER_BENCHMARK_COLORS.micro               // micro → info
-}
-
-const TOOLTIP_STYLE = {
-  background: 'var(--color-background-surface)',
-  border: '1px solid var(--color-border)',
-  borderRadius: '10px',
-  fontSize: '12px',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+function getDotColor(er: number): string {
+  if (er >= 0.08) return 'hsl(145, 72%, 40%)'
+  if (er >= 0.04) return ER_BENCHMARK_COLORS.mid
+  return ER_BENCHMARK_COLORS.micro
 }
 
 export function ErBenchmarkChart({ data }: ErBenchmarkChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex h-[220px] items-center justify-center text-[12px] text-foreground-muted">
-        No engagement rate data available.
+      <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-background-muted">
+          <ChartBar size={16} className="text-foreground-muted" />
+        </div>
+        <p className="text-[12px] text-foreground-lighter">No engagement rate data available.</p>
       </div>
     )
   }
 
   const sorted = [...data].sort((a, b) => b.er - a.er)
-  const axisStyle = { fontSize: 11, fill: 'hsl(150, 5%, 55%)' }
+  const maxEr = Math.max(...sorted.map((d) => d.er), 0.10)
+  const scale = Math.max(maxEr * 1.2, 0.12)
+
+  const microPct = Math.min((0.04 / scale) * 100, 100)
+  const midPct = Math.min(((0.08 - 0.04) / scale) * 100, 100 - microPct)
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-5 text-[10px] text-foreground-muted">
+      {/* Legend */}
+      <div className="mb-4 flex items-center gap-5 text-[10px] text-foreground-muted">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full" style={{ background: 'hsl(145, 72%, 40%)' }} />
+          <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: 'hsl(145, 72%, 40%)' }} />
           ≥8% Macro
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full" style={{ background: ER_BENCHMARK_COLORS.mid }} />
+          <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: ER_BENCHMARK_COLORS.mid }} />
           ≥4% Mid
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full" style={{ background: ER_BENCHMARK_COLORS.micro }} />
+          <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: ER_BENCHMARK_COLORS.micro }} />
           &lt;4% Micro
         </span>
       </div>
-      <ResponsiveContainer width="100%" height={Math.max(180, sorted.length * 34)}>
-        <BarChart
-          layout="vertical"
-          data={sorted}
-          margin={{ top: 4, right: 16, bottom: 4, left: 0 }}
-        >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke={CHART_COLORS.muted}
-            horizontal={false}
-          />
-          <XAxis
-            type="number"
-            tick={axisStyle}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={(v) => formatPercent(v)}
-            domain={[0, 'dataMax']}
-          />
-          <YAxis
-            type="category"
-            dataKey="handle"
-            tick={axisStyle}
-            axisLine={false}
-            tickLine={false}
-            width={90}
-          />
-          <Tooltip
-            contentStyle={TOOLTIP_STYLE}
-            formatter={(value: number) => [formatPercent(value), 'ER']}
-          />
-          <ReferenceLine x={0.02} stroke={ER_BENCHMARK_COLORS.micro} strokeDasharray="4 2" strokeWidth={1.5} />
-          <ReferenceLine x={0.04} stroke={ER_BENCHMARK_COLORS.mid}   strokeDasharray="4 2" strokeWidth={1.5} />
-          <ReferenceLine x={0.08} stroke="hsl(145, 72%, 40%)"        strokeDasharray="4 2" strokeWidth={1.5} />
-          <Bar dataKey="er" radius={[0, 5, 5, 0]}>
-            {sorted.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getBarColor(entry.er)} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+
+      {/* Dot plot rows */}
+      <div className="space-y-3">
+        {sorted.map((item) => {
+          const pct = Math.min((item.er / scale) * 100, 96)
+          return (
+            <div key={item.handle} className="flex items-center gap-3">
+              <span className="w-[88px] shrink-0 truncate text-[12px] text-foreground">
+                {item.handle}
+              </span>
+              <div className="relative flex-1">
+                {/* Tier band track */}
+                <div className="flex h-1.5 overflow-hidden rounded-full">
+                  <div style={{ width: `${microPct}%`, background: `${ER_BENCHMARK_COLORS.micro}28` }} />
+                  <div style={{ width: `${midPct}%`, background: `${ER_BENCHMARK_COLORS.mid}28` }} />
+                  <div className="flex-1" style={{ background: '#1FAE5B28' }} />
+                </div>
+                {/* Dot */}
+                <div
+                  className="absolute h-3 w-3 rounded-full ring-2 ring-background-surface"
+                  style={{
+                    top: '50%',
+                    left: `${pct}%`,
+                    transform: 'translate(-50%, -50%)',
+                    background: getDotColor(item.er),
+                  }}
+                />
+              </div>
+              <span className="w-10 shrink-0 text-right text-[12px] font-semibold tabular-nums text-foreground">
+                {formatPercent(item.er)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

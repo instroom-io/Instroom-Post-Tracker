@@ -35,6 +35,7 @@ export function AnalyticsFilterBar({
   }
 
   return (
+    <div className="rounded-xl border border-border bg-background-surface p-4 shadow-xs">
     <div className="flex flex-wrap items-center gap-3">
       <div className="relative w-full sm:w-auto">
         <CalendarDots size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
@@ -85,6 +86,7 @@ export function AnalyticsFilterBar({
           ]}
         />
       </div>
+    </div>
     </div>
   )
 }

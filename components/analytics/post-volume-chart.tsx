@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts'
+import { ChartBar } from '@phosphor-icons/react/dist/ssr'
 import { CHART_COLORS, PLATFORM_COLORS } from '@/lib/constants/platform-colors'
 import { PlatformIcon } from '@/components/ui/platform-icon'
 
@@ -52,8 +53,11 @@ const TOOLTIP_STYLE = {
 export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex h-[200px] items-center justify-center text-[12px] text-foreground-muted">
-        No post data for this period.
+      <div className="flex h-[200px] flex-col items-center justify-center gap-2 text-center">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-background-muted">
+          <ChartBar size={16} className="text-foreground-muted" />
+        </div>
+        <p className="text-[12px] text-foreground-lighter">No post data for this period.</p>
       </div>
     )
   }
@@ -64,52 +68,30 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
     <ResponsiveContainer width="100%" height={200}>
       <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
         <defs>
-          <linearGradient id="gradientInstagram" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={PLATFORM_COLORS.instagram} stopOpacity={0.22} />
-            <stop offset="95%" stopColor={PLATFORM_COLORS.instagram} stopOpacity={0.02} />
-          </linearGradient>
-          <linearGradient id="gradientTiktok" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={PLATFORM_COLORS.tiktok} stopOpacity={0.22} />
-            <stop offset="95%" stopColor={PLATFORM_COLORS.tiktok} stopOpacity={0.02} />
-          </linearGradient>
-          <linearGradient id="gradientYoutube" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={PLATFORM_COLORS.youtube} stopOpacity={0.22} />
-            <stop offset="95%" stopColor={PLATFORM_COLORS.youtube} stopOpacity={0.02} />
-          </linearGradient>
           <linearGradient id="gradientBrand" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#1FAE5B" stopOpacity={0.22} />
-            <stop offset="95%" stopColor="#1FAE5B" stopOpacity={0.02} />
+            <stop offset="5%" stopColor="#1FAE5B" stopOpacity={0.28} />
+            <stop offset="95%" stopColor="#1FAE5B" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid
-          strokeDasharray="3 3"
-          stroke={CHART_COLORS.muted}
-          vertical={false}
+        <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.muted} vertical={false} />
+        <XAxis dataKey="date" tick={axisStyle} axisLine={false} tickLine={false} />
+        <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={28} allowDecimals={false} />
+        <Tooltip
+          contentStyle={TOOLTIP_STYLE}
+          cursor={{ stroke: 'hsl(0, 0%, 80%)', strokeWidth: 1 }}
         />
-        <XAxis
-          dataKey="date"
-          tick={axisStyle}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis
-          tick={axisStyle}
-          axisLine={false}
-          tickLine={false}
-          width={28}
-          allowDecimals={false}
-        />
-        <Tooltip contentStyle={TOOLTIP_STYLE} />
-        {multiPlatform && (
-          <Legend content={<PlatformLegend />} />
-        )}
+        {multiPlatform && <Legend content={<PlatformLegend />} />}
+
+        {/* Multi-platform: stacked areas with solid fills */}
         {multiPlatform && (
           <Area
             type="monotone"
             dataKey="instagram"
+            stackId="a"
             stroke={PLATFORM_COLORS.instagram}
-            strokeWidth={2}
-            fill="url(#gradientInstagram)"
+            strokeWidth={1}
+            fill={PLATFORM_COLORS.instagram}
+            fillOpacity={0.85}
             dot={false}
             activeDot={{ r: 3, strokeWidth: 0 }}
             name="instagram"
@@ -119,10 +101,11 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
           <Area
             type="monotone"
             dataKey="tiktok"
+            stackId="a"
             stroke={PLATFORM_COLORS.tiktok}
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            fill="url(#gradientTiktok)"
+            strokeWidth={1}
+            fill={PLATFORM_COLORS.tiktok}
+            fillOpacity={0.85}
             dot={false}
             activeDot={{ r: 3, strokeWidth: 0 }}
             name="tiktok"
@@ -132,21 +115,24 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
           <Area
             type="monotone"
             dataKey="youtube"
+            stackId="a"
             stroke={PLATFORM_COLORS.youtube}
-            strokeWidth={2}
-            strokeDasharray="2 4"
-            fill="url(#gradientYoutube)"
+            strokeWidth={1}
+            fill={PLATFORM_COLORS.youtube}
+            fillOpacity={0.85}
             dot={false}
             activeDot={{ r: 3, strokeWidth: 0 }}
             name="youtube"
           />
         )}
+
+        {/* Single-platform: gradient brand area */}
         {!multiPlatform && (
           <Area
             type="monotone"
             dataKey="total"
             stroke="#1FAE5B"
-            strokeWidth={2}
+            strokeWidth={1.5}
             fill="url(#gradientBrand)"
             dot={false}
             activeDot={{ r: 3, strokeWidth: 0 }}
