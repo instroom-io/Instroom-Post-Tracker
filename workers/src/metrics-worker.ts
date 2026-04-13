@@ -63,11 +63,46 @@ async function fetchMetrics(
       const json = await res.json() as { data?: Record<string, unknown> }
       const data = json.data
       if (!data) return null
-      const likes = (data.like_count as number | undefined) ?? 0
-      const comments = (data.comment_count as number | undefined) ?? 0
-      const views = (data.view_count ?? data.play_count ?? data.video_view_count) as number | undefined ?? 0
+
+      // Likes: top-level field first, then nested edge objects used by older scraper responses
+      const likeEdge = (data.edge_media_preview_like ?? data.edge_liked_by) as Record<string, unknown> | undefined
+      const likes = (data.like_count as number | undefined)
+        ?? (likeEdge?.count as number | undefined)
+        ?? 0
+
+      // Comments: top-level first, then nested edge objects
+      const commentEdge = (data.edge_media_to_comment ?? data.edge_media_preview_comment) as Record<string, unknown> | undefined
+      const comments = (data.comment_count as number | undefined)
+        ?? (commentEdge?.count as number | undefined)
+        ?? 0
+
+      const views = (data.view_count ?? data.play_count ?? data.video_view_count ?? data.video_play_count) as number | undefined ?? 0
       const saves = (data.save_count as number | undefined) ?? 0
-      const followerCount = (data.owner_follower_count ?? data.follower_count) as number | undefined ?? 0
+
+      // Follower count: try top-level, then owner sub-object, then separate user/info call
+      const owner = data.owner as Record<string, unknown> | undefined
+      let followerCount = (data.owner_follower_count ?? data.follower_count) as number | undefined ?? 0
+      if (followerCount === 0) {
+        followerCount = (owner?.followed_by_count ?? owner?.follower_count) as number | undefined ?? 0
+      }
+      if (followerCount === 0) {
+        const username = owner?.username as string | undefined
+        if (username) {
+          try {
+            const userRes = await fetch(
+              `${ENSEMBLE_API_URL}/instagram/user/info?username=${encodeURIComponent(username)}&token=${ENSEMBLE_API_KEY}`
+            )
+            if (userRes.ok) {
+              const userJson = await userRes.json() as { data?: Record<string, unknown> }
+              const followedByEdge = userJson.data?.edge_followed_by as Record<string, unknown> | undefined
+              const fc = (userJson.data?.follower_count as number | undefined)
+                ?? (followedByEdge?.count as number | undefined)
+              if (typeof fc === 'number' && fc > 0) followerCount = fc
+            }
+          } catch { /* fall back to 0 */ }
+        }
+      }
+
       const reach = views > 0 ? views : likes
       const engagementRate = reach > 0 ? ((likes + comments + saves) / reach) * 100 : 0
       return { views, likes, comments, shares: 0, saves, follower_count: followerCount, engagement_rate: Math.round(engagementRate * 10000) / 10000 }

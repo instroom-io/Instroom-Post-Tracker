@@ -379,17 +379,6 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                       <MetricCell label="Followers" value={formatNumber(m.follower_count)} />
                       <MetricCell label="ER%" value={formatPercent(m.engagement_rate)} />
                       <MetricCell label="EMV" value={formatEMV(m.emv)} />
-                      {post.post_url && (
-                        <a href={post.post_url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="rounded-lg bg-background-muted p-3 h-full flex flex-col justify-between hover:bg-background-muted/70 transition-colors cursor-pointer">
-                            <p className="text-[10px] font-medium uppercase tracking-wide text-foreground-muted">Source</p>
-                            <div className="mt-1 flex items-center gap-1 text-brand">
-                              <ArrowSquareOut size={13} />
-                              <span className="font-display text-[15px] font-extrabold">Open</span>
-                            </div>
-                          </div>
-                        </a>
-                      )}
                     </div>
                   ) : (
                     <p className="text-[12px] text-foreground-muted">
