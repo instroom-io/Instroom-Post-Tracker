@@ -93,7 +93,7 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
       .limit(300),
     supabase
       .from('influencers')
-      .select('id, ig_handle, tiktok_handle, youtube_handle')
+      .select('id, ig_handle, tiktok_handle, youtube_handle, profile_pic_url')
       .eq('workspace_id', workspace.id)
       .limit(200),
   ])

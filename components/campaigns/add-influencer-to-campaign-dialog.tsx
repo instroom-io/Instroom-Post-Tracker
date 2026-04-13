@@ -28,6 +28,7 @@ interface Influencer {
   ig_handle: string | null
   tiktok_handle: string | null
   youtube_handle: string | null
+  profile_pic_url: string | null
 }
 
 interface Props {
@@ -268,9 +269,12 @@ export function AddInfluencerToCampaignDialog({
                           selectedId === inf.id && 'bg-brand/10 border-l-2 border-brand'
                         )}
                       >
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand/15 text-[11px] font-bold text-brand">
-                          {label[0].toUpperCase()}
-                        </div>
+                        <InfluencerAvatar
+                          handle={label}
+                          profilePicUrl={inf.profile_pic_url
+                            ? `/api/proxy-image?url=${encodeURIComponent(inf.profile_pic_url)}`
+                            : null}
+                        />
                         <div>
                           <p className="text-[13px] font-medium text-foreground">@{label}</p>
                           <p className="text-[11px] text-foreground-lighter">

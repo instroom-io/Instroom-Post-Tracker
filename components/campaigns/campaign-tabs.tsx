@@ -56,6 +56,7 @@ interface WorkspaceInfluencer {
   ig_handle: string | null
   tiktok_handle: string | null
   youtube_handle: string | null
+  profile_pic_url: string | null
 }
 
 interface CampaignTabsProps {
