@@ -55,11 +55,7 @@ async function fetchProfileInfo(
       )
       if (!res.ok) return { profile_pic_url: null }
       const json = await res.json() as { data?: Record<string, unknown> }
-      const picUrl = json.data?.profile_pic_url as string | undefined
-      // Proxy through our server — Instagram CDN blocks direct browser requests
-      const profile_pic_url = picUrl
-        ? `/api/proxy-image?url=${encodeURIComponent(picUrl)}`
-        : null
+      const profile_pic_url = (json.data?.profile_pic_url as string | undefined) ?? null
       return { profile_pic_url }
     }
 
