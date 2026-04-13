@@ -1,11 +1,11 @@
 # Railway workers — standalone Node scripts, not part of the Next.js app
-workers/
+/workers/
 
-# Supabase migrations and local config
-supabase/
+# Supabase migrations and local config (root-level only, NOT lib/supabase/)
+/supabase/
 
 # Docs
-docs/
+/docs/
 
 # Local env files
 .env.local
