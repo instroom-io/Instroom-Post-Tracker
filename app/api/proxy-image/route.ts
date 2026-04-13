@@ -32,7 +32,12 @@ export async function GET(request: NextRequest) {
         ...(isTikTok && { Referer: 'https://www.tiktok.com/' }),
       },
     })
-    if (!res.ok) return new NextResponse('Upstream error', { status: 502 })
+    if (!res.ok) {
+      // CDN blocked the server-side fetch (403) — redirect browser to try the URL directly.
+      // Browsers can load Instagram/Facebook CDN images directly even when Vercel IPs cannot.
+      if (res.status === 403) return NextResponse.redirect(imageUrl)
+      return new NextResponse('Upstream error', { status: 502 })
+    }
 
     return new NextResponse(res.body, {
       headers: {
