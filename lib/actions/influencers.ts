@@ -332,6 +332,8 @@ export async function addInfluencerToCampaign(
           usage_rights_updated_at: null,
           tiktok_next_cursor: null,
           tiktok_backfill_complete: false,
+          ig_last_post_at: null,
+          yt_last_post_at: null,
           added_by: user.id,
           added_at: new Date().toISOString(),
           ...(productSentAt ? { product_sent_at: productSentAt } : { product_sent_at: null }),

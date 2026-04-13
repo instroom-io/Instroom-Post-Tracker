@@ -336,6 +336,29 @@ async function scrapeYouTube(channelHandle: string, cachedChannelId?: string | n
 async function main() {
   const supabase = createServiceClient()
 
+  console.log(`[posts-worker] run started at ${new Date().toISOString()}`)
+
+  // Bulk-activate all pending influencers that have passed the 7-day wait.
+  // Two queries to replicate COALESCE(product_sent_at, added_at) <= NOW() - 7 days.
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const [r1, r2] = await Promise.all([
+    supabase
+      .from('campaign_influencers')
+      .update({ monitoring_status: 'active' })
+      .eq('monitoring_status', 'pending')
+      .not('product_sent_at', 'is', null)
+      .lte('product_sent_at', sevenDaysAgo),
+    supabase
+      .from('campaign_influencers')
+      .update({ monitoring_status: 'active' })
+      .eq('monitoring_status', 'pending')
+      .is('product_sent_at', null)
+      .lte('added_at', sevenDaysAgo),
+  ])
+  if (r1.error) console.error('[posts-worker] bulk-activate error (product_sent_at path):', r1.error.message)
+  if (r2.error) console.error('[posts-worker] bulk-activate error (added_at path):', r2.error.message)
+  if (!r1.error && !r2.error) console.log('[posts-worker] bulk-activation complete')
+
   const { data: rows, error: loadError } = await supabase
     .from('campaign_influencers')
     .select(`
@@ -380,9 +403,12 @@ async function main() {
   }
 
   if (!rows || rows.length === 0) {
+    console.log('[posts-worker] no active/pending influencers to process')
     console.log(JSON.stringify({ scraped: 0, newPosts: 0 }))
     process.exit(0)
   }
+
+  console.log(`[posts-worker] loaded ${rows.length} influencer row(s) to process`)
 
   let totalScraped = 0
   let totalNewPosts = 0
@@ -611,12 +637,6 @@ async function main() {
       }
     }
 
-    if (row.monitoring_status === 'pending') {
-      await supabase
-        .from('campaign_influencers')
-        .update({ monitoring_status: 'active' })
-        .eq('id', row.id)
-    }
   }
 
   console.log(JSON.stringify({
