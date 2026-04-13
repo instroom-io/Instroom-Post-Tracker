@@ -46,6 +46,26 @@ const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
 }
 
 
+function PostThumbnail({ post }: { post: PostRow }) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const src = post.thumbnail_url
+    ? post.platform !== 'youtube'
+      ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
+      : post.thumbnail_url
+    : null
+  if (src && !imgFailed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt="" onError={() => setImgFailed(true)} className="h-full w-full object-cover" />
+    )
+  }
+  return (
+    <div className="flex h-full items-center justify-center">
+      <ImageBroken size={14} className="text-foreground-muted" aria-label="No thumbnail" />
+    </div>
+  )
+}
+
 export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, memberDriveUrl }: CampaignPostsTableProps) {
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null)
 
@@ -105,18 +125,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
                 {/* Thumbnail */}
                 <td className="px-5 py-3.5">
                   <div className="relative h-11 w-11 overflow-hidden rounded-lg bg-background-muted flex-shrink-0">
-                    {post.thumbnail_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={post.platform === 'instagram' ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}` : post.thumbnail_url}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <ImageBroken size={14} className="text-foreground-muted" aria-label="No thumbnail" />
-                      </div>
-                    )}
+                    <PostThumbnail post={post} />
                     {(post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && !!post.media_url)) && (
                       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                         <div className="flex h-4 w-4 items-center justify-center rounded-full bg-black/50">

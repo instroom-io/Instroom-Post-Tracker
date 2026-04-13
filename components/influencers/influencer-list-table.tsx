@@ -83,6 +83,26 @@ const STATUS_LABEL: Record<MonitoringStatus, string> = {
 }
 
 
+function InfluencerAvatar({ picUrl, label }: { picUrl: string | null; label: string }) {
+  const [failed, setFailed] = useState(false)
+  if (picUrl && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/api/proxy-image?url=${encodeURIComponent(picUrl)}`}
+        alt=""
+        onError={() => setFailed(true)}
+        className="h-9 w-9 flex-shrink-0 rounded-full object-cover ring-1 ring-border"
+      />
+    )
+  }
+  return (
+    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-muted to-brand/20 text-[11px] font-bold text-brand ring-1 ring-border">
+      {getInitials(label)}
+    </div>
+  )
+}
+
 interface CampaignCardProps {
   entry: CampaignEntry
   workspaceSlug: string
@@ -395,18 +415,7 @@ export function InfluencerListTable({
                       {/* Influencer cell */}
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          {inf.profile_pic_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={inf.profile_pic_url}
-                              alt=""
-                              className="h-9 w-9 flex-shrink-0 rounded-full object-cover ring-1 ring-border"
-                            />
-                          ) : (
-                            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-muted to-brand/20 text-[11px] font-bold text-brand ring-1 ring-border">
-                              {getInitials(label)}
-                            </div>
-                          )}
+                          <InfluencerAvatar picUrl={inf.profile_pic_url} label={label} />
                           <p className="text-[13px] font-semibold text-foreground">@{label}</p>
                         </div>
                       </td>

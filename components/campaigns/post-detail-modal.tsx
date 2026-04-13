@@ -154,28 +154,52 @@ function ModalSaveToDriveButton({ postId, workspaceId, driveFileId }: {
   )
 }
 
+function getYouTubeId(url: string | null): string | null {
+  if (!url) return null
+  const m = url.match(/(?:v=|youtu\.be\/|shorts\/)([A-Za-z0-9_-]{11})/)
+  return m?.[1] ?? null
+}
+
 function ModalThumbnail({ post }: { post: PostRow }) {
   const [playing, setPlaying] = useState(false)
   const [imgFailed, setImgFailed] = useState(false)
+  const [videoSrcIdx, setVideoSrcIdx] = useState(0)
 
-  const videoSrc = post.drive_file_id
-    ? `/api/proxy-drive?id=${post.drive_file_id}`
-    : post.media_url
+  // Build ordered fallback list: downloaded Drive file first, then raw CDN url.
+  const videoSources = [
+    post.drive_file_id ? `/api/proxy-drive?id=${post.drive_file_id}` : null,
+    post.media_url,
+  ].filter(Boolean) as string[]
+
+  const videoSrc = videoSources[videoSrcIdx] ?? null
+  const allSrcsFailed = playing && !videoSrc
+
+  const youtubeId = post.platform === 'youtube' ? getYouTubeId(post.post_url) : null
 
   const isVideo =
     post.platform === 'tiktok' ||
-    post.platform === 'youtube' ||
+    (post.platform === 'youtube' && !!youtubeId) ||
     (post.platform === 'instagram' && (!!post.media_url || !!post.drive_file_id))
 
   const thumbnailSrc = post.thumbnail_url
-    ? post.platform === 'instagram'
+    ? post.platform !== 'youtube'
       ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
       : post.thumbnail_url
     : null
 
   return (
     <div className="relative h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
-      {playing && videoSrc ? (
+      {playing && youtubeId ? (
+        // YouTube: always use iframe embed — <video> cannot play YouTube URLs
+        <iframe
+          src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+          allowFullScreen
+          className="h-full w-full"
+          title="YouTube video"
+        />
+      ) : playing && videoSrc ? (
+        // TikTok / Instagram: try Drive proxy first, then fall back to media_url
         <video
           src={videoSrc}
           autoPlay
@@ -183,7 +207,19 @@ function ModalThumbnail({ post }: { post: PostRow }) {
           loop
           playsInline
           className="h-full w-full object-cover"
+          onError={() => setVideoSrcIdx((i) => i + 1)}
         />
+      ) : allSrcsFailed ? (
+        // All video sources exhausted — show a direct link to the platform post
+        <a
+          href={post.post_url ?? undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center gap-2 text-center text-foreground-muted hover:text-foreground transition-colors p-4"
+        >
+          <ArrowSquareOut size={24} />
+          <span className="text-[11px] font-medium">View on {post.platform}</span>
+        </a>
       ) : (
         <>
           {thumbnailSrc && !imgFailed ? (

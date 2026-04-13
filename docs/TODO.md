@@ -160,7 +160,6 @@ The brand request queue for agency owners was not built.
 
 - [ ] **Batch influencer input** — textarea that accepts comma- or newline-separated handles; system parses and adds each as a separate influencer in one action (replaces one-by-one dialog)
 - [ ] Workspace logo upload (currently text URL input only)
-- [ ] `PostsTable` pagination (no pagination for >100 posts)
 - [ ] Onboard token regeneration (resend expired onboarding link to brand)
 
 ### Admin

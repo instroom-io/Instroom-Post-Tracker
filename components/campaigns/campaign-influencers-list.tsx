@@ -73,7 +73,12 @@ function AvatarCell({ row, workspaceId }: { row: InfluencerRow; workspaceId: str
   if (picUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={picUrl} alt="" className="h-7 w-7 flex-shrink-0 rounded-full object-cover" />
+      <img
+        src={`/api/proxy-image?url=${encodeURIComponent(picUrl)}`}
+        alt=""
+        onError={() => setPicUrl(null)}
+        className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
+      />
     )
   }
 

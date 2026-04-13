@@ -26,12 +26,18 @@ export function RecentPostCard({ post }: { post: Post }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hovering, setHovering] = useState(false)
   const [imgFailed, setImgFailed] = useState(false)
+  // Track fallback: Drive proxy first, media_url second.
+  const [primarySrcFailed, setPrimarySrcFailed] = useState(false)
+  const [previewDisabled, setPreviewDisabled] = useState(false)
 
-  const videoSrc = post.drive_file_id
-    ? `/api/proxy-drive?id=${post.drive_file_id}`
-    : post.media_url
+  const videoSrc = primarySrcFailed
+    ? post.media_url
+    : post.drive_file_id
+      ? `/api/proxy-drive?id=${post.drive_file_id}`
+      : post.media_url
+
   const isVideo = post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && (!!post.media_url || !!post.drive_file_id))
-  const canPreview = isVideo && !!videoSrc && post.platform !== 'youtube'
+  const canPreview = isVideo && !!videoSrc && post.platform !== 'youtube' && !previewDisabled
 
   function onEnter() {
     if (!canPreview) return
@@ -51,8 +57,16 @@ export function RecentPostCard({ post }: { post: Post }) {
     }
   }
 
+  function handleVideoError() {
+    if (!primarySrcFailed && post.drive_file_id) {
+      setPrimarySrcFailed(true)
+    } else {
+      setPreviewDisabled(true)
+    }
+  }
+
   const thumbnailSrc = post.thumbnail_url
-    ? post.platform === 'instagram'
+    ? post.platform !== 'youtube'
       ? `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
       : post.thumbnail_url
     : null
@@ -86,6 +100,7 @@ export function RecentPostCard({ post }: { post: Post }) {
             loop
             playsInline
             preload="none"
+            onError={handleVideoError}
             className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
           />
         )}

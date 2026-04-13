@@ -39,7 +39,9 @@ interface CampaignPostsGalleryProps {
 
 function getThumbnailSrc(post: PostRow): string | null {
   if (!post.thumbnail_url) return null
-  if (post.platform === 'instagram') {
+  // YouTube CDN (i.ytimg.com) is publicly accessible; Instagram + TikTok CDNs
+  // block direct browser requests and must go through our proxy.
+  if (post.platform !== 'youtube') {
     return `/api/proxy-image?url=${encodeURIComponent(post.thumbnail_url)}`
   }
   return post.thumbnail_url
@@ -89,11 +91,19 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hovering, setHovering] = useState(false)
   const [imgFailed, setImgFailed] = useState(false)
+  // Track which video src to use: Drive proxy first, then media_url as fallback.
+  const [primarySrcFailed, setPrimarySrcFailed] = useState(false)
+  const [previewDisabled, setPreviewDisabled] = useState(false)
+
   const src = getThumbnailSrc(post)
-  const videoSrc = post.drive_file_id
-    ? `/api/proxy-drive?id=${post.drive_file_id}`
-    : post.media_url
-  const canPreview = !!videoSrc && post.platform !== 'youtube'
+
+  const videoSrc = primarySrcFailed
+    ? post.media_url
+    : post.drive_file_id
+      ? `/api/proxy-drive?id=${post.drive_file_id}`
+      : post.media_url
+
+  const canPreview = !!videoSrc && post.platform !== 'youtube' && !previewDisabled
 
   function onEnter() {
     if (!canPreview) return
@@ -107,6 +117,16 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
     if (!canPreview) return
     setHovering(false)
     if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0 }
+  }
+
+  function handleVideoError() {
+    if (!primarySrcFailed && post.drive_file_id) {
+      // Drive proxy failed — reload the element with media_url as fallback.
+      setPrimarySrcFailed(true)
+    } else {
+      // Both srcs failed — hide the video element silently.
+      setPreviewDisabled(true)
+    }
   }
 
   return (
@@ -136,6 +156,7 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
           loop
           playsInline
           preload="none"
+          onError={handleVideoError}
           className={cn('absolute inset-0 h-full w-full object-cover transition-opacity duration-200', !hovering && 'opacity-0')}
         />
       )}

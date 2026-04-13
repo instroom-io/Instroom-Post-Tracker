@@ -196,7 +196,6 @@ instroom/
 │   │       │   │   ├── page.tsx
 │   │       │   │   └── [campaignId]/page.tsx
 │   │       │   ├── influencers/page.tsx
-│   │       │   ├── posts/page.tsx
 │   │       │   ├── analytics/page.tsx
 │   │       │   └── settings/page.tsx
 │   ├── api/
@@ -217,7 +216,6 @@ instroom/
 │   ├── dashboard/                        ← StatCards, CampaignsTable, RecentPostsGrid, UsageRightsPanel
 │   ├── campaigns/                        ← CreateCampaignDialog, TrackingConfigPanel, CampaignInfluencersList, CampaignPostsTable
 │   ├── influencers/                      ← InfluencerTable, AddInfluencerDialog
-│   ├── posts/                            ← PostsTable, PostsFilterBar, CollabStatusSelect, DownloadStatusBadge
 │   ├── analytics/                        ← PostVolumeChart, EmvChart, PlatformBreakdown, ErBenchmarkChart, InfluencerLeaderboard, EmvConfigForm
 │   ├── settings/                         ← WorkspaceSettingsForm, MemberTable, InviteMemberDialog, EmvSettingsPanel
 │   └── providers/                        ← QueryProvider, ThemeProvider

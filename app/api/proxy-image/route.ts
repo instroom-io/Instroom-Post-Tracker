@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRouteLimit, limiters } from '@/lib/rate-limit'
 
-const ALLOWED_DOMAINS = ['cdninstagram.com', 'fbcdn.net', 'instagram.com']
+const ALLOWED_DOMAINS = [
+  'cdninstagram.com',
+  'fbcdn.net',
+  'instagram.com',
+  'tiktokcdn.com',       // p16-sign-*.tiktokcdn.com, p16-common-sign.tiktokcdn-eu.com, etc.
+  'tiktokcdn-eu.com',
+  'tiktokcdn-us.com',
+]
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
@@ -15,11 +22,14 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Domain not allowed', { status: 403 })
   }
 
+  const isTikTok = imageUrl.includes('tiktokcdn')
   try {
     const res = await fetch(imageUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible)',
-        Accept: 'image/*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        // TikTok CDN validates Referer — must appear to come from TikTok itself.
+        ...(isTikTok && { Referer: 'https://www.tiktok.com/' }),
       },
     })
     if (!res.ok) return new NextResponse('Upstream error', { status: 502 })

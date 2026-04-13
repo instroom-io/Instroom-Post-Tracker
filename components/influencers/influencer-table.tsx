@@ -150,7 +150,7 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
                       {inf.profile_pic_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={inf.profile_pic_url}
+                          src={`/api/proxy-image?url=${encodeURIComponent(inf.profile_pic_url)}`}
                           alt=""
                           className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
                         />
