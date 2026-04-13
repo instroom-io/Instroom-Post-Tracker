@@ -9,6 +9,7 @@ import { CampaignsTable } from '@/components/dashboard/campaigns-table'
 import { RecentPostsGrid } from '@/components/dashboard/recent-posts-grid'
 import { OverviewBottomSkeleton } from '@/components/dashboard/overview-bottom-skeleton'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
+import { AutoRefresh } from '@/components/ui/auto-refresh'
 import type { WorkspaceRole } from '@/lib/types'
 
 interface PageProps {
@@ -176,6 +177,8 @@ export default async function OverviewPage({ params }: PageProps) {
           </Suspense>
         </SectionErrorBoundary>
       </div>
+
+      <AutoRefresh intervalMs={60000} />
     </div>
   )
 }

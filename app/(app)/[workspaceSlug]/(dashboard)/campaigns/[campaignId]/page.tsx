@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { CampaignTabs } from '@/components/campaigns/campaign-tabs'
 import { CampaignTourWrapper, CampaignTourButton } from '@/components/campaigns/campaign-tour-wrapper'
+import { AutoRefresh } from '@/components/ui/auto-refresh'
 import { formatDateRange } from '@/lib/utils'
 import { updateCampaign } from '@/lib/actions/campaigns'
 import type { WorkspaceRole, CampaignStatus, Platform, DownloadStatus } from '@/lib/types'
@@ -283,6 +284,7 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
         />
       </div>
     </div>
+    <AutoRefresh intervalMs={30000} />
     </CampaignTourWrapper>
   )
 }
