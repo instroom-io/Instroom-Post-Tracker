@@ -434,6 +434,15 @@ async function main() {
         const { posts: rawPosts, resolvedId } = result
         totalScraped += rawPosts.length
 
+        // DEBUG: log raw posts for diagnosis
+        if (handle.toLowerCase().includes('kamcia')) {
+          console.log(`[DEBUG] @${handle} raw posts (${rawPosts.length}):`)
+          for (const p of rawPosts) {
+            console.log(`  posted_at=${p.posted_at} caption=${p.caption?.slice(0, 120) ?? 'NULL'}`)
+          }
+          console.log(`[DEBUG] effectiveStartMs=${new Date(effectiveStartMs).toISOString()} lastSeenMs=${lastSeenMs > 0 ? new Date(lastSeenMs).toISOString() : '0'}`)
+        }
+
         if (resolvedId && platform !== 'tiktok') {
           const idField = platform === 'instagram' ? 'instagram_user_id' : 'youtube_channel_id'
           const cached = platform === 'instagram' ? influencer.instagram_user_id : influencer.youtube_channel_id
@@ -482,10 +491,14 @@ async function main() {
         const hashtags = config?.hashtags ?? []
         const mentions = config?.mentions ?? []
 
-        const filtered = unseenPosts.filter((post) =>
-          isWithinCampaignWindow(post.posted_at, campaign.start_date, campaign.end_date) &&
-          matchesTrackingConfig(post.caption, hashtags, mentions)
-        )
+        const filtered = unseenPosts.filter((post) => {
+          const inWindow = isWithinCampaignWindow(post.posted_at, campaign.start_date, campaign.end_date)
+          const matches = matchesTrackingConfig(post.caption, hashtags, mentions)
+          if (handle.toLowerCase().includes('kamcia')) {
+            console.log(`[DEBUG] @${handle} post ${post.posted_at} inWindow=${inWindow} matches=${matches} caption=${post.caption?.slice(0, 80) ?? 'NULL'}`)
+          }
+          return inWindow && matches
+        })
 
         if (filtered.length === 0) continue
 
