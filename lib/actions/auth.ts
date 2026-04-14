@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { signInSchema, signUpSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/validations'
-import { isPersonalEmail } from '@/lib/utils'
 import { checkActionLimit, getRequestIp, limiters } from '@/lib/rate-limit'
 
 export async function signIn(
@@ -33,14 +32,6 @@ export async function signIn(
   const redirectTo = formData.get('redirectTo')
   const destination = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
 
-  // Bypass personal email block for invite links
-  const isInviteFlow = destination.startsWith('/invite/')
-  const adminEmail = process.env.ADMIN_EMAIL
-  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
-  if (!isAdmin && !isInviteFlow && isPersonalEmail(parsed.data.email)) {
-    return { error: 'Please use a work email address to sign in.' }
-  }
-
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword(parsed.data)
 
@@ -64,7 +55,8 @@ export async function signUp(
     email: formData.get('email'),
     password: formData.get('password'),
     full_name: formData.get('full_name') ?? undefined,
-    account_type: formData.get('account_type') ?? 'agency',
+    account_type: formData.get('account_type') ?? 'team',
+    account_name: (formData.get('account_name') as string) ?? '',
   })
 
   if (!parsed.success) {
@@ -73,14 +65,6 @@ export async function signUp(
 
   const redirectTo = formData.get('redirectTo')
   const nextPath = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
-
-  // Bypass personal email block for invite links
-  const isInviteFlow = nextPath.startsWith('/invite/')
-  const adminEmail = process.env.ADMIN_EMAIL
-  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
-  if (!isAdmin && !isInviteFlow && isPersonalEmail(parsed.data.email)) {
-    return { error: 'Please use a work email address to sign up.' }
-  }
   const emailRedirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(nextPath)}`
 
   const supabase = await createClient()
@@ -91,6 +75,7 @@ export async function signUp(
       data: {
         full_name: parsed.data.full_name,
         account_type: parsed.data.account_type,
+        account_name: parsed.data.account_name,
       },
       emailRedirectTo,
     },
@@ -127,13 +112,6 @@ export async function requestPasswordReset(
 
   if (!parsed.success) {
     return { error: parsed.error.errors[0].message }
-  }
-
-  // Block personal email domains (except admin)
-  const adminEmail = process.env.ADMIN_EMAIL
-  const isAdmin = adminEmail && parsed.data.email.toLowerCase() === adminEmail.toLowerCase()
-  if (!isAdmin && isPersonalEmail(parsed.data.email)) {
-    return { error: 'Please use a work email address.' }
   }
 
   const supabase = await createClient()
