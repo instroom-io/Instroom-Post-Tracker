@@ -2,9 +2,10 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { signInSchema, signUpSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/validations'
 import { checkActionLimit, getRequestIp, limiters } from '@/lib/rate-limit'
+import { toSlug, deduplicateSlug } from '@/lib/utils'
 
 export async function signIn(
   _prevState: unknown,
@@ -147,4 +148,72 @@ export async function updatePassword(
 
   revalidatePath('/', 'layout')
   redirect('/app')
+}
+
+export async function saveOnboardingName(
+  accountType: 'solo' | 'team',
+  accountName: string
+): Promise<{ error: string } | { redirectTo: string }> {
+  const nameParsed = signUpSchema.shape.account_name.safeParse(accountName.trim())
+  if (!nameParsed.success) return { error: nameParsed.error.errors[0].message }
+  if (!['solo', 'team'].includes(accountType)) return { error: 'Invalid account type.' }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  await supabase.auth.updateUser({
+    data: {
+      account_type: accountType,
+      account_name: nameParsed.data,
+    },
+  })
+
+  const serviceClient = createServiceClient()
+  const workspaceQuota = accountType === 'solo' ? 1 : 3
+  const trialStartedAt = new Date()
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+
+  const { data: existingMember } = await serviceClient
+    .from('workspace_members')
+    .select('workspace_id, workspaces(slug)')
+    .eq('user_id', user.id)
+    .eq('role', 'owner')
+    .maybeSingle()
+
+  if (existingMember) {
+    const s = (existingMember.workspaces as unknown as { slug: string }).slug
+    return { redirectTo: `/${s}/overview` }
+  }
+
+  const base = toSlug(nameParsed.data)
+  const { data: takenRows } = await serviceClient
+    .from('workspaces')
+    .select('slug')
+    .ilike('slug', `${base}%`)
+  const slug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
+
+  const { data: ws } = await serviceClient
+    .from('workspaces')
+    .insert({
+      name: nameParsed.data,
+      slug,
+      plan: 'trial',
+      trial_started_at: trialStartedAt.toISOString(),
+      trial_ends_at: trialEndsAt.toISOString(),
+      account_type: accountType,
+      workspace_quota: workspaceQuota,
+    })
+    .select('id')
+    .single()
+
+  if (!ws) return { error: 'Failed to create workspace. Please try again.' }
+
+  await serviceClient.from('workspace_members').insert({
+    workspace_id: ws.id,
+    user_id: user.id,
+    role: 'owner',
+  })
+
+  return { redirectTo: `/${slug}/overview` }
 }
