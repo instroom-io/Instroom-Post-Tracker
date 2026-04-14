@@ -34,8 +34,8 @@
 | `lib/utils/index.ts` | Add `deduplicateSlug()` pure helper |
 | `lib/validations/index.ts` | Add `account_name` to `signUpSchema`; add `upgradeRequestSchema` |
 | `lib/actions/auth.ts` | Remove personal email hard blocks (signIn/signUp/requestPasswordReset); add `account_name` to user_metadata in signUp |
-| `app/auth/callback/route.ts` | Replace invite-only gate with auto-create-agency/workspace for new users; add new-user detection to token_hash (email OTP) path |
-| `app/(auth)/signup/signup-form.tsx` | Add `account_name` field; soft email warning for agency + personal email |
+| `app/auth/callback/route.ts` | Replace invite-only gate with unified auto-create-workspace for new users (both Solo and Team); add new-user detection to token_hash (email OTP) path |
+| `app/(auth)/signup/signup-form.tsx` | Add `account_name` field; Solo/Team toggle; soft email warning for team + personal email |
 | `components/marketing/hero-section.tsx` | href `/request-access` → `/signup` |
 | `components/marketing/marketing-nav.tsx` | href → `/signup` (desktop + mobile) |
 | `components/marketing/pricing-section.tsx` | href → `/signup` (all CTAs) |
@@ -49,7 +49,7 @@
 | `lib/actions/workspace.ts` | Check `canUseFeature(plan, 'team_members')` in `inviteMember()` |
 | `lib/actions/agencies.ts` | Remove `multi_brand` gate from `inviteBrand()` (action deprecated in v2.0) |
 | `app/admin/page.tsx` | Import + use `setPlan` from `lib/actions/admin.ts`; pass to `AgenciesTable` |
-| `components/admin/agencies-table.tsx` | Add plan badge + inline plan dropdown using `setPlan` |
+| `components/admin/agencies-table.tsx` | Add plan badge + inline plan dropdown using `setWorkspacePlan`; query workspaces instead of agencies |
 
 ---
 
@@ -399,7 +399,7 @@ function makeRedirect(request: NextRequest, path: string): NextResponse {
  * Runs after every successful auth event (OAuth exchange OR email OTP verify).
  * - Upserts the public.users row.
  * - Ensures platform admin flag is set for the admin email.
- * - For new users: auto-creates an agency or workspace based on user_metadata,
+ * - For new users: auto-creates a workspace based on user_metadata,
  *   then redirects to the correct dashboard.
  * - For returning users: returns null (caller falls through to normal redirect).
  */
@@ -558,7 +558,7 @@ git commit -m "04142026 - replace invite-only gate with self-serve auto-create i
 **Files:**
 - Modify: `app/(auth)/signup/signup-form.tsx`
 
-Add the `account_name` field (between toggle and email) and soft email warning for agency users.
+Add the `account_name` field (between toggle and email), Solo/Team toggle, and soft email warning for team users with personal emails.
 
 - [ ] **Step 1: Add `accountName` input state and email watch state**
 
