@@ -219,14 +219,14 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
                         <div className="space-y-1">
                           <p className="font-medium text-background/70">How it works:</p>
                           <ul className="space-y-1 pl-1">
-                            <li>• Posts before this date will not be detected</li>
-                            <li>• Influencers are included in the very next worker scan immediately after being added</li>
-                            <li>• Posts made within a day or two of delivery will still be captured — they remain in the influencer's recent feed when the scan runs</li>
+                            <li>• The system tracks posts from the moment each influencer is added — not from this date</li>
+                            <li>• This date defines your campaign window for analytics and reporting</li>
+                            <li>• Posts outside this window will not be counted</li>
                             <li>• If no posts are found by day 10, a follow-up reminder is sent to your team</li>
                             <li>• A second reminder follows at day 13</li>
                           </ul>
                         </div>
-                        <p className="text-background/70">Only add influencers who just received their delivery and have not been tracked in a previous campaign.</p>
+                        <p className="text-background/70">Only add influencers who just received their delivery and have not posted yet.</p>
                       </div>
                     }
                   >

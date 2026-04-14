@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition, useState } from 'react'
 import { toast } from 'sonner'
-import { DotsThree, Trash, WarningCircle, Users, ArrowClockwise, MagnifyingGlass, Prohibit } from '@phosphor-icons/react'
+import { DotsThree, Trash, WarningCircle, Users, ArrowClockwise, MagnifyingGlass, Prohibit, Info } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { PlatformLogo } from '@/components/ui/platform-icon'
@@ -263,6 +263,12 @@ export function CampaignInfluencersList({
             className="pl-7 h-7 text-[12px]"
           />
         </div>
+      </div>
+      <div className="flex items-center gap-1.5 px-5 py-2.5 border-b border-border/50">
+        <Info size={11} className="flex-shrink-0 text-foreground-muted" />
+        <p className="text-[11px] text-foreground-muted">
+          Posts are tracked from the date each influencer is added, not from the campaign start date.
+        </p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">

@@ -182,8 +182,7 @@ export type Database = {
           monitoring_status: Database["public"]["Enums"]["monitoring_status"]
           product_sent_at: string | null
           stop_after_post: boolean
-          tiktok_backfill_complete: boolean
-          tiktok_next_cursor: number | null
+          tiktok_last_post_at: string | null
           usage_rights: boolean
           usage_rights_updated_at: string | null
           yt_last_post_at: string | null
@@ -200,8 +199,7 @@ export type Database = {
           monitoring_status?: Database["public"]["Enums"]["monitoring_status"]
           product_sent_at?: string | null
           stop_after_post?: boolean
-          tiktok_backfill_complete?: boolean
-          tiktok_next_cursor?: number | null
+          tiktok_last_post_at?: string | null
           usage_rights?: boolean
           usage_rights_updated_at?: string | null
           yt_last_post_at?: string | null
@@ -218,8 +216,7 @@ export type Database = {
           monitoring_status?: Database["public"]["Enums"]["monitoring_status"]
           product_sent_at?: string | null
           stop_after_post?: boolean
-          tiktok_backfill_complete?: boolean
-          tiktok_next_cursor?: number | null
+          tiktok_last_post_at?: string | null
           usage_rights?: boolean
           usage_rights_updated_at?: string | null
           yt_last_post_at?: string | null

@@ -18,7 +18,6 @@ interface ScrapeResult {
   posts: NormalizedPost[]
   resolvedId: string | null
   nextCursor?: bigint | null
-  reachedCampaignStart?: boolean
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -240,16 +239,8 @@ function parseTikTokItem(item: Record<string, unknown>, handle: string): Normali
   }
 }
 
-async function scrapeTikTok(
-  handle: string,
-  startCursor?: bigint | null,
-  campaignStartDate?: string | null,
-  depth: number = 1,
-): Promise<ScrapeResult> {
-  let url = `${ENSEMBLE_API_URL}/tt/user/posts?username=${encodeURIComponent(handle)}&depth=${depth}&token=${ENSEMBLE_API_KEY}`
-  if (startCursor != null) {
-    url += `&start_cursor=${startCursor.toString()}`
-  }
+async function scrapeTikTok(handle: string): Promise<ScrapeResult> {
+  const url = `${ENSEMBLE_API_URL}/tt/user/posts?username=${encodeURIComponent(handle)}&depth=1&token=${ENSEMBLE_API_KEY}`
   const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) {
     console.error(`[posts-worker] TT user/posts failed for @${handle}: ${res.status}`)
@@ -264,18 +255,7 @@ async function scrapeTikTok(
     if (!normalized) continue
     posts.push(normalized)
   }
-  const rawCursor = json.nextCursor
-  const nextCursor: bigint | null = rawCursor != null && rawCursor !== '' && rawCursor !== 0
-    ? BigInt(String(rawCursor))
-    : null
-  let reachedCampaignStart = false
-  if (!nextCursor || posts.length === 0) {
-    reachedCampaignStart = true
-  } else if (campaignStartDate) {
-    const campaignStartMs = new Date(campaignStartDate).getTime()
-    reachedCampaignStart = Number(nextCursor) <= campaignStartMs
-  }
-  return { posts, resolvedId: null, nextCursor, reachedCampaignStart }
+  return { posts, resolvedId: null }
 }
 
 async function scrapeYouTube(channelHandle: string, cachedChannelId?: string | null): Promise<ScrapeResult> {
@@ -353,8 +333,7 @@ async function main() {
       id,
       usage_rights,
       monitoring_status,
-      tiktok_next_cursor,
-      tiktok_backfill_complete,
+      tiktok_last_post_at,
       ig_last_post_at,
       yt_last_post_at,
       stop_after_post,
@@ -418,10 +397,7 @@ async function main() {
       youtube_handle: string | null
       youtube_channel_id: string | null
     }
-    const tiktokNextCursor: bigint | null = row.tiktok_next_cursor != null
-      ? BigInt(String(row.tiktok_next_cursor))
-      : null
-    const tiktokBackfillComplete: boolean = (row.tiktok_backfill_complete as boolean | null) ?? false
+    const tiktokLastPostAt: string | null = row.tiktok_last_post_at as string | null
     const igLastPostAt: string | null = row.ig_last_post_at as string | null
     const ytLastPostAt: string | null = row.yt_last_post_at as string | null
     const stopAfterPost: boolean = (row.stop_after_post as boolean | null) ?? false
@@ -444,14 +420,9 @@ async function main() {
       try {
         let result: ScrapeResult = { posts: [], resolvedId: null }
         if (platform === 'instagram') {
-          // depth=1 (live monitoring) once we've done the initial backfill, depth=3 for first run
-          const igDepth = igLastPostAt ? 1 : 3
-          result = await scrapeInstagram(handle, influencer.instagram_user_id, igDepth)
+          result = await scrapeInstagram(handle, influencer.instagram_user_id, 1)
         } else if (platform === 'tiktok') {
-          const cursorForThisRun = tiktokBackfillComplete ? null : tiktokNextCursor
-          const depth = tiktokBackfillComplete ? 1 : 5
-          const backfillTarget = (row.product_sent_at as string | null) ?? campaign.start_date
-          result = await scrapeTikTok(handle, cursorForThisRun, backfillTarget, depth)
+          result = await scrapeTikTok(handle)
         } else if (platform === 'youtube') {
           result = await scrapeYouTube(handle, influencer.youtube_channel_id)
         }
@@ -467,22 +438,19 @@ async function main() {
           }
         }
 
-        if (platform === 'tiktok' && !tiktokBackfillComplete) {
-          const backfillNowComplete = result.reachedCampaignStart === true
+        // Update watermark: store the newest post timestamp seen per platform so future
+        // runs skip already-checked posts without re-processing them.
+        if (platform === 'tiktok' && rawPosts.length > 0) {
+          const newest = rawPosts.reduce(
+            (max, p) => p.posted_at > max ? p.posted_at : max,
+            rawPosts[0].posted_at
+          )
           await supabase
             .from('campaign_influencers')
-            .update({
-              tiktok_next_cursor: backfillNowComplete ? null : (result.nextCursor != null ? result.nextCursor.toString() : null),
-              tiktok_backfill_complete: backfillNowComplete,
-            })
+            .update({ tiktok_last_post_at: newest })
             .eq('id', row.id)
-          console.log(
-            `[posts-worker] TT @${handle} cursor=${result.nextCursor ?? 'end'} backfillComplete=${backfillNowComplete}`
-          )
+          console.log(`[posts-worker] TT @${handle} watermark → ${newest}`)
         }
-
-        // Update incremental cursor for Instagram and YouTube: store the most recently
-        // seen post timestamp so future runs skip already-checked content.
         if (platform === 'instagram' && rawPosts.length > 0) {
           const newest = rawPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, rawPosts[0].posted_at)
           await supabase.from('campaign_influencers').update({ ig_last_post_at: newest }).eq('id', row.id)
@@ -498,6 +466,7 @@ async function main() {
         // TikTok uses cursor-based pagination so no timestamp filter needed there.
         const lastSeenMs =
           platform === 'instagram' && igLastPostAt ? new Date(igLastPostAt).getTime() :
+          platform === 'tiktok' && tiktokLastPostAt ? new Date(tiktokLastPostAt).getTime() :
           platform === 'youtube' && ytLastPostAt ? new Date(ytLastPostAt).getTime() :
           0
         const unseenPosts = lastSeenMs > 0
