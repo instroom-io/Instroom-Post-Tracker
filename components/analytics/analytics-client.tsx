@@ -9,8 +9,10 @@ import { EmvChart } from '@/components/analytics/emv-chart'
 import { ErBenchmarkChart } from '@/components/analytics/er-benchmark-chart'
 import { InfluencerLeaderboard } from '@/components/analytics/influencer-leaderboard'
 import { Badge } from '@/components/ui/badge'
+import { UpgradeGate } from '@/components/ui/upgrade-gate'
 import { cn, formatEMV, formatNumber, formatPercent, getInfluencerLabel } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
+import type { PlanType } from '@/lib/utils/plan'
 
 export interface PostMetricRow {
   views: number
@@ -39,6 +41,7 @@ interface AnalyticsClientProps {
   campaigns: Campaign[]
   defaultFilters: AnalyticsFilters
   timezone?: string
+  plan: PlanType
 }
 
 function ChartCard({
@@ -68,6 +71,7 @@ export function AnalyticsClient({
   campaigns,
   defaultFilters,
   timezone,
+  plan,
 }: AnalyticsClientProps) {
   const [filters, setFilters] = useState<AnalyticsFilters>(() => {
     // Compute date defaults client-side so they reflect the user's local timezone
@@ -290,25 +294,31 @@ export function AnalyticsClient({
           <PlatformBreakdown data={platformData} />
         </ChartCard>
 
-        <ChartCard title="EMV by Influencer" badge="Top 10">
-          <EmvChart data={emvData} />
-        </ChartCard>
+        <UpgradeGate plan={plan} feature="emv_reporting" minHeight="200px">
+          <ChartCard title="EMV by Influencer" badge="Top 10">
+            <EmvChart data={emvData} />
+          </ChartCard>
+        </UpgradeGate>
 
-        <ChartCard title="Engagement Rate" badge="vs benchmark">
-          <ErBenchmarkChart data={erData} />
-        </ChartCard>
+        <UpgradeGate plan={plan} feature="advanced_analytics" minHeight="200px">
+          <ChartCard title="Engagement Rate" badge="vs benchmark">
+            <ErBenchmarkChart data={erData} />
+          </ChartCard>
+        </UpgradeGate>
       </div>
 
       {/* Leaderboard */}
-      <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-        <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-          <p className="text-[13px] font-display font-bold text-foreground">Influencer Leaderboard</p>
-          {leaderboardRows.length > 0 && (
-            <Badge variant="muted">{leaderboardRows.length} influencers</Badge>
-          )}
+      <UpgradeGate plan={plan} feature="advanced_analytics" minHeight="200px">
+        <div className="rounded-xl border border-border bg-background-surface shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+            <p className="text-[13px] font-display font-bold text-foreground">Influencer Leaderboard</p>
+            {leaderboardRows.length > 0 && (
+              <Badge variant="muted">{leaderboardRows.length} influencers</Badge>
+            )}
+          </div>
+          <InfluencerLeaderboard rows={leaderboardRows} />
         </div>
-        <InfluencerLeaderboard rows={leaderboardRows} />
-      </div>
+      </UpgradeGate>
     </div>
   )
 }

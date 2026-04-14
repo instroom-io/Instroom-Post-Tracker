@@ -22,11 +22,13 @@ async function AnalyticsBody({
   campaigns,
   defaultFilters,
   timezone,
+  plan,
 }: {
   workspaceId: string
   campaigns: { id: string; name: string }[]
   defaultFilters: AnalyticsFilters
   timezone: string
+  plan: string
 }) {
   const supabase = await createClient()
   const { data: metrics } = await supabase
@@ -74,6 +76,7 @@ async function AnalyticsBody({
       campaigns={campaigns}
       defaultFilters={defaultFilters}
       timezone={timezone}
+      plan={plan as import('@/lib/utils/plan').PlanType}
     />
   )
 }
@@ -117,7 +120,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
   const supabase = await createClient()
 
   const [{ data: workspace }, { data: { user } }] = await Promise.all([
-    supabase.from('workspaces').select('id').eq('slug', workspaceSlug).single(),
+    supabase.from('workspaces').select('id, plan').eq('slug', workspaceSlug).single(),
     supabase.auth.getUser(),
   ])
 
@@ -160,6 +163,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
               campaigns={campaigns ?? []}
               defaultFilters={defaultFilters}
               timezone={timezone}
+              plan={workspace.plan ?? 'trial'}
             />
           </Suspense>
         </SectionErrorBoundary>
