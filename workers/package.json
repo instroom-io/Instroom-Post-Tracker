@@ -7,10 +7,12 @@
     "metrics": "tsx src/metrics-worker.ts",
     "download": "tsx src/download-worker.ts",
     "followup": "tsx src/followup-worker.ts",
+    "trial": "tsx src/trial-worker.ts",
     "dev:posts": "tsx --env-file ../.env.local src/posts-worker.ts",
     "dev:metrics": "tsx --env-file ../.env.local src/metrics-worker.ts",
     "dev:download": "tsx --env-file ../.env.local src/download-worker.ts",
-    "dev:followup": "tsx --env-file ../.env.local src/followup-worker.ts"
+    "dev:followup": "tsx --env-file ../.env.local src/followup-worker.ts",
+    "dev:trial": "tsx --env-file ../.env.local src/trial-worker.ts"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
