@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { processPostDownload } from '@/lib/downloads/process-download'
 import { checkActionLimit, limiters } from '@/lib/rate-limit'
+import { canUseFeature } from '@/lib/utils/plan'
+import type { PlanType } from '@/lib/utils/plan'
 
 export async function triggerPostDownload(
   postId: string,
@@ -31,7 +33,18 @@ export async function triggerPostDownload(
     return { error: 'Insufficient permissions.' }
   }
 
-  // 3. Fetch user's personal Drive folder + Google OAuth tokens
+  // 3. Plan check — drive download requires trial or pro
+  const { data: workspaceRow } = await supabase
+    .from('workspaces')
+    .select('plan')
+    .eq('id', workspaceId)
+    .single()
+
+  if (!canUseFeature((workspaceRow?.plan ?? 'free') as PlanType, 'drive_download')) {
+    return { error: 'Drive download is not available on your current plan. Upgrade to unlock.' }
+  }
+
+  // 4. Fetch user's personal Drive folder + Google OAuth tokens
   const serviceClient = createServiceClient()
   const { data: userRecord } = await serviceClient
     .from('users')
@@ -49,7 +62,7 @@ export async function triggerPostDownload(
     return { error: 'Set your personal Drive folder in Account Settings → Integrations before downloading.' }
   }
 
-  // 4. Validate post belongs to workspace
+  // 5. Validate post belongs to workspace
   const { data: post } = await supabase
     .from('posts')
     .select('id')
@@ -59,7 +72,7 @@ export async function triggerPostDownload(
 
   if (!post) return { error: 'Post not found.' }
 
-  // 5. Download media and upload to member's personal Drive folder.
+  // 6. Download media and upload to member's personal Drive folder.
   // This is independent of the auto-download (Shared Drive) — no download_status check.
   try {
     await processPostDownload(serviceClient, postId, personalFolderId, {

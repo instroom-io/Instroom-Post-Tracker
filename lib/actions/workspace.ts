@@ -11,6 +11,8 @@ import {
   updateWorkspaceStorageFolderSchema,
 } from '@/lib/validations'
 import { toSlug } from '@/lib/utils'
+import { canUseFeature } from '@/lib/utils/plan'
+import type { PlanType } from '@/lib/utils/plan'
 import { sendEmail, escapeHtml } from '@/lib/email'
 import { teamInviteEmail } from '@/lib/email/templates/team-invite'
 import type { WorkspaceRole } from '@/lib/types'
@@ -29,6 +31,29 @@ export async function createWorkspace(
   if (!user) redirect('/login')
 
   const serviceClient = createServiceClient()
+
+  // Workspace quota check
+  const { data: ownedMemberships } = await supabase
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', user.id)
+    .eq('role', 'owner')
+
+  const firstOwnedId = ownedMemberships?.[0]?.workspace_id
+  const { data: quotaRow } = firstOwnedId
+    ? await supabase
+        .from('workspaces')
+        .select('workspace_quota, plan')
+        .eq('id', firstOwnedId)
+        .single()
+    : { data: null }
+
+  const ownedCount = ownedMemberships?.length ?? 0
+  const quota = quotaRow?.workspace_quota ?? 1
+
+  if (ownedCount >= quota) {
+    return { error: `You've reached your workspace limit (${quota}). Contact us to expand your plan.` }
+  }
 
   // Generate unique slug
   let slug = toSlug(parsed.data.name)
@@ -128,6 +153,17 @@ export async function inviteMember(
 
   if (!member || !['owner', 'admin'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
+  }
+
+  // Plan check — team member invites require trial or pro
+  const { data: workspaceRow } = await supabase
+    .from('workspaces')
+    .select('plan')
+    .eq('id', workspaceId)
+    .single()
+
+  if (!canUseFeature((workspaceRow?.plan ?? 'free') as PlanType, 'team_members')) {
+    return { error: 'Team member invites are not available on your current plan. Upgrade to unlock.' }
   }
 
   // Check if already a member
