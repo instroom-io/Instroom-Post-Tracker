@@ -334,3 +334,31 @@ GOOGLE_SERVICE_ACCOUNT_JSON_B64 env var is removed — replaced by per-workspace
 - Avoids blocking the approval flow on the agency contact's signup status
 
 **Implication:** `approveAgencyRequest()` looks up `auth.users` by `contact_email`; if no match, falls back to `auth.uid()` (the platform admin). Agency owner must be updated manually if the fallback was used.
+
+---
+
+## D-024 · v2.0 Account Model: Solo/Team replaces the agency tier
+
+**Decision:** Replace the 3-tier hierarchy (Instroom → Agencies → Brand Workspaces) with a 2-tier model (Instroom → Workspaces). Introduce two account types: **Solo** (1 workspace, `workspace_quota=1`) and **Team** (3 workspaces, `workspace_quota=3`).
+
+**Rationale:**
+- The agency tier added complexity (separate tables, routes, approval workflows) that can be modelled more simply via workspace quotas
+- Self-serve signup was impossible in v1 because workspace creation required agency approval — a blocker for PLG growth
+- "Solo" and "Team" map directly to how users describe their usage
+- Workspace quotas are more flexible and extensible than a binary agency/brand distinction
+- Removing the brand portal eliminates a separate route group maintained for a minimal read-only view
+
+**What changes:**
+- `agencies`, `agency_requests`, `brand_invites` tables deprecated (kept for data safety, not used in new code)
+- `/agency/[slug]/*` routes deprecated
+- `role='brand'` in `workspace_members` no longer assigned to new users
+- `workspaces` gains `account_type` (solo|team) and `workspace_quota` (int)
+- `workspace_role` enum gains `'manager'` value (preferred over legacy `'editor'` for new invites)
+- Signup auto-creates workspace; no admin approval required
+- Feature gates live in `lib/utils/plan.ts`; workspace creation is gated by `ownedWorkspaceCount < workspace.workspace_quota`
+
+**Implication:**
+- `approveAgencyRequest()`, `submitAgencyRequest()`, `inviteBrand()` actions are deprecated — do not call from new code
+- `app/auth/callback/route.ts` is the canonical workspace creation entry point
+- Platform admin at `/admin` manages workspace plans and quotas directly (not agency-level plan)
+- Trial reminder worker (`workers/src/trial-worker.ts`) queries only `workspaces`, not `agencies`
