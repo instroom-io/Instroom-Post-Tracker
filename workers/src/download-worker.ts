@@ -17,7 +17,7 @@ async function processJob(
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error(`[download-worker] Job ${job.id} failed (attempt ${job.attempts + 1}):`, err instanceof Error ? err.stack : err)
 
-    if (job.attempts >= 3) {
+    if (job.attempts >= 5) {
       await supabase
         .from('posts')
         .update({ download_status: 'failed' })
@@ -33,7 +33,7 @@ async function processJob(
         .eq('id', job.id)
     } else {
       const scheduledAt = new Date(
-        Date.now() + job.attempts * 15 * 60 * 1000
+        Date.now() + job.attempts * 60 * 60 * 1000
       ).toISOString()
 
       await supabase
