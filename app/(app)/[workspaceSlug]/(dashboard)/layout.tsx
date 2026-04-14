@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppShell } from '@/components/layout/app-shell'
-import type { Workspace, WorkspaceRole } from '@/lib/types'
+import { TrialBanner } from '@/components/layout/trial-banner'
+import type { Workspace, WorkspaceRole, PlanType } from '@/lib/types'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -21,7 +22,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
   // 2. Look up workspace by slug
   const { data: workspace } = await supabase
     .from('workspaces')
-    .select('id, name, slug, logo_url, agency_id, drive_folder_id, drive_connection_type, drive_oauth_token, created_at')
+    .select('id, name, slug, logo_url, agency_id, drive_folder_id, drive_connection_type, drive_oauth_token, created_at, plan, trial_ends_at')
     .eq('slug', workspaceSlug)
     .single()
 
@@ -62,6 +63,10 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
       workspaceSlug={workspace.slug}
       agency={agency ?? null}
     >
+      <TrialBanner
+        plan={(workspace as unknown as { plan: PlanType }).plan ?? 'trial'}
+        trialEndsAt={(workspace as unknown as { trial_ends_at: string | null }).trial_ends_at ?? null}
+      />
       {children}
     </AppShell>
   )
