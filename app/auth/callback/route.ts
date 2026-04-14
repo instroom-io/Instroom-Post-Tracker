@@ -47,24 +47,7 @@ async function handlePostAuth(
     return null // Admin uses normal /app dispatcher
   }
 
-  // 3. Detect new user: created_at and last_sign_in_at within 10 seconds
-  const createdAt = new Date(user.created_at).getTime()
-  const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : createdAt
-  const isNewUser = Math.abs(createdAt - lastSignIn) < 10000
-
-  if (!isNewUser) return null // Returning user — /app dispatcher handles routing
-
-  // 4. Auto-create workspace for new users
-  const { account_name, account_type } = user.user_metadata ?? {}
-
-  // account_name missing (Google OAuth without pre-filled form) → collect it
-  if (!account_name) return makeRedirect(request, '/onboarding/name')
-
-  const workspaceQuota = account_type === 'solo' ? 1 : 3
-  const trialStartedAt = new Date()
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-
-  // Idempotent: if workspace already exists for this owner, just redirect
+  // 3. Returning user with an existing workspace → redirect there directly
   const { data: existingMember } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
@@ -76,6 +59,20 @@ async function handlePostAuth(
     const slug = (existingMember.workspaces as unknown as { slug: string }).slug
     return makeRedirect(request, `/${slug}/overview`)
   }
+
+  // 4. No workspace yet — new user flow
+  const { account_name, account_type } = user.user_metadata ?? {}
+
+  // account_name missing (Google OAuth without pre-filled form) → collect it
+  if (!account_name) {
+    const hintType = new URL(request.url).searchParams.get('account_type')
+    const onboardingPath = hintType ? `/onboarding/name?type=${hintType}` : '/onboarding/name'
+    return makeRedirect(request, onboardingPath)
+  }
+
+  const workspaceQuota = account_type === 'solo' ? 1 : 3
+  const trialStartedAt = new Date()
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
 
   const base = toSlug(account_name as string)
   const { data: takenRows } = await serviceClient

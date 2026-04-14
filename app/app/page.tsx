@@ -42,5 +42,5 @@ export default async function AppPage() {
     if (workspace?.slug) redirect(`/${workspace.slug}/overview`)
   }
 
-  redirect('/request-access')
+  redirect('/onboarding/name')
 }

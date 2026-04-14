@@ -7,13 +7,15 @@ export function createClient() {
   )
 }
 
-export async function signInWithGoogle(redirectTo?: string) {
+export async function signInWithGoogle(redirectTo?: string, accountType?: 'solo' | 'team') {
   const supabase = createClient()
   const next = redirectTo ?? '/app'
-  const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(next)}`
+  const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`)
+  url.searchParams.set('next', next)
+  if (accountType) url.searchParams.set('account_type', accountType)
 
   await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: callbackUrl },
+    options: { redirectTo: url.toString() },
   })
 }

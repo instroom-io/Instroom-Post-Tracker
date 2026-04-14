@@ -2,12 +2,16 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { saveOnboardingName } from '@/lib/actions/auth'
 
 export default function OnboardingNamePage() {
-  const [accountType, setAccountType] = useState<'team' | 'solo'>('team')
+  const searchParams = useSearchParams()
+  const typeHint = searchParams.get('type') as 'solo' | 'team' | null
+  const [accountType, setAccountType] = useState<'team' | 'solo'>(
+    typeHint === 'team' ? 'team' : 'solo'
+  )
   const [accountName, setAccountName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -40,23 +44,25 @@ export default function OnboardingNamePage() {
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Account type toggle */}
-            <div className="flex rounded-lg border border-border bg-background-muted p-0.5">
-              {(['team', 'solo'] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setAccountType(type)}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                    accountType === type
-                      ? 'bg-brand text-white shadow-sm'
-                      : 'text-foreground-muted hover:text-foreground'
-                  }`}
-                >
-                  {type === 'team' ? 'Team' : 'Solo'}
-                </button>
-              ))}
-            </div>
+            {/* Account type toggle — only shown if type wasn't pre-selected from signup */}
+            {!typeHint && (
+              <div className="flex rounded-lg border border-border bg-background-muted p-0.5">
+                {(['solo', 'team'] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setAccountType(type)}
+                    className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                      accountType === type
+                        ? 'bg-brand text-white shadow-sm'
+                        : 'text-foreground-muted hover:text-foreground'
+                    }`}
+                  >
+                    {type === 'team' ? 'Team' : 'Solo'}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Name field */}
             <div className="flex flex-col gap-1.5">

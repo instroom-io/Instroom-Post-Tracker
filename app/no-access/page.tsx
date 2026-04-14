@@ -36,13 +36,13 @@ export default function NoAccessPage() {
             <div className="rounded-lg border border-border bg-background p-4">
               <p className="text-[12px] font-semibold text-foreground">New to Instroom?</p>
               <p className="mt-1 text-[12px] text-foreground-lighter leading-relaxed">
-                Apply as an agency and we&apos;ll review your request.
+                Create your workspace and start your free trial.
               </p>
               <Link
-                href="/request-access"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-[13px] font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                href="/onboarding/name"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-brand px-4 py-2 text-[13px] font-medium text-white hover:bg-brand/90 transition-colors"
               >
-                Request Access →
+                Set up workspace →
               </Link>
             </div>
           </div>

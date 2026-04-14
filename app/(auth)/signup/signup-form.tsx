@@ -13,7 +13,7 @@ const initialState = undefined
 export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [state, action, isPending] = useActionState(signUp, initialState)
   const [showPassword, setShowPassword] = useState(false)
-  const [accountType, setAccountType] = useState<'team' | 'solo'>('team')
+  const [accountType, setAccountType] = useState<'team' | 'solo'>('solo')
   const [emailValue, setEmailValue] = useState('')
 
   if (state && 'success' in state && state.success) {
@@ -59,17 +59,6 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
       <div className="flex rounded-lg border border-border bg-background-muted p-0.5">
         <button
           type="button"
-          onClick={() => setAccountType('team')}
-          className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-            accountType === 'team'
-              ? 'bg-brand text-white shadow-sm'
-              : 'text-foreground-muted hover:text-foreground'
-          }`}
-        >
-          Team
-        </button>
-        <button
-          type="button"
           onClick={() => setAccountType('solo')}
           className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
             accountType === 'solo'
@@ -78,6 +67,17 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
           }`}
         >
           Solo
+        </button>
+        <button
+          type="button"
+          onClick={() => setAccountType('team')}
+          className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            accountType === 'team'
+              ? 'bg-brand text-white shadow-sm'
+              : 'text-foreground-muted hover:text-foreground'
+          }`}
+        >
+          Team
         </button>
       </div>
 
@@ -115,7 +115,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
           type="email"
           autoComplete="email"
           required
-          placeholder={accountType === 'team' ? 'hello@youragency.com' : 'you@example.com'}
+          placeholder={accountType === 'team' ? 'instroom@agency.com' : 'you@example.com'}
           onChange={(e) => setEmailValue(e.target.value)}
           className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
         />
@@ -177,7 +177,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
 
       <button
         type="button"
-        onClick={() => signInWithGoogle(redirectTo)}
+        onClick={() => signInWithGoogle(redirectTo, accountType)}
         className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-border bg-background-surface text-[13px] font-medium text-foreground hover:bg-background-muted transition-colors"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
