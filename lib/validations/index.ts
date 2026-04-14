@@ -19,7 +19,12 @@ export const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   full_name: z.string().min(2).max(100).optional(),
-  account_type: z.enum(['brand', 'agency']).default('agency'),
+  account_type: z.enum(['solo', 'team']).default('team'),
+  account_name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(60, 'Name must be under 60 characters')
+    .trim(),
 })
 
 export const forgotPasswordSchema = z.object({
@@ -33,6 +38,17 @@ export const resetPasswordSchema = z.object({
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 })
+
+// ─── Upgrade ──────────────────────────────────────────────────────────────────
+
+export const upgradeRequestSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  email: z.string().email('Please enter a valid email address'),
+  account_name: z.string().min(2).max(100),
+  message: z.string().max(1000).optional(),
+})
+
+export type UpgradeRequestInput = z.infer<typeof upgradeRequestSchema>
 
 // ─── Onboarding ──────────────────────────────────────────────────────────────
 
