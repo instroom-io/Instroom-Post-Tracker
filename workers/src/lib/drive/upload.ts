@@ -34,7 +34,8 @@ const folderInFlight = new Map<string, Promise<string>>()
 async function getFolderIdOrCreate(
   path: string[],
   rootFolderId: string | undefined,
-  auth: Auth.GoogleAuth | Auth.OAuth2Client
+  auth: Auth.GoogleAuth | Auth.OAuth2Client,
+  driveId?: string
 ): Promise<string> {
   const cacheKey = (rootFolderId ?? '') + '|' + path.join('/')
   const cached = folderCache.get(cacheKey)
@@ -43,7 +44,7 @@ async function getFolderIdOrCreate(
   const inFlight = folderInFlight.get(cacheKey)
   if (inFlight) return inFlight
 
-  const promise = _getFolderIdOrCreate(path, rootFolderId, auth).finally(() => folderInFlight.delete(cacheKey))
+  const promise = _getFolderIdOrCreate(path, rootFolderId, auth, driveId).finally(() => folderInFlight.delete(cacheKey))
   folderInFlight.set(cacheKey, promise)
   return promise
 }
@@ -51,7 +52,8 @@ async function getFolderIdOrCreate(
 async function _getFolderIdOrCreate(
   path: string[],
   rootFolderId: string | undefined,
-  auth: Auth.GoogleAuth | Auth.OAuth2Client
+  auth: Auth.GoogleAuth | Auth.OAuth2Client,
+  driveId?: string
 ): Promise<string> {
   const cacheKey = (rootFolderId ?? '') + '|' + path.join('/')
   const cached = folderCache.get(cacheKey)
@@ -77,7 +79,7 @@ async function _getFolderIdOrCreate(
       q: `name = '${segment.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder' and '${parentId}' in parents and trashed = false`,
       fields: 'files(id)',
       pageSize: 1,
-      corpora: 'allDrives',
+      ...(driveId ? { corpora: 'drive', driveId } : { corpora: 'allDrives' }),
       supportsAllDrives: true,
       includeItemsFromAllDrives: true,
     })
@@ -95,6 +97,7 @@ async function _getFolderIdOrCreate(
         },
         fields: 'id',
         supportsAllDrives: true,
+        ...(driveId && { driveId }),
       })
       folderId = created.data.id!
     }
@@ -123,7 +126,7 @@ export async function uploadToDrive({
   const drive = google.drive({ version: 'v3', auth })
 
   const pathSegments = folderPath.split('/').filter(Boolean)
-  const folderId = await getFolderIdOrCreate(pathSegments, rootFolderId, auth)
+  const folderId = await getFolderIdOrCreate(pathSegments, rootFolderId, auth, rootFolderId)
 
   const mimeType = getMimeType(fileName)
   const stream = Readable.from(Buffer.from(fileBuffer))
@@ -139,6 +142,7 @@ export async function uploadToDrive({
     },
     fields: 'id, webViewLink',
     supportsAllDrives: true,
+    ...(rootFolderId && { driveId: rootFolderId }),
   })
 
   return {
