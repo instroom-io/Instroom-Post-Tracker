@@ -6,13 +6,15 @@ import Link from 'next/link'
 import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { signUp } from '@/lib/actions/auth'
 import { signInWithGoogle } from '@/lib/supabase/client'
+import { isPersonalEmail } from '@/lib/utils'
 
 const initialState = undefined
 
 export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [state, action, isPending] = useActionState(signUp, initialState)
   const [showPassword, setShowPassword] = useState(false)
-  const [accountType, setAccountType] = useState<'agency' | 'brand'>('agency')
+  const [accountType, setAccountType] = useState<'team' | 'solo'>('team')
+  const [emailValue, setEmailValue] = useState('')
 
   if (state && 'success' in state && state.success) {
     return (
@@ -57,20 +59,20 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
       <div className="flex rounded-lg border border-border bg-background-muted p-0.5">
         <button
           type="button"
-          onClick={() => setAccountType('agency')}
+          onClick={() => setAccountType('team')}
           className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-            accountType === 'agency'
+            accountType === 'team'
               ? 'bg-brand text-white shadow-sm'
               : 'text-foreground-muted hover:text-foreground'
           }`}
         >
-          Agency
+          Team
         </button>
         <button
           type="button"
-          onClick={() => setAccountType('brand')}
+          onClick={() => setAccountType('solo')}
           className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-            accountType === 'brand'
+            accountType === 'solo'
               ? 'bg-brand text-white shadow-sm'
               : 'text-foreground-muted hover:text-foreground'
           }`}
@@ -79,12 +81,33 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
         </button>
       </div>
 
+      {/* Account name */}
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="account_name"
+          className="text-[12px] font-medium text-foreground-light"
+        >
+          {accountType === 'team' ? 'Agency / team name' : 'Workspace name'}
+        </label>
+        <input
+          id="account_name"
+          name="account_name"
+          type="text"
+          autoComplete="organization"
+          required
+          minLength={2}
+          maxLength={60}
+          placeholder={accountType === 'team' ? 'e.g. Armful Media' : 'e.g. NovaSkin Beauty'}
+          className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+        />
+      </div>
+
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="email"
           className="text-[12px] font-medium text-foreground-light"
         >
-          Work email
+          {accountType === 'team' ? 'Work email' : 'Email'}
         </label>
         <input
           id="email"
@@ -92,9 +115,15 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
           type="email"
           autoComplete="email"
           required
-          placeholder="instroom@agency.com"
+          placeholder={accountType === 'team' ? 'hello@youragency.com' : 'you@example.com'}
+          onChange={(e) => setEmailValue(e.target.value)}
           className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
         />
+        {accountType === 'team' && isPersonalEmail(emailValue) && (
+          <p className="text-[11px] text-amber-600 dark:text-amber-400">
+            We recommend a work email for team accounts.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">
