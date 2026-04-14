@@ -1,3 +1,6 @@
+import type { PlanType } from '@/lib/utils/plan'
+export type { PlanType }
+
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 export type Platform = 'instagram' | 'tiktok' | 'youtube'
@@ -72,6 +75,8 @@ export interface Workspace {
   drive_oauth_token: string | null
   created_at: string
   assigned_member_id?: string | null   // team member who receives follow-up notification emails; falls back to workspace owner if null
+  plan: PlanType
+  trial_ends_at: string | null
 }
 
 export interface WorkspaceMember {

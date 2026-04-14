@@ -122,3 +122,16 @@ export function extractDriveFolderId(input: string): string {
   return match ? match[1] : input.trim()
 }
 
+// ─── Slug Utilities ───────────────────────────────────────────────────────────
+
+/**
+ * Returns `base` if not in `taken`, otherwise appends `-2`, `-3`, etc.
+ * Pure function — caller is responsible for fetching taken slugs from DB.
+ */
+export function deduplicateSlug(base: string, taken: string[]): string {
+  if (!taken.includes(base)) return base
+  let i = 2
+  while (taken.includes(`${base}-${i}`)) i++
+  return `${base}-${i}`
+}
+
