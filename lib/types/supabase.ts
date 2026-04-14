@@ -777,6 +777,7 @@ export type Database = {
       }
       workspaces: {
         Row: {
+          account_type: string
           agency_id: string | null
           assigned_member_id: string | null
           created_at: string
@@ -788,9 +789,17 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          plan: Database["public"]["Enums"]["plan_type"]
           slug: string
+          trial_ended_notified_at: string | null
+          trial_ends_at: string | null
+          trial_reminder_12_sent_at: string | null
+          trial_reminder_7_sent_at: string | null
+          trial_started_at: string | null
+          workspace_quota: number
         }
         Insert: {
+          account_type?: string
           agency_id?: string | null
           assigned_member_id?: string | null
           created_at?: string
@@ -802,9 +811,17 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          plan?: Database["public"]["Enums"]["plan_type"]
           slug: string
+          trial_ended_notified_at?: string | null
+          trial_ends_at?: string | null
+          trial_reminder_12_sent_at?: string | null
+          trial_reminder_7_sent_at?: string | null
+          trial_started_at?: string | null
+          workspace_quota?: number
         }
         Update: {
+          account_type?: string
           agency_id?: string | null
           assigned_member_id?: string | null
           created_at?: string
@@ -816,7 +833,14 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          plan?: Database["public"]["Enums"]["plan_type"]
           slug?: string
+          trial_ended_notified_at?: string | null
+          trial_ends_at?: string | null
+          trial_reminder_12_sent_at?: string | null
+          trial_reminder_7_sent_at?: string | null
+          trial_started_at?: string | null
+          workspace_quota?: number
         }
         Relationships: [
           {
@@ -879,8 +903,15 @@ export type Database = {
       job_status: "pending" | "processing" | "done" | "failed"
       job_type: "download" | "metrics_fetch"
       monitoring_status: "pending" | "active" | "paused" | "removed" | "stopped"
+      plan_type: "trial" | "free" | "pro"
       platform_type: "instagram" | "tiktok" | "youtube"
-      workspace_role: "owner" | "admin" | "editor" | "viewer" | "brand"
+      workspace_role:
+        | "owner"
+        | "admin"
+        | "editor"
+        | "viewer"
+        | "brand"
+        | "manager"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1018,8 +1049,16 @@ export const Constants = {
       job_status: ["pending", "processing", "done", "failed"],
       job_type: ["download", "metrics_fetch"],
       monitoring_status: ["pending", "active", "paused", "removed", "stopped"],
+      plan_type: ["trial", "free", "pro"],
       platform_type: ["instagram", "tiktok", "youtube"],
-      workspace_role: ["owner", "admin", "editor", "viewer", "brand"],
+      workspace_role: [
+        "owner",
+        "admin",
+        "editor",
+        "viewer",
+        "brand",
+        "manager",
+      ],
     },
   },
 } as const
