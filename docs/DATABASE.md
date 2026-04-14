@@ -16,11 +16,11 @@
 | Table | Purpose |
 |-------|---------|
 | `users` | Public user profiles (mirrors `auth.users`); `is_platform_admin` flag for Instroom admins |
-| `agencies` | Marketing agencies — each is a Tier 2 operator in the 3-tier platform |
-| `agency_requests` | Inbound agency registration requests reviewed by platform admin |
-| `brand_invites` | Brand workspace invites created by agency owners; token-based public form at `/brand-invite/[token]` |
-| `workspaces` | One per brand client — billing + isolation unit; `agency_id` FK links to owning agency |
-| `workspace_members` | User ↔ workspace with role (owner | admin | editor | viewer) |
+| `agencies` | **Deprecated in v2.0** — kept for data migration safety, no longer used in production |
+| `agency_requests` | **Deprecated in v2.0** |
+| `brand_invites` | **Deprecated in v2.0** |
+| `workspaces` | One per account/brand — billing + isolation unit; owns `account_type`, `workspace_quota`, and `plan` |
+| `workspace_members` | User ↔ workspace with role (owner \| manager \| viewer; legacy: admin \| editor \| brand) |
 | `workspace_platform_handles` | Brand's own social accounts (for exclusion logic) |
 | `invitations` | Pending email invitations for agency team members (token-based) |
 | `campaigns` | Campaign definition with date window |
@@ -32,10 +32,9 @@
 | `emv_config` | CPM rates per platform per workspace |
 | `retry_queue` | Async job queue for downloads + metrics fetches |
 
-> **Removed tables (from previous design):**
-> `brands` and `brand_invitations` were part of the agency-generated invite link flow (original Flow 0).
-> That flow has been replaced by the brand request form + agency approval flow (see WORKFLOWS.md Flow 0).
-> If these tables exist in an existing migration, leave them in place but do not use them — they will be dropped in a future cleanup migration.
+> **Deprecated tables (v2.0):**
+> `agencies`, `agency_requests`, and `brand_invites` are no longer used in production code. They remain in the DB for data migration safety and will be dropped in a future cleanup migration.
+> `brands` and `brand_invitations` (from the original Flow 0 design) are also unused — same treatment.
 
 ---
 
@@ -105,16 +104,27 @@ id                    uuid primary key default gen_random_uuid()
 name                  text not null
 slug                  text not null unique
 logo_url              text
-agency_id             uuid references agencies                -- which agency owns this workspace (nullable for legacy)
+agency_id             uuid references agencies                -- legacy FK (deprecated in v2.0, nullable)
 drive_connection_type drive_connection_type   -- enum: 'agency' | 'brand' (null until Drive connected)
 drive_oauth_token     text                    -- encrypted OAuth refresh token (pgcrypto / Supabase Vault)
 drive_folder_id       text                    -- root Drive folder ID for this workspace
 created_at            timestamptz default now()
+
+-- Added in migration 0031_trial_and_plan.sql:
+account_type          text not null default 'team'   -- 'solo' | 'team'
+workspace_quota       int not null default 3         -- 1=solo, 3=team (platform admin can raise)
+plan                  plan_type not null default 'free'
+trial_started_at      timestamptz
+trial_ends_at         timestamptz                    -- null = no trial (pre-v2.0 accounts)
+trial_reminder_7_sent_at   timestamptz
+trial_reminder_12_sent_at  timestamptz
+trial_ended_notified_at    timestamptz
 ```
 
-> `agency_id` links the workspace to its owning agency. Set on approval of a brand request.
-> `drive_connection_type`, `drive_oauth_token`, and `drive_folder_id` are all null until the agency connects Drive in workspace settings.
+> `agency_id` is a legacy FK — still present in the schema but not used by new code in v2.0.
+> `drive_connection_type`, `drive_oauth_token`, and `drive_folder_id` are null until Drive is connected in workspace settings.
 > `drive_oauth_token` must be encrypted at rest. Use `pgcrypto` `pgp_sym_encrypt` or Supabase Vault.
+> All existing workspaces have `plan = 'free'` and `trial_ends_at = NULL` after migration. Only new signups receive a trial.
 
 ### `workspace_members`
 ```sql
@@ -279,11 +289,12 @@ error         text
 ## 3. Enums
 
 ```sql
-create type agency_status         as enum ('pending', 'active', 'suspended');
-create type agency_request_status as enum ('pending', 'approved', 'rejected');
+create type agency_status         as enum ('pending', 'active', 'suspended');       -- legacy
+create type agency_request_status as enum ('pending', 'approved', 'rejected');      -- legacy
 create type drive_connection_type as enum ('agency', 'brand');
 create type platform_type         as enum ('instagram', 'tiktok', 'youtube');
-create type workspace_role        as enum ('owner', 'admin', 'editor', 'viewer');
+create type workspace_role        as enum ('owner', 'admin', 'editor', 'viewer', 'brand', 'manager');
+create type plan_type             as enum ('trial', 'free', 'pro');
 create type campaign_status       as enum ('draft', 'active', 'ended');
 create type monitoring_status     as enum ('pending', 'active', 'paused');
 create type download_status       as enum ('pending', 'downloaded', 'blocked', 'failed');
@@ -292,9 +303,13 @@ create type job_type              as enum ('download', 'metrics_fetch');
 create type job_status            as enum ('pending', 'processing', 'done', 'failed');
 ```
 
-> **Added in 0011_multi_agency_platform.sql:**
-> `agency_status` — for the `agencies` table.
-> `agency_request_status` — for the `agency_requests` table.
+> **`workspace_role` v2.0 terminology:**
+> - `'owner'` → shown as "Admin" in UI (workspace creator, 1 per workspace)
+> - `'manager'` → shown as "Manager" (preferred for new invites; added in migration 0031)
+> - `'viewer'` → shown as "Viewer" (unchanged)
+> - `'admin'`, `'editor'`, `'brand'` are legacy values kept for data safety — not assigned to new users
+>
+> **Added in 0031_trial_and_plan.sql:** `plan_type` enum + `'manager'` value to `workspace_role`.
 
 ---
 
@@ -374,24 +389,24 @@ Same RLS pattern as before — `workspace_id in (select public.my_workspace_ids(
 | Action | Minimum role |
 |--------|-------------|
 | View all data | `viewer` |
-| Create/edit campaigns | `editor` |
-| Toggle usage rights | `editor` |
-| Update collab status | `editor` |
-| Add/remove campaign influencers | `editor` |
+| Create/edit campaigns | `manager` (or legacy `editor`) |
+| Toggle usage rights | `manager` |
+| Update collab status | `manager` |
+| Add/remove campaign influencers | `manager` |
 | Invite/remove workspace members | `admin` |
 | Delete campaigns | `admin` |
 | Update workspace settings | `admin` |
 | Change EMV config | `admin` |
-| Approve/reject brand requests | `owner` (agency only) |
 | Connect Google Drive | `admin` |
+
+> **v2.0:** New invitations should use `role='manager'` instead of `role='editor'`. Both values have identical permissions. Legacy `editor` rows are not migrated to avoid disrupting existing sessions.
 
 ### Tables written only via service role
 - `posts` — INSERT by posts-worker cron job
 - `post_metrics` — INSERT by metrics worker
 - `retry_queue` — INSERT/UPDATE by workers
-- `brand_requests` — INSERT by `submitBrandRequest()` (unauthenticated public form)
-- `workspaces` — INSERT via `approveBrandRequest()` (brand not a member yet)
-- `workspace_members` — INSERT via `approveBrandRequest()` (same reason)
+- `workspaces` — INSERT via `handlePostAuth()` in `app/auth/callback/route.ts` (user has no membership row yet)
+- `workspace_members` — INSERT via `handlePostAuth()` (same reason) and `acceptInvitation()` (invitee not yet a member)
 
 ---
 
