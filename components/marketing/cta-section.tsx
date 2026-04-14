@@ -54,7 +54,7 @@ export function CtaSection() {
           className="flex flex-wrap justify-center gap-3"
         >
           <Link
-            href="/request-access"
+            href="/signup"
             className="rounded-[9px] bg-brand px-9 py-4 text-[1rem] font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-[0_0_24px_rgba(31,174,91,0.5)]"
           >
             Start your free trial

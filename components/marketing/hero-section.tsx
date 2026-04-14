@@ -50,7 +50,7 @@ export function HeroSection() {
           {/* CTAs */}
           <div className="mb-5 flex flex-wrap justify-center gap-3">
             <Link
-              href="/request-access"
+              href="/signup"
               className="rounded-[9px] bg-brand px-8 py-3.5 text-[0.95rem] font-semibold text-white transition-all hover:bg-brand/90 dark:hover:shadow-[0_0_24px_rgba(31,174,91,0.4)]"
             >
               Start tracking for free

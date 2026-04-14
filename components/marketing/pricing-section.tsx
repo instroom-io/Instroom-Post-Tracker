@@ -165,7 +165,7 @@ export function PricingSection() {
                 </ul>
 
                 <Link
-                  href="/request-access"
+                  href="/signup"
                   className={cn(
                     'block w-full rounded-[9px] py-[0.85rem] text-center text-[0.9rem] font-semibold transition-colors',
                     tier.popular
