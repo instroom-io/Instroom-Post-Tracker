@@ -338,6 +338,7 @@ async function main() {
       yt_last_post_at,
       stop_after_post,
       product_sent_at,
+      added_at,
       campaigns!inner (
         id,
         workspace_id,
@@ -401,6 +402,9 @@ async function main() {
     const igLastPostAt: string | null = row.ig_last_post_at as string | null
     const ytLastPostAt: string | null = row.yt_last_post_at as string | null
     const stopAfterPost: boolean = (row.stop_after_post as boolean | null) ?? false
+    const effectiveStartMs = row.product_sent_at
+      ? new Date(row.product_sent_at as string).getTime()
+      : new Date(row.added_at as string).getTime()
 
     const platformsToScrape: Array<'instagram' | 'tiktok' | 'youtube'> = (
       campaign.platforms as Array<'instagram' | 'tiktok' | 'youtube'>
@@ -462,16 +466,17 @@ async function main() {
           console.log(`[posts-worker] YT ${handle} cursor updated to ${newest}`)
         }
 
-        // Filter out posts already seen on a previous run (incremental scraping).
-        // TikTok uses cursor-based pagination so no timestamp filter needed there.
+        // Filter: only posts on/after effectiveStart (delivery date ?? added date)
+        // AND newer than the last-seen watermark (skips already-processed posts).
         const lastSeenMs =
           platform === 'instagram' && igLastPostAt ? new Date(igLastPostAt).getTime() :
           platform === 'tiktok' && tiktokLastPostAt ? new Date(tiktokLastPostAt).getTime() :
           platform === 'youtube' && ytLastPostAt ? new Date(ytLastPostAt).getTime() :
           0
-        const unseenPosts = lastSeenMs > 0
-          ? rawPosts.filter((p) => new Date(p.posted_at).getTime() > lastSeenMs)
-          : rawPosts
+        const unseenPosts = rawPosts.filter((p) => {
+          const postedMs = new Date(p.posted_at).getTime()
+          return postedMs >= effectiveStartMs && (lastSeenMs === 0 || postedMs > lastSeenMs)
+        })
 
         const config = campaign.campaign_tracking_configs?.find((c) => c.platform === platform)
         const hashtags = config?.hashtags ?? []
