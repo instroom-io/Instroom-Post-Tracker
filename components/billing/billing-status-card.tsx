@@ -6,7 +6,7 @@
 
 import Link from 'next/link'
 import { getTrialState } from '@/lib/billing/trial-state'
-import { PRICING, calcTeamTotal } from '@/lib/billing/pricing'
+import { PRICING, calcTeamTotal, getSoloPrice } from '@/lib/billing/pricing'
 import { Badge } from '@/components/ui/badge'
 import type { PlanType } from '@/lib/utils/plan'
 
@@ -40,7 +40,7 @@ export function BillingStatusCard({
   const includedWorkspaces = accountType === 'solo' ? 1 : PRICING.team.includedWorkspaces
   const monthlyTotal =
     accountType === 'solo'
-      ? PRICING.solo.workspacePrice
+      ? getSoloPrice()
       : calcTeamTotal(extraWorkspaces)
   const workspaceLine = `${includedWorkspaces} workspace${includedWorkspaces !== 1 ? 's' : ''} · $${monthlyTotal}/month`
 
@@ -99,7 +99,7 @@ export function BillingStatusCard({
           </p>
           {extraWorkspaces > 0 && (
             <p className="mt-0.5">
-              Extra: <span className="font-medium text-foreground">+{extraWorkspaces} workspace{extraWorkspaces !== 1 ? 's' : ''} · +${extraWorkspaces * PRICING.team.extraWorkspacePrice}/month</span>
+              Extra: <span className="font-medium text-foreground">+{extraWorkspaces} workspace{extraWorkspaces !== 1 ? 's' : ''} · +${extraWorkspaces * PRICING.team.extraMonthly}/month</span>
             </p>
           )}
           <p className="mt-0.5">

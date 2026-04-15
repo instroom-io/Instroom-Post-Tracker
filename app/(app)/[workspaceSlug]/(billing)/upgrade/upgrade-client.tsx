@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle, Check } from '@phosphor-icons/react'
 import { SubscriptionCheckout } from '@/components/billing/subscription-checkout'
-import { PRICING, calcTeamTotal } from '@/lib/billing/pricing'
+import { PRICING, getSoloPrice, calcTeamTotal, getExtraWorkspacePrice } from '@/lib/billing/pricing'
 import type { PlanType } from '@/lib/utils/plan'
+import type { BillingPeriod } from '@/lib/billing/pricing'
 
 interface UpgradeClientProps {
   workspaceSlug: string
@@ -16,6 +17,7 @@ interface UpgradeClientProps {
   cancelled: boolean
   successType: 'solo' | 'team'
   successTotal?: number
+  successPeriod?: BillingPeriod
   userId: string
 }
 
@@ -28,8 +30,9 @@ const SOLO_FEATURES = [
 
 const TEAM_FEATURES = [
   '3 workspaces included',
-  '+ $25/month per additional workspace',
+  '+$12/month per additional workspace',
   'Unlimited users across all workspaces',
+  'Multi-workspace admin dashboard',
   'All Solo features included',
   '14-day free trial, no credit card required',
 ]
@@ -41,13 +44,15 @@ export function UpgradeClient({
   cancelled,
   successType,
   successTotal,
+  successPeriod = 'monthly',
   userId,
 }: UpgradeClientProps) {
   const [selected, setSelected] = useState<'solo' | 'team'>(accountType)
+  const [period, setPeriod] = useState<BillingPeriod>('monthly')
   const [extra, setExtra] = useState(0)
 
   if (success) {
-    const total = successTotal ?? (successType === 'solo' ? PRICING.solo.workspacePrice : PRICING.team.basePrice)
+    const total = successTotal ?? (successType === 'solo' ? getSoloPrice(successPeriod) : calcTeamTotal(0, successPeriod))
     const workspaceCount = successType === 'solo' ? 1 : PRICING.team.includedWorkspaces
 
     return (
@@ -78,6 +83,9 @@ export function UpgradeClient({
           <p className="mt-2 font-semibold text-foreground">
             {successType === 'solo' ? 'Solo' : 'Team'} · {workspaceCount} workspace{workspaceCount !== 1 ? 's' : ''} · ${total}/month
           </p>
+          {successPeriod === 'annual' && (
+            <p className="mt-0.5 text-[11px] text-foreground-muted">Billed annually</p>
+          )}
         </div>
 
         <div className="flex w-full flex-col gap-2.5">
@@ -98,7 +106,9 @@ export function UpgradeClient({
     )
   }
 
-  const teamTotal = calcTeamTotal(extra)
+  const teamTotal = calcTeamTotal(extra, period)
+  const soloPrice = getSoloPrice(period)
+  const extraPrice = getExtraWorkspacePrice(period)
 
   return (
     <div className="flex flex-col gap-6">
@@ -114,6 +124,30 @@ export function UpgradeClient({
           Payment was cancelled. You can try again below.
         </div>
       )}
+
+      {/* Billing period toggle */}
+      <div className="flex items-center justify-center gap-3">
+        <button
+          onClick={() => setPeriod('monthly')}
+          className={`text-[13px] font-medium transition-colors ${period === 'monthly' ? 'text-foreground' : 'text-foreground-muted hover:text-foreground'}`}
+        >
+          Monthly
+        </button>
+        <button
+          onClick={() => setPeriod(period === 'monthly' ? 'annual' : 'monthly')}
+          className={`relative h-6 w-11 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${period === 'annual' ? 'bg-brand' : 'bg-background-muted border border-border'}`}
+          aria-label="Toggle billing period"
+        >
+          <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${period === 'annual' ? 'translate-x-5' : 'translate-x-0.5'}`} />
+        </button>
+        <button
+          onClick={() => setPeriod('annual')}
+          className={`flex items-center gap-1.5 text-[13px] font-medium transition-colors ${period === 'annual' ? 'text-foreground' : 'text-foreground-muted hover:text-foreground'}`}
+        >
+          Annual
+          <span className="rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">Save ~21%</span>
+        </button>
+      </div>
 
       {/* Plan toggle */}
       <div className="flex gap-1 rounded-lg border border-border bg-background-muted p-1">
@@ -145,9 +179,12 @@ export function UpgradeClient({
           </div>
           <div className="text-right">
             <span className="text-[24px] font-bold text-foreground">
-              ${selected === 'solo' ? PRICING.solo.workspacePrice : teamTotal}
+              ${selected === 'solo' ? soloPrice : teamTotal}
             </span>
             <span className="text-[12px] text-foreground-lighter">/mo</span>
+            {period === 'annual' && (
+              <p className="text-[10px] text-foreground-muted">billed annually</p>
+            )}
           </div>
         </div>
 
@@ -173,7 +210,9 @@ export function UpgradeClient({
                 onChange={(e) => setExtra(Math.max(0, parseInt(e.target.value) || 0))}
                 className="h-9 w-20 rounded-lg border border-border bg-background px-3 text-[13px] text-foreground focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
-              <span className="text-[12px] text-foreground-lighter">extra workspaces</span>
+              <span className="text-[12px] text-foreground-lighter">
+                extra workspaces · +${extraPrice}/mo each
+              </span>
             </div>
             <p className="mt-2 text-[12px] text-foreground-light">
               {PRICING.team.includedWorkspaces} included + {extra} extra ={' '}
@@ -188,6 +227,7 @@ export function UpgradeClient({
         extraWorkspaces={extra}
         workspaceSlug={workspaceSlug}
         userId={userId}
+        billingPeriod={period}
       />
 
       <p className="text-center text-[12px] text-foreground-muted">

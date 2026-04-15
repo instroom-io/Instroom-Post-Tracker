@@ -1,18 +1,32 @@
 // lib/billing/pricing.ts
 // Single source of truth for all billing pricing constants.
-// All values are placeholders — replace with real prices before launch.
 
 export const PRICING = {
   solo: {
-    workspacePrice: 29,
+    monthly: 19,
+    annual: 15,   // per month, billed annually
   },
   team: {
-    basePrice: 79,
+    monthly: 49,
+    annual: 39,   // per month, billed annually
     includedWorkspaces: 3,
-    extraWorkspacePrice: 25,
+    extraMonthly: 12,
+    extraAnnual: 10,
   },
 } as const
 
-export function calcTeamTotal(extraWorkspaces: number): number {
-  return PRICING.team.basePrice + extraWorkspaces * PRICING.team.extraWorkspacePrice
+export type BillingPeriod = 'monthly' | 'annual'
+
+export function getSoloPrice(period: BillingPeriod = 'monthly'): number {
+  return period === 'annual' ? PRICING.solo.annual : PRICING.solo.monthly
+}
+
+export function calcTeamTotal(extraWorkspaces: number, period: BillingPeriod = 'monthly'): number {
+  const base = period === 'annual' ? PRICING.team.annual : PRICING.team.monthly
+  const extra = period === 'annual' ? PRICING.team.extraAnnual : PRICING.team.extraMonthly
+  return base + extraWorkspaces * extra
+}
+
+export function getExtraWorkspacePrice(period: BillingPeriod = 'monthly'): number {
+  return period === 'annual' ? PRICING.team.extraAnnual : PRICING.team.extraMonthly
 }

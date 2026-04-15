@@ -5,12 +5,13 @@ import type { PlanType } from '@/lib/utils/plan'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
-  searchParams: Promise<{ success?: string; cancelled?: string; type?: string; total?: string }>
+  searchParams: Promise<{ success?: string; cancelled?: string; type?: string; total?: string; period?: string }>
 }
 
 export default async function UpgradePage({ params, searchParams }: PageProps) {
   const { workspaceSlug } = await params
   const sp = await searchParams
+  const billingPeriod = sp.period === 'annual' ? 'annual' : 'monthly'
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -49,6 +50,7 @@ export default async function UpgradePage({ params, searchParams }: PageProps) {
       cancelled={sp.cancelled === 'true'}
       successType={(sp.type as 'solo' | 'team') ?? 'solo'}
       successTotal={sp.total ? parseInt(sp.total, 10) : undefined}
+      successPeriod={billingPeriod}
       userId={user.id}
     />
   )

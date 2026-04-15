@@ -6,20 +6,28 @@
 
 import { useRouter } from 'next/navigation'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
-import { PRICING } from '@/lib/billing/pricing'
+import { getSoloPrice, calcTeamTotal } from '@/lib/billing/pricing'
 import { activateSubscription } from '@/lib/actions/billing'
+import type { BillingPeriod } from '@/lib/billing/pricing'
 
 interface SubscriptionCheckoutProps {
   accountType: 'solo' | 'team'
   extraWorkspaces?: number
   workspaceSlug: string
   userId: string
+  billingPeriod?: BillingPeriod
 }
 
-function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug, userId }: SubscriptionCheckoutProps) {
+function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug, userId, billingPeriod = 'monthly' }: SubscriptionCheckoutProps) {
   const router = useRouter()
-  const soloPlanId = process.env.NEXT_PUBLIC_PAYPAL_SOLO_PLAN_ID
-  const teamPlanId = process.env.NEXT_PUBLIC_PAYPAL_TEAM_PLAN_ID
+
+  const soloPlanId = billingPeriod === 'annual'
+    ? process.env.NEXT_PUBLIC_PAYPAL_SOLO_PLAN_ID_ANNUAL
+    : process.env.NEXT_PUBLIC_PAYPAL_SOLO_PLAN_ID
+
+  const teamPlanId = billingPeriod === 'annual'
+    ? process.env.NEXT_PUBLIC_PAYPAL_TEAM_PLAN_ID_ANNUAL
+    : process.env.NEXT_PUBLIC_PAYPAL_TEAM_PLAN_ID
 
   const planId = accountType === 'solo' ? soloPlanId : teamPlanId
 
@@ -33,8 +41,8 @@ function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug, user
 
   const total =
     accountType === 'solo'
-      ? PRICING.solo.workspacePrice
-      : PRICING.team.basePrice + extraWorkspaces * PRICING.team.extraWorkspacePrice
+      ? getSoloPrice(billingPeriod)
+      : calcTeamTotal(extraWorkspaces, billingPeriod)
 
   return (
     <div>
@@ -47,7 +55,7 @@ function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug, user
           if (data.subscriptionID) {
             await activateSubscription(data.subscriptionID, accountType, extraWorkspaces)
           }
-          router.push(`/${workspaceSlug}/upgrade?success=true&type=${accountType}&total=${total}`)
+          router.push(`/${workspaceSlug}/upgrade?success=true&type=${accountType}&total=${total}&period=${billingPeriod}`)
         }}
         onCancel={() => {
           router.push(`/${workspaceSlug}/upgrade?cancelled=true`)

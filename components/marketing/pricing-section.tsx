@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Check } from '@phosphor-icons/react'
@@ -23,13 +24,19 @@ const SOLO_FEATURES = [
 
 const TEAM_FEATURES = [
   '3 workspaces included',
-  '+ $25/month per additional workspace',
+  '+$12/month per additional workspace',
   'Unlimited users across all workspaces',
+  'Multi-workspace admin dashboard',
   'All Solo features included',
   '14-day free trial, no credit card required',
 ]
 
 export function PricingSection() {
+  const [annual, setAnnual] = useState(false)
+
+  const soloPrice = annual ? PRICING.solo.annual : PRICING.solo.monthly
+  const teamPrice = annual ? PRICING.team.annual : PRICING.team.monthly
+
   return (
     <section id="pricing" className="py-20">
       <div className="mx-auto max-w-[1060px] px-[5%]">
@@ -52,6 +59,24 @@ export function PricingSection() {
               You pay for the workspaces you own — not per seat. Add as many
               Admins, Managers, and Viewers as you need at no extra cost.
             </p>
+
+            {/* Billing period toggle */}
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <span className={`text-[13px] font-medium ${!annual ? 'text-foreground' : 'text-foreground-muted'}`}>
+                Monthly
+              </span>
+              <button
+                onClick={() => setAnnual(!annual)}
+                className={`relative h-6 w-11 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${annual ? 'bg-brand' : 'bg-background-muted border border-border'}`}
+                aria-label="Toggle annual billing"
+              >
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${annual ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
+              <span className={`flex items-center gap-1.5 text-[13px] font-medium ${annual ? 'text-foreground' : 'text-foreground-muted'}`}>
+                Annual
+                <span className="rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">Save ~21%</span>
+              </span>
+            </div>
           </motion.div>
 
           <div className="mx-auto mt-12 max-w-[720px] grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
@@ -67,9 +92,11 @@ export function PricingSection() {
                 For individual brands managing their own influencers
               </p>
               <div className="mt-4 mb-1 font-display text-[2.4rem] font-bold leading-none tracking-tight text-foreground">
-                ${PRICING.solo.workspacePrice}
+                ${soloPrice}
               </div>
-              <p className="mb-6 text-[0.8rem] text-foreground-lighter">per month</p>
+              <p className="mb-6 text-[0.8rem] text-foreground-lighter">
+                per month{annual ? ', billed annually' : ''}
+              </p>
 
               <ul className="mb-7 space-y-0">
                 {SOLO_FEATURES.map((feature) => (
@@ -107,9 +134,11 @@ export function PricingSection() {
                 For agencies and teams managing multiple brand clients
               </p>
               <div className="mt-4 mb-1 font-display text-[2.4rem] font-bold leading-none tracking-tight text-white">
-                ${PRICING.team.basePrice}
+                ${teamPrice}
               </div>
-              <p className="mb-6 text-[0.8rem] text-white/50">per month</p>
+              <p className="mb-6 text-[0.8rem] text-white/50">
+                per month{annual ? ', billed annually' : ''}
+              </p>
 
               <ul className="mb-7 space-y-0">
                 {TEAM_FEATURES.map((feature) => (
