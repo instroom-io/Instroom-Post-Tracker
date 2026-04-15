@@ -1,6 +1,6 @@
 import { createServiceClient } from './lib/supabase'
 import { differenceInDays } from 'date-fns'
-import { sendEmail, escapeHtml } from './lib/email'
+import { sendEmail, escapeHtml, baseEmail, expiryNote } from './lib/email'
 
 async function main() {
   const supabase = createServiceClient()
@@ -131,21 +131,29 @@ async function main() {
 
       if (daysSince >= 10 && !follow_up_1_sent_at) {
         subject = `[${rawCampaignName}] Follow up with ${rawInfluencerHandle}`
-        html = `
-          <p>Hi ${escapeHtml(recipientName)},</p>
-          <p><strong>${influencerHandle}</strong> hasn't posted yet for the <strong>${campaignName}</strong> campaign (${workspaceName}).</p>
-          <p>It's been <strong>${daysSince} days</strong> since the product was sent. Please follow up with them.</p>
-          <p style="color:#888;font-size:12px;">This is the first follow-up reminder.</p>
-        `
+        html = baseEmail({
+          preheader: `${rawInfluencerHandle} hasn't posted yet for ${rawCampaignName} — please follow up.`,
+          body: `
+            <h1 style="margin:0 0 16px;font-size:22px;font-weight:800;color:#171717;letter-spacing:-0.5px;">Follow up with ${influencerHandle}</h1>
+            <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Hi ${escapeHtml(recipientName)},</p>
+            <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;"><strong>${influencerHandle}</strong> hasn't posted yet for the <strong>${campaignName}</strong> campaign (${workspaceName}).</p>
+            <p style="margin:0 0 4px;font-size:15px;color:#404040;line-height:1.6;">It's been <strong>${daysSince} days</strong> since the product was sent. Please follow up with them.</p>
+            ${expiryNote('This is the first follow-up reminder.')}
+          `,
+        })
         updateField = { follow_up_1_sent_at: new Date().toISOString() }
       } else if (daysSince >= 13 && follow_up_1_sent_at && !follow_up_2_sent_at) {
         subject = `[${rawCampaignName}] Follow up again with ${rawInfluencerHandle}`
-        html = `
-          <p>Hi ${escapeHtml(recipientName)},</p>
-          <p><strong>${influencerHandle}</strong> still hasn't posted for the <strong>${campaignName}</strong> campaign (${workspaceName}).</p>
-          <p>It's been <strong>${daysSince} days</strong> since the product was sent. Your first follow-up may have gotten buried — please try again.</p>
-          <p style="color:#888;font-size:12px;">This is the second follow-up reminder.</p>
-        `
+        html = baseEmail({
+          preheader: `${rawInfluencerHandle} still hasn't posted for ${rawCampaignName} — please try again.`,
+          body: `
+            <h1 style="margin:0 0 16px;font-size:22px;font-weight:800;color:#171717;letter-spacing:-0.5px;">Follow up again with ${influencerHandle}</h1>
+            <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Hi ${escapeHtml(recipientName)},</p>
+            <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;"><strong>${influencerHandle}</strong> still hasn't posted for the <strong>${campaignName}</strong> campaign (${workspaceName}).</p>
+            <p style="margin:0 0 4px;font-size:15px;color:#404040;line-height:1.6;">It's been <strong>${daysSince} days</strong> since the product was sent. Your first follow-up may have gotten buried — please try again.</p>
+            ${expiryNote('This is the second follow-up reminder.')}
+          `,
+        })
         updateField = { follow_up_2_sent_at: new Date().toISOString() }
       } else {
         continue
