@@ -47,6 +47,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
   }
 
   // 5. Fetch all user memberships for workspace switcher + agency back-link (parallel)
+  const accountType = (workspace as unknown as { account_type: string }).account_type
   const [{ data: allMemberships }, { data: agency }] = await Promise.all([
     supabase
       .from('workspace_members')
@@ -59,7 +60,13 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
           .eq('id', workspace.agency_id)
           .eq('owner_id', user.id)
           .maybeSingle()
-      : Promise.resolve({ data: null }),
+      : accountType === 'team'
+        ? supabase
+            .from('agencies')
+            .select('id, name, slug, logo_url')
+            .eq('owner_id', user.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
   ])
 
   return (
