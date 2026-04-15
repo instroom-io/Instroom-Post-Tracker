@@ -64,7 +64,7 @@ function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug, user
 }
 
 export function SubscriptionCheckout(props: SubscriptionCheckoutProps) {
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim()
 
   if (!clientId) {
     return (
