@@ -16,6 +16,7 @@ interface UpgradeClientProps {
   cancelled: boolean
   successType: 'solo' | 'team'
   successTotal?: number
+  userId: string
 }
 
 const SOLO_FEATURES = [
@@ -40,6 +41,7 @@ export function UpgradeClient({
   cancelled,
   successType,
   successTotal,
+  userId,
 }: UpgradeClientProps) {
   const [selected, setSelected] = useState<'solo' | 'team'>(accountType)
   const [extra, setExtra] = useState(0)
@@ -185,6 +187,7 @@ export function UpgradeClient({
         accountType={selected}
         extraWorkspaces={extra}
         workspaceSlug={workspaceSlug}
+        userId={userId}
       />
 
       <p className="text-center text-[12px] text-foreground-muted">

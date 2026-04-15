@@ -7,14 +7,16 @@
 import { useRouter } from 'next/navigation'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { PRICING } from '@/lib/billing/pricing'
+import { activateSubscription } from '@/lib/actions/billing'
 
 interface SubscriptionCheckoutProps {
   accountType: 'solo' | 'team'
   extraWorkspaces?: number
   workspaceSlug: string
+  userId: string
 }
 
-function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug }: SubscriptionCheckoutProps) {
+function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug, userId }: SubscriptionCheckoutProps) {
   const router = useRouter()
   const soloPlanId = process.env.NEXT_PUBLIC_PAYPAL_SOLO_PLAN_ID
   const teamPlanId = process.env.NEXT_PUBLIC_PAYPAL_TEAM_PLAN_ID
@@ -38,10 +40,13 @@ function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug }: Su
     <div>
       <PayPalButtons
         style={{ layout: 'vertical', color: 'gold', shape: 'rect', label: 'subscribe' }}
-        createSubscription={(_data: Record<string, unknown>, actions: { subscription: { create: (opts: { plan_id: string }) => Promise<string> } }) => {
-          return actions.subscription.create({ plan_id: planId })
+        createSubscription={(_data: Record<string, unknown>, actions: { subscription: { create: (opts: { plan_id: string; custom_id: string }) => Promise<string> } }) => {
+          return actions.subscription.create({ plan_id: planId, custom_id: userId })
         }}
-        onApprove={async () => {
+        onApprove={async (data: { subscriptionID?: string | null }) => {
+          if (data.subscriptionID) {
+            await activateSubscription(data.subscriptionID, accountType, extraWorkspaces)
+          }
           router.push(`/${workspaceSlug}/upgrade?success=true&type=${accountType}&total=${total}`)
         }}
         onCancel={() => {

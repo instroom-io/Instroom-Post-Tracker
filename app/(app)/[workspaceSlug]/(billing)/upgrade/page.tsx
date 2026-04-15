@@ -49,6 +49,7 @@ export default async function UpgradePage({ params, searchParams }: PageProps) {
       cancelled={sp.cancelled === 'true'}
       successType={(sp.type as 'solo' | 'team') ?? 'solo'}
       successTotal={sp.total ? parseInt(sp.total, 10) : undefined}
+      userId={user.id}
     />
   )
 }
