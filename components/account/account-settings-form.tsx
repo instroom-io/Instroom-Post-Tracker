@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { updatePreferences, updatePassword, updateProfile } from '@/lib/actions/account'
+import { updatePreferences, updatePassword, updateProfile, unlinkGoogleIdentity, syncGoogleAvatar } from '@/lib/actions/account'
 import { linkGoogleAccount } from '@/lib/supabase/client'
 import { getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -128,6 +128,8 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
 
   // Google link state
   const [linkPending, setLinkPending] = useState(false)
+  const [disconnectPending, startDisconnectTransition] = useTransition()
+  const [syncPending, startSyncTransition] = useTransition()
 
   // Security state
   const [currentPassword, setCurrentPassword] = useState('')
@@ -277,9 +279,38 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
                   </div>
                 </div>
                 {googleLinked ? (
-                  <span className="inline-flex items-center rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-medium text-success">
-                    Connected
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      loading={syncPending}
+                      disabled={disconnectPending}
+                      onClick={() => {
+                        startSyncTransition(async () => {
+                          const result = await syncGoogleAvatar()
+                          if (result?.error) { toast.error(result.error); return }
+                          toast.success('Profile photo synced.')
+                        })
+                      }}
+                    >
+                      Sync photo
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={disconnectPending}
+                      disabled={syncPending}
+                      onClick={() => {
+                        startDisconnectTransition(async () => {
+                          const result = await unlinkGoogleIdentity()
+                          if (result?.error) { toast.error(result.error); return }
+                          toast.success('Google account disconnected.')
+                        })
+                      }}
+                    >
+                      Disconnect
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     variant="secondary"

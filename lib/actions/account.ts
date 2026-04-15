@@ -256,3 +256,46 @@ export async function setPersonalDriveFolder(
 
   revalidatePath('/account/settings')
 }
+
+export async function unlinkGoogleIdentity(): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const googleIdentity = user.identities?.find((i) => i.provider === 'google')
+  if (!googleIdentity) return { error: 'Google account is not connected.' }
+
+  // Guard: user must have email/password auth so they won't be locked out
+  const hasEmailAuth = user.identities?.some((i) => i.provider === 'email')
+  if (!hasEmailAuth) {
+    return { error: 'Cannot disconnect — Google is your only login method. Set a password first.' }
+  }
+
+  const { error } = await supabase.auth.unlinkIdentity(googleIdentity)
+  if (error) return { error: 'Failed to disconnect Google account.' }
+
+  revalidatePath('/account/settings')
+}
+
+export async function syncGoogleAvatar(): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const googleIdentity = user.identities?.find((i) => i.provider === 'google')
+  if (!googleIdentity) return { error: 'Google account is not connected.' }
+
+  const avatarUrl = (googleIdentity.identity_data as { avatar_url?: string } | undefined)?.avatar_url
+  if (!avatarUrl) return { error: 'No profile photo found in your Google account.' }
+
+  // Service client required — RLS blocks self-update on users table
+  const serviceClient = createServiceClient()
+  await Promise.all([
+    serviceClient.from('users').update({ avatar_url: avatarUrl }).eq('id', user.id),
+    serviceClient.auth.admin.updateUserById(user.id, {
+      user_metadata: { ...user.user_metadata, avatar_url: avatarUrl },
+    }),
+  ])
+
+  revalidatePath('/account/settings')
+}
