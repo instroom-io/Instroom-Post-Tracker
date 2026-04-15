@@ -237,6 +237,14 @@ export async function saveOnboardingName(
   const trialStartedAt = new Date()
   const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
 
+  let soloLogoUrl: string | null = null
+  if (websiteUrl) {
+    try {
+      const domain = new URL(websiteUrl).hostname
+      soloLogoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+    } catch { /* invalid URL — ignore */ }
+  }
+
   const { data: ws } = await serviceClient
     .from('workspaces')
     .insert({
@@ -247,6 +255,7 @@ export async function saveOnboardingName(
       trial_ends_at: trialEndsAt.toISOString(),
       account_type: 'solo',
       workspace_quota: 1,
+      ...(soloLogoUrl ? { logo_url: soloLogoUrl } : {}),
     })
     .select('id')
     .single()

@@ -72,13 +72,24 @@ async function handlePostAuth(
   }
 
   // 4. No workspace/agency yet — new user flow
-  const { account_name, account_type, website_url } = user.user_metadata ?? {}
+  const { account_name: metaAccountName, account_type, website_url } = user.user_metadata ?? {}
 
-  // account_name missing (Google OAuth without pre-filled form) → collect it
-  if (!account_name) {
+  // For Google OAuth: account_name may be in the callback URL instead of user_metadata
+  const urlAccountName = new URL(request.url).searchParams.get('account_name')
+  const account_name = metaAccountName ?? (urlAccountName?.trim() || null)
+
+  // Still no name → redirect to name collection (fallback for direct OAuth without signup form)
+  if (!account_name || account_name.length < 2) {
     const hintType = new URL(request.url).searchParams.get('account_type')
     const onboardingPath = hintType ? `/onboarding/name?type=${hintType}` : '/onboarding/name'
     return makeRedirect(request, onboardingPath)
+  }
+
+  // Persist name to user_metadata if it came from the URL (so future logins skip this check)
+  if (!metaAccountName && urlAccountName) {
+    await serviceClient.auth.admin.updateUserById(user.id, {
+      user_metadata: { ...user.user_metadata, account_name: account_name.trim() },
+    })
   }
 
   const base = toSlug(account_name as string)
@@ -122,6 +133,14 @@ async function handlePostAuth(
 
   const workspaceSlug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
 
+  let soloLogoUrl: string | null = null
+  if (website_url) {
+    try {
+      const domain = new URL(website_url as string).hostname
+      soloLogoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+    } catch { /* invalid URL — ignore */ }
+  }
+
   const { data: ws } = await serviceClient
     .from('workspaces')
     .insert({
@@ -132,6 +151,7 @@ async function handlePostAuth(
       trial_ends_at: trialEndsAt.toISOString(),
       account_type: 'solo',
       workspace_quota: 1,
+      ...(soloLogoUrl ? { logo_url: soloLogoUrl } : {}),
     })
     .select('id')
     .single()

@@ -82,25 +82,23 @@ export function OnboardingNameForm() {
               />
             </div>
 
-            {/* Website URL — team only, used for favicon logo */}
-            {accountType === 'team' && (
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="website_url" className="text-[12px] font-medium text-foreground-light">
-                  Website{' '}
-                  <span className="text-foreground-muted font-normal">(optional)</span>
-                </label>
-                <input
-                  id="website_url"
-                  type="url"
-                  value={websiteUrl}
-                  onChange={(e) => setWebsiteUrl(e.target.value)}
-                  autoComplete="url"
-                  placeholder="https://yourteam.com"
-                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
-                />
-                <p className="text-[11px] text-foreground-muted">Used to show your team logo automatically.</p>
-              </div>
-            )}
+            {/* Website URL — all account types, used for favicon logo */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="website_url" className="text-[12px] font-medium text-foreground-light">
+                Website{' '}
+                <span className="text-foreground-muted font-normal">(optional)</span>
+              </label>
+              <input
+                id="website_url"
+                type="url"
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                autoComplete="url"
+                placeholder={accountType === 'team' ? 'https://yourteam.com' : 'https://yourbrand.com'}
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+              />
+              <p className="text-[11px] text-foreground-muted">Used to show your logo automatically.</p>
+            </div>
 
             {error && <p className="text-[11px] text-destructive">{error}</p>}
 
