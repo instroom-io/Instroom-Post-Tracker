@@ -146,17 +146,27 @@ export default async function SettingsPage({ params }: PageProps) {
   const canEdit = currentRole === 'owner' || currentRole === 'admin'
   const isOwner = currentRole === 'owner'
 
-  // Fetch member counts for billing panel (owner only)
+  // Fetch member counts + subscription extras for billing panel (owner only)
   let memberCounts = { owner: 0, admin: 0, editor: 0, manager: 0, viewer: 0 }
+  let extraWorkspaces = 0
   if (isOwner) {
-    const { data: allMembers } = await supabase
-      .from('workspace_members')
-      .select('role')
-      .eq('workspace_id', workspace.id)
+    const [{ data: allMembers }, { data: activeSub }] = await Promise.all([
+      supabase
+        .from('workspace_members')
+        .select('role')
+        .eq('workspace_id', workspace.id),
+      supabase
+        .from('subscriptions')
+        .select('extra_workspaces')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle(),
+    ])
     for (const m of allMembers ?? []) {
       const r = m.role as keyof typeof memberCounts
       if (r in memberCounts) memberCounts[r]++
     }
+    extraWorkspaces = (activeSub?.extra_workspaces as number | null) ?? 0
   }
 
   return (
@@ -203,6 +213,7 @@ export default async function SettingsPage({ params }: PageProps) {
             accountType={((workspace as unknown as { account_type: string }).account_type as 'solo' | 'team') ?? 'team'}
             workspaceSlug={workspaceSlug}
             memberCounts={memberCounts}
+            extraWorkspaces={extraWorkspaces}
           />
         )}
       </div>

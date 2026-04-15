@@ -17,6 +17,7 @@ interface BillingStatusCardProps {
   accountType: 'solo' | 'team'
   workspaceSlug: string
   memberCounts: { owner: number; admin: number; editor: number; manager: number; viewer: number }
+  extraWorkspaces?: number
 }
 
 export function BillingStatusCard({
@@ -25,6 +26,7 @@ export function BillingStatusCard({
   accountType,
   workspaceSlug,
   memberCounts,
+  extraWorkspaces = 0,
 }: BillingStatusCardProps) {
   const state = getTrialState(plan, daysRemaining)
 
@@ -35,10 +37,12 @@ export function BillingStatusCard({
     memberCounts.manager +
     memberCounts.viewer
 
-  const priceLine =
+  const includedWorkspaces = accountType === 'solo' ? 1 : PRICING.team.includedWorkspaces
+  const monthlyTotal =
     accountType === 'solo'
-      ? `$${PRICING.solo.workspacePrice}/month`
-      : `$${calcTeamTotal(0)}/month`
+      ? PRICING.solo.workspacePrice
+      : calcTeamTotal(extraWorkspaces)
+  const workspaceLine = `${includedWorkspaces} workspace${includedWorkspaces !== 1 ? 's' : ''} · $${monthlyTotal}/month`
 
   // Progress bar: trial consumption (0 = full, 1 = empty)
   const TRIAL_DAYS = 14
@@ -62,7 +66,7 @@ export function BillingStatusCard({
         )}
         <span className="text-[12px] text-foreground-lighter">
           {state.isSubscribed
-            ? `${accountType === 'solo' ? 'Solo' : 'Team'} · ${priceLine}`
+            ? `${accountType === 'solo' ? 'Solo' : 'Team'} · ${workspaceLine}`
             : state.isExpired
             ? 'Your trial has ended'
             : state.isGracePeriod
@@ -90,7 +94,17 @@ export function BillingStatusCard({
       {state.isSubscribed && (
         <div className="rounded-lg border border-border bg-background-muted px-4 py-3 text-[12px] text-foreground-light">
           <p>Account: <span className="font-medium text-foreground">{accountType === 'solo' ? 'Solo' : 'Team'}</span></p>
-          <p className="mt-0.5">Amount: <span className="font-medium text-foreground">{priceLine}</span></p>
+          <p className="mt-0.5">
+            Workspaces: <span className="font-medium text-foreground">{includedWorkspaces} included</span>
+          </p>
+          {extraWorkspaces > 0 && (
+            <p className="mt-0.5">
+              Extra: <span className="font-medium text-foreground">+{extraWorkspaces} workspace{extraWorkspaces !== 1 ? 's' : ''} · +${extraWorkspaces * PRICING.team.extraWorkspacePrice}/month</span>
+            </p>
+          )}
+          <p className="mt-0.5">
+            Amount: <span className="font-medium text-foreground">${monthlyTotal}/month</span>
+          </p>
           <a
             href="https://www.paypal.com/myaccount/autopay/"
             target="_blank"

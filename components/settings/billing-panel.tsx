@@ -17,6 +17,7 @@ interface BillingPanelProps {
     manager: number
     viewer: number
   }
+  extraWorkspaces?: number
 }
 
 export function BillingPanel({
@@ -25,6 +26,7 @@ export function BillingPanel({
   accountType,
   workspaceSlug,
   memberCounts,
+  extraWorkspaces,
 }: BillingPanelProps) {
   return (
     <div className="rounded-xl border border-border bg-background-surface shadow-sm">
@@ -41,6 +43,7 @@ export function BillingPanel({
           accountType={accountType}
           workspaceSlug={workspaceSlug}
           memberCounts={memberCounts}
+          extraWorkspaces={extraWorkspaces}
         />
       </div>
     </div>
