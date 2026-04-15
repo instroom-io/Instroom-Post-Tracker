@@ -91,7 +91,14 @@ export function BillingStatusCard({
         <div className="rounded-lg border border-border bg-background-muted px-4 py-3 text-[12px] text-foreground-light">
           <p>Account: <span className="font-medium text-foreground">{accountType === 'solo' ? 'Solo' : 'Team'}</span></p>
           <p className="mt-0.5">Amount: <span className="font-medium text-foreground">{priceLine}</span></p>
-          <p className="mt-2 text-foreground-muted">Manage or cancel via PayPal.</p>
+          <a
+            href="https://www.paypal.com/myaccount/autopay/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-[12px] font-medium text-foreground transition-colors hover:bg-background-muted"
+          >
+            Manage or cancel on PayPal ↗
+          </a>
         </div>
       )}
 
