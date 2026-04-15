@@ -65,7 +65,7 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
     startSaveTransition(async () => {
       const result = await updateAgency(agency.id, { name, logo_url: logoUrl })
       if (result?.error) { setNameError(result.error); return }
-      toast.success('Agency settings saved.')
+      toast.success('Team settings saved.')
     })
   }
 
@@ -82,7 +82,7 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
     <div className="flex flex-col gap-6 sm:flex-row sm:gap-10">
       {/* Sidebar */}
       <nav className="sm:w-[180px] sm:flex-shrink-0">
-        <p className="mb-2 hidden text-[11px] font-semibold uppercase tracking-wider text-foreground-muted sm:block">Agency</p>
+        <p className="mb-2 hidden text-[11px] font-semibold uppercase tracking-wider text-foreground-muted sm:block">Team</p>
         <ul className="flex flex-row gap-1 overflow-x-auto sm:flex-col sm:gap-0.5 sm:overflow-x-visible">
           {SIDEBAR_ITEMS.map((item) => (
             <li key={item.id} className="flex-shrink-0 sm:flex-shrink">
@@ -109,7 +109,7 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
           <>
             <div>
               <h1 className="text-[18px] font-semibold text-foreground">General</h1>
-              <p className="text-[12px] text-foreground-lighter mt-0.5">Agency name and logo.</p>
+              <p className="text-[12px] text-foreground-lighter mt-0.5">Team name and logo.</p>
             </div>
 
             <div className="rounded-xl border border-border bg-background-surface p-5">
@@ -171,7 +171,7 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
                 </div>
 
                 <Input
-                  label="Agency Name"
+                  label="Team Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={savePending}
@@ -210,7 +210,7 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
           <>
             <div>
               <h1 className="text-[18px] font-semibold text-foreground">Account</h1>
-              <p className="text-[12px] text-foreground-lighter mt-0.5">Agency account information.</p>
+              <p className="text-[12px] text-foreground-lighter mt-0.5">Team account information.</p>
             </div>
 
             <div className="rounded-xl border border-border bg-background-surface p-5">

@@ -37,6 +37,7 @@ const roleVariant: Record<WorkspaceRole, 'success' | 'info' | 'muted' | 'active'
   owner: 'success',
   admin: 'info',
   editor: 'muted',
+  manager: 'muted',
   viewer: 'muted',
 }
 

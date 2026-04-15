@@ -19,7 +19,7 @@ export const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   full_name: z.string().min(2).max(100).optional(),
-  account_type: z.enum(['solo', 'team']).default('team'),
+  account_type: z.enum(['solo', 'team']).default('solo'),
   account_name: z
     .string()
     .min(2, 'Name must be at least 2 characters')
@@ -84,7 +84,7 @@ export const updateWorkspaceSchema = z.object({
 
 export const inviteMemberSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  role: z.enum(['admin', 'editor', 'viewer'], {
+  role: z.enum(['manager', 'viewer'], {
     required_error: 'Please select a role',
   }),
 })

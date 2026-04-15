@@ -16,7 +16,6 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   size?: ButtonSize
   loading?: boolean
-  asChild?: boolean
 }
 
 const variantClasses: Record<ButtonVariant, string> = {

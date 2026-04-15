@@ -42,6 +42,7 @@ interface AnalyticsClientProps {
   defaultFilters: AnalyticsFilters
   timezone?: string
   plan: PlanType
+  workspaceSlug: string
 }
 
 function ChartCard({
@@ -72,6 +73,7 @@ export function AnalyticsClient({
   defaultFilters,
   timezone,
   plan,
+  workspaceSlug,
 }: AnalyticsClientProps) {
   const [filters, setFilters] = useState<AnalyticsFilters>(() => {
     // Compute date defaults client-side so they reflect the user's local timezone
@@ -294,13 +296,13 @@ export function AnalyticsClient({
           <PlatformBreakdown data={platformData} />
         </ChartCard>
 
-        <UpgradeGate plan={plan} feature="emv_reporting" minHeight="200px">
+        <UpgradeGate plan={plan} feature="emv_reporting" workspaceSlug={workspaceSlug} minHeight="200px">
           <ChartCard title="EMV by Influencer" badge="Top 10">
             <EmvChart data={emvData} />
           </ChartCard>
         </UpgradeGate>
 
-        <UpgradeGate plan={plan} feature="advanced_analytics" minHeight="200px">
+        <UpgradeGate plan={plan} feature="advanced_analytics" workspaceSlug={workspaceSlug} minHeight="200px">
           <ChartCard title="Engagement Rate" badge="vs benchmark">
             <ErBenchmarkChart data={erData} />
           </ChartCard>
@@ -308,7 +310,7 @@ export function AnalyticsClient({
       </div>
 
       {/* Leaderboard */}
-      <UpgradeGate plan={plan} feature="advanced_analytics" minHeight="200px">
+      <UpgradeGate plan={plan} feature="advanced_analytics" workspaceSlug={workspaceSlug} minHeight="200px">
         <div className="rounded-xl border border-border bg-background-surface shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
             <p className="text-[13px] font-display font-bold text-foreground">Influencer Leaderboard</p>

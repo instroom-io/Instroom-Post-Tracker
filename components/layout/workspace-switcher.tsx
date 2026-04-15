@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Check, CaretUpDown, SignOut } from '@phosphor-icons/react'
+import { Check, CaretUpDown, SignOut, Users } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/utils'
 import { signOut } from '@/lib/actions/auth'
@@ -39,6 +39,7 @@ const ROLE_LABELS: Record<WorkspaceRole, string> = {
   owner: 'Owner',
   admin: 'Admin',
   editor: 'Editor',
+  manager: 'Manager',
   viewer: 'Viewer',
 }
 
@@ -165,7 +166,7 @@ export function WorkspaceSwitcher({
             )}
           >
 
-            {/* ── Agency row (owners only) ── */}
+            {/* ── Team row ── */}
             {agency && (
               <>
                 <div className="px-1.5 pt-1.5">
@@ -175,18 +176,11 @@ export function WorkspaceSwitcher({
                     className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                   >
                     <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md overflow-hidden bg-background-muted border border-border">
-                      {agency.logo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-contain" />
-                      ) : (
-                        <span className="text-[8px] font-bold text-foreground-lighter">
-                          {agency.name.slice(0, 2).toUpperCase()}
-                        </span>
-                      )}
+                      <Users size={12} className="text-foreground-lighter" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[12px] font-semibold text-foreground">{agency.name}</p>
-                      <p className="text-[10px] text-foreground-muted">Agency settings</p>
+                      <p className="truncate text-[12px] font-semibold text-foreground">Team</p>
+                      <p className="text-[10px] text-foreground-muted">Team settings</p>
                     </div>
                   </Link>
                 </div>
@@ -237,7 +231,7 @@ export function WorkspaceSwitcher({
               </button>
             ))}
 
-            {/* ── Invite brand ── */}
+            {/* ── Add workspace ── */}
             {agency && (
               <div className="px-1.5 pb-1.5">
                 <button
@@ -312,6 +306,7 @@ export function WorkspaceSwitcher({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
     </div>
   )

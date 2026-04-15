@@ -6,10 +6,12 @@ import { WorkspaceSettingsForm } from '@/components/settings/workspace-settings-
 import { MemberTable } from '@/components/settings/member-table'
 import { InviteMemberDialog } from '@/components/settings/invite-member-dialog'
 import { EmvSettingsPanel } from '@/components/settings/emv-settings-panel'
+import { BillingPanel } from '@/components/settings/billing-panel'
 import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
 import { MembersSkeleton } from '@/components/dashboard/members-skeleton'
 import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
-import type { WorkspaceRole, Workspace } from '@/lib/types'
+import { computeDaysRemaining } from '@/lib/billing/trial-state'
+import type { WorkspaceRole, Workspace, PlanType } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
@@ -124,7 +126,7 @@ export default async function SettingsPage({ params }: PageProps) {
   const [{ data: workspace }, { data: { user } }] = await Promise.all([
     supabase
       .from('workspaces')
-      .select('id, name, slug, logo_url, agency_id, drive_connection_type, drive_oauth_token, created_at, assigned_member_id')
+      .select('id, name, slug, logo_url, agency_id, drive_connection_type, drive_oauth_token, created_at, assigned_member_id, plan, trial_ends_at, account_type')
       .eq('slug', workspaceSlug)
       .single(),
     supabase.auth.getUser(),
@@ -142,6 +144,20 @@ export default async function SettingsPage({ params }: PageProps) {
 
   const currentRole = (currentMember?.role ?? 'viewer') as WorkspaceRole
   const canEdit = currentRole === 'owner' || currentRole === 'admin'
+  const isOwner = currentRole === 'owner'
+
+  // Fetch member counts for billing panel (owner only)
+  let memberCounts = { owner: 0, admin: 0, editor: 0, manager: 0, viewer: 0 }
+  if (isOwner) {
+    const { data: allMembers } = await supabase
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspace.id)
+    for (const m of allMembers ?? []) {
+      const r = m.role as keyof typeof memberCounts
+      if (r in memberCounts) memberCounts[r]++
+    }
+  }
 
   return (
     <div>
@@ -177,6 +193,17 @@ export default async function SettingsPage({ params }: PageProps) {
               <EmvSection workspaceId={workspace.id} canEdit={canEdit} />
             </Suspense>
           </SectionErrorBoundary>
+        )}
+
+        {/* Billing — owner only */}
+        {isOwner && (
+          <BillingPanel
+            plan={((workspace as unknown as { plan: PlanType }).plan) ?? 'trial'}
+            daysRemaining={computeDaysRemaining((workspace as unknown as { trial_ends_at: string | null }).trial_ends_at ?? null)}
+            accountType={((workspace as unknown as { account_type: string }).account_type as 'solo' | 'team') ?? 'team'}
+            workspaceSlug={workspaceSlug}
+            memberCounts={memberCounts}
+          />
         )}
       </div>
     </div>

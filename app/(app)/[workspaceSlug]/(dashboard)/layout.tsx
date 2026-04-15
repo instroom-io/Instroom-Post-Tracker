@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppShell } from '@/components/layout/app-shell'
-import { TrialBanner } from '@/components/layout/trial-banner'
+import { computeDaysRemaining } from '@/lib/billing/trial-state'
 import type { Workspace, WorkspaceRole, PlanType } from '@/lib/types'
 
 interface LayoutProps {
@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
   // 2. Look up workspace by slug
   const { data: workspace } = await supabase
     .from('workspaces')
-    .select('id, name, slug, logo_url, agency_id, drive_folder_id, drive_connection_type, drive_oauth_token, created_at, plan, trial_ends_at')
+    .select('id, name, slug, logo_url, agency_id, drive_folder_id, drive_connection_type, drive_oauth_token, created_at, plan, trial_ends_at, account_type, workspace_quota')
     .eq('slug', workspaceSlug)
     .single()
 
@@ -38,7 +38,15 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
 
   if (!membership) redirect('/app')
 
-  // 4. Fetch all user memberships for workspace switcher + agency back-link (parallel)
+  // 4. Hard-gate: if trial expired past grace period, send to /trial-expired
+  const plan = (workspace as unknown as { plan: PlanType }).plan ?? 'trial'
+  const trialEndsAt = (workspace as unknown as { trial_ends_at: string | null }).trial_ends_at ?? null
+  const daysRemaining = computeDaysRemaining(trialEndsAt)
+  if (plan === 'free' && daysRemaining < -3) {
+    redirect(`/${workspaceSlug}/trial-expired`)
+  }
+
+  // 5. Fetch all user memberships for workspace switcher + agency back-link (parallel)
   const [{ data: allMemberships }, { data: agency }] = await Promise.all([
     supabase
       .from('workspace_members')
@@ -62,11 +70,9 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
       allMemberships={(allMemberships ?? []) as unknown as Array<{ role: WorkspaceRole; workspaces: Workspace }>}
       workspaceSlug={workspace.slug}
       agency={agency ?? null}
+      plan={plan}
+      daysRemaining={daysRemaining}
     >
-      <TrialBanner
-        plan={(workspace as unknown as { plan: PlanType }).plan ?? 'trial'}
-        trialEndsAt={(workspace as unknown as { trial_ends_at: string | null }).trial_ends_at ?? null}
-      />
       {children}
     </AppShell>
   )

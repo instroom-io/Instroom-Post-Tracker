@@ -12,6 +12,7 @@ export function OnboardingNameForm() {
     typeHint === 'team' ? 'team' : 'solo'
   )
   const [accountName, setAccountName] = useState('')
+  const [websiteUrl, setWebsiteUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -20,7 +21,7 @@ export function OnboardingNameForm() {
     e.preventDefault()
     setError(null)
     startTransition(async () => {
-      const result = await saveOnboardingName(accountType, accountName)
+      const result = await saveOnboardingName(accountType, accountName, websiteUrl || undefined)
       if ('error' in result) {
         setError(result.error)
         return
@@ -80,6 +81,26 @@ export function OnboardingNameForm() {
                 className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
               />
             </div>
+
+            {/* Website URL — team only, used for favicon logo */}
+            {accountType === 'team' && (
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="website_url" className="text-[12px] font-medium text-foreground-light">
+                  Website{' '}
+                  <span className="text-foreground-muted font-normal">(optional)</span>
+                </label>
+                <input
+                  id="website_url"
+                  type="url"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  autoComplete="url"
+                  placeholder="https://yourteam.com"
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+                />
+                <p className="text-[11px] text-foreground-muted">Used to show your team logo automatically.</p>
+              </div>
+            )}
 
             {error && <p className="text-[11px] text-destructive">{error}</p>}
 

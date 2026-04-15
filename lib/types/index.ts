@@ -5,7 +5,7 @@ export type { PlanType }
 
 export type Platform = 'instagram' | 'tiktok' | 'youtube'
 
-export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer'
+export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'manager' | 'viewer'
 
 export type AgencyStatus = 'pending' | 'active' | 'suspended'
 export type AgencyRequestStatus = 'pending' | 'approved' | 'rejected'
@@ -77,6 +77,8 @@ export interface Workspace {
   assigned_member_id?: string | null   // team member who receives follow-up notification emails; falls back to workspace owner if null
   plan: PlanType
   trial_ends_at: string | null
+  account_type: 'solo' | 'team'
+  workspace_quota: number
 }
 
 export interface WorkspaceMember {

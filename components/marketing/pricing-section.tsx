@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Check } from '@phosphor-icons/react'
-import { useMarketingContact } from '@/components/marketing/marketing-contact-provider'
-import { cn } from '@/lib/utils'
+import { PRICING } from '@/lib/billing/pricing'
 
 const containerVariants = {
   hidden: {},
@@ -15,65 +14,22 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 }
 
-interface PricingTier {
-  name: string
-  price: string
-  period: string
-  popular: boolean
-  features: string[]
-}
+const SOLO_FEATURES = [
+  '1 workspace',
+  'Unlimited users — Admin, Manager, Viewer all free',
+  'Post tracking, Drive sync, analytics, usage rights',
+  '14-day free trial, no credit card required',
+]
 
-const tiers: PricingTier[] = [
-  {
-    name: 'Starter',
-    price: '$29',
-    period: 'per month, billed monthly',
-    popular: false,
-    features: [
-      'Up to 3 brands',
-      '25 tracked influencers',
-      'Instagram + TikTok',
-      'Hashtag + mention tracking',
-      'Google Drive sync',
-      '30-day post history',
-    ],
-  },
-  {
-    name: 'Pro',
-    price: '$79',
-    period: 'per month, billed monthly',
-    popular: true,
-    features: [
-      'Up to 10 brands',
-      '100 tracked influencers',
-      'Instagram + TikTok + YouTube',
-      'Hashtag + mention tracking',
-      'Auto content download',
-      'Usage rights management',
-      'Paid ads–ready UGC library',
-      '90-day post history',
-    ],
-  },
-  {
-    name: 'Agency',
-    price: '$149',
-    period: 'per month, billed monthly',
-    popular: false,
-    features: [
-      'Unlimited brands',
-      '300 tracked influencers',
-      'All platforms',
-      'Full auto-download',
-      'Team collaboration',
-      'Isolated client workspaces',
-      'Priority support',
-    ],
-  },
+const TEAM_FEATURES = [
+  '3 workspaces included',
+  '+ $25/month per additional workspace',
+  'Unlimited users across all workspaces',
+  'All Solo features included',
+  '14-day free trial, no credit card required',
 ]
 
 export function PricingSection() {
-  const { setOpen } = useMarketingContact()
-
   return (
     <section id="pricing" className="py-20">
       <div className="mx-auto max-w-[1060px] px-[5%]">
@@ -88,108 +44,103 @@ export function PricingSection() {
               Pricing
             </span>
             <h2 className="mt-2 font-display text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.15] tracking-tight text-foreground">
-              Pay for what you use.
+              Simple per-workspace pricing.
               <br />
-              Not what you don&apos;t.
+              All users included free.
             </h2>
             <p className="mx-auto mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
-              Post Tracker is a standalone tool. No bloated CRM. No features
-              you&apos;ll never open. Just clean post tracking that works — or
-              bundle it with Instroom CRM at a discount.
+              You pay for the workspaces you own — not per seat. Add as many
+              Admins, Managers, and Viewers as you need at no extra cost.
             </p>
           </motion.div>
 
-          <div className="mx-auto mt-12 max-w-[900px] grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-5 overflow-visible">
-            {tiers.map((tier) => (
-              <motion.div
-                key={tier.name}
-                variants={itemVariants}
-                className={cn(
-                  'relative rounded-[16px] p-8',
-                  tier.popular
-                    ? 'bg-brand-dark'
-                    : 'border-[1.5px] border-border bg-background-surface dark:border-white/10 dark:bg-white/5'
-                )}
+          <div className="mx-auto mt-12 max-w-[720px] grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
+            {/* Solo card */}
+            <motion.div
+              variants={itemVariants}
+              className="relative rounded-[16px] border-[1.5px] border-border bg-background-surface p-8 dark:border-white/10 dark:bg-white/5"
+            >
+              <h3 className="font-display text-[0.9rem] font-bold uppercase tracking-[0.08em] text-foreground-lighter">
+                Solo
+              </h3>
+              <p className="mt-1 text-[0.82rem] text-foreground-muted">
+                For individual brands managing their own influencers
+              </p>
+              <div className="mt-4 mb-1 font-display text-[2.4rem] font-bold leading-none tracking-tight text-foreground">
+                ${PRICING.solo.workspacePrice}
+              </div>
+              <p className="mb-6 text-[0.8rem] text-foreground-lighter">per month</p>
+
+              <ul className="mb-7 space-y-0">
+                {SOLO_FEATURES.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2 border-b border-border py-[0.35rem] text-[0.86rem] text-foreground last:border-0"
+                  >
+                    <Check size={14} weight="bold" className="mt-0.5 shrink-0 text-brand" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href="/signup"
+                className="block w-full rounded-[9px] border-[1.5px] border-brand py-[0.85rem] text-center text-[0.9rem] font-semibold text-brand-dark transition-colors hover:bg-brand/5 dark:text-brand"
               >
-                {tier.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-white">
-                    Most popular
-                  </div>
-                )}
+                Start free trial →
+              </Link>
+            </motion.div>
 
-                <h3
-                  className={cn(
-                    'font-display text-[0.9rem] font-bold uppercase tracking-[0.08em]',
-                    tier.popular ? 'text-white/60' : 'text-foreground-lighter'
-                  )}
-                >
-                  {tier.name}
-                </h3>
+            {/* Team card — highlighted */}
+            <motion.div
+              variants={itemVariants}
+              className="relative rounded-[16px] bg-brand-dark p-8"
+            >
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-white">
+                Most popular
+              </div>
 
-                <div className="mt-3 mb-1 font-display text-[2.4rem] font-bold leading-none tracking-tight">
-                  <span className={tier.popular ? 'text-white' : 'text-foreground'}>
-                    {tier.price}
-                  </span>
-                </div>
-                <p
-                  className={cn(
-                    'mb-6 text-[0.8rem]',
-                    tier.popular ? 'text-white/50' : 'text-foreground-lighter'
-                  )}
-                >
-                  {tier.period}
-                </p>
+              <h3 className="font-display text-[0.9rem] font-bold uppercase tracking-[0.08em] text-white/60">
+                Team
+              </h3>
+              <p className="mt-1 text-[0.82rem] text-white/50">
+                For agencies and teams managing multiple brand clients
+              </p>
+              <div className="mt-4 mb-1 font-display text-[2.4rem] font-bold leading-none tracking-tight text-white">
+                ${PRICING.team.basePrice}
+              </div>
+              <p className="mb-6 text-[0.8rem] text-white/50">per month</p>
 
-                <ul className="mb-7 space-y-0">
-                  {tier.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className={cn(
-                        'flex items-start gap-2 border-b py-[0.35rem] text-[0.86rem] last:border-0',
-                        tier.popular
-                          ? 'border-white/8 text-white/85'
-                          : 'border-border text-foreground'
-                      )}
-                    >
-                      <Check
-                        size={14}
-                        weight="bold"
-                        className={cn(
-                          'mt-0.5 shrink-0',
-                          tier.popular ? 'text-white/70' : 'text-brand'
-                        )}
-                      />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+              <ul className="mb-7 space-y-0">
+                {TEAM_FEATURES.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2 border-b border-white/8 py-[0.35rem] text-[0.86rem] text-white/85 last:border-0"
+                  >
+                    <Check size={14} weight="bold" className="mt-0.5 shrink-0 text-white/70" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
 
-                <Link
-                  href="/signup"
-                  className={cn(
-                    'block w-full rounded-[9px] py-[0.85rem] text-center text-[0.9rem] font-semibold transition-colors',
-                    tier.popular
-                      ? 'bg-brand text-white hover:bg-brand/90'
-                      : 'border-[1.5px] border-brand text-brand-dark hover:bg-brand/5 dark:text-brand'
-                  )}
-                >
-                  Get started
-                </Link>
-              </motion.div>
-            ))}
+              <Link
+                href="/signup"
+                className="block w-full rounded-[9px] bg-brand py-[0.85rem] text-center text-[0.9rem] font-semibold text-white transition-colors hover:bg-brand/90"
+              >
+                Start free trial →
+              </Link>
+            </motion.div>
           </div>
 
           <motion.p
             variants={itemVariants}
-            className="mt-6 text-center text-[0.82rem] text-foreground-lighter"
+            className="mt-8 text-center text-[0.82rem] text-foreground-lighter"
           >
-            Already on Instroom CRM? Bundle Post Tracker at a discounted rate.{' '}
-            <button
-              onClick={() => setOpen(true)}
-              className="font-semibold text-brand hover:underline"
-            >
-              Talk to us →
-            </button>
+            Shared workspaces: if a brand invites you to their workspace, you join as a Manager at no cost — it doesn&apos;t count against your quota.
+            <br className="hidden sm:block" />
+            <span className="mt-1 block sm:inline sm:mt-0">
+              {' '}All plans include a 14-day free trial. No credit card required.
+            </span>
           </motion.p>
         </motion.div>
       </div>

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { ShieldCheck, PencilLine, Eye } from 'lucide-react'
+import { PencilLine, Eye } from 'lucide-react'
 import {
   Dialog,
   DialogTrigger,
@@ -26,7 +26,7 @@ interface InviteMemberDialogProps {
 export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<Exclude<WorkspaceRole, 'owner'>>('editor')
+  const [role, setRole] = useState<'manager' | 'viewer'>('manager')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -41,7 +41,7 @@ export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogP
       toast.success(`Invitation sent to ${email}.`)
       setOpen(false)
       setEmail('')
-      setRole('editor')
+      setRole('manager')
     })
   }
 
@@ -72,9 +72,8 @@ export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogP
               <span className="text-[12px] font-medium text-foreground-light">Role</span>
               <div className="flex gap-2">
                 {([
-                  { value: 'admin', label: 'Admin', description: 'Full access', Icon: ShieldCheck },
-                  { value: 'editor', label: 'Editor', description: 'Can edit data', Icon: PencilLine },
-                  { value: 'viewer', label: 'Viewer', description: 'Read-only', Icon: Eye },
+                  { value: 'manager', label: 'Manager', description: 'Can edit data', Icon: PencilLine },
+                  { value: 'viewer',  label: 'Viewer',  description: 'Read-only',     Icon: Eye        },
                 ] as const).map(({ value, label, description, Icon }) => (
                   <button
                     key={value}

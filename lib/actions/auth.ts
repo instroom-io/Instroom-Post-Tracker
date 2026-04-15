@@ -56,7 +56,7 @@ export async function signUp(
     email: formData.get('email'),
     password: formData.get('password'),
     full_name: formData.get('full_name') ?? undefined,
-    account_type: formData.get('account_type') ?? 'team',
+    account_type: formData.get('account_type') ?? 'solo',
     account_name: (formData.get('account_name') as string) ?? '',
   })
 
@@ -68,6 +68,8 @@ export async function signUp(
   const nextPath = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
   const emailRedirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(nextPath)}`
 
+  const websiteUrl = (formData.get('website_url') as string | null) || undefined
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
     email: parsed.data.email,
@@ -77,6 +79,7 @@ export async function signUp(
         full_name: parsed.data.full_name,
         account_type: parsed.data.account_type,
         account_name: parsed.data.account_name,
+        ...(websiteUrl ? { website_url: websiteUrl } : {}),
       },
       emailRedirectTo,
     },
@@ -152,7 +155,8 @@ export async function updatePassword(
 
 export async function saveOnboardingName(
   accountType: 'solo' | 'team',
-  accountName: string
+  accountName: string,
+  websiteUrl?: string
 ): Promise<{ error: string } | { redirectTo: string }> {
   const nameParsed = signUpSchema.shape.account_name.safeParse(accountName.trim())
   if (!nameParsed.success) return { error: nameParsed.error.errors[0].message }
@@ -170,10 +174,47 @@ export async function saveOnboardingName(
   })
 
   const serviceClient = createServiceClient()
-  const workspaceQuota = accountType === 'solo' ? 1 : 3
-  const trialStartedAt = new Date()
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
 
+  if (accountType === 'team') {
+    // Team accounts get an agency record only — workspaces are for brands
+    const { data: existingAgency } = await serviceClient
+      .from('agencies')
+      .select('slug')
+      .eq('owner_id', user.id)
+      .maybeSingle()
+
+    if (existingAgency) {
+      return { redirectTo: '/app' }
+    }
+
+    const base = toSlug(nameParsed.data)
+    const { data: takenRows } = await serviceClient
+      .from('agencies')
+      .select('slug')
+      .ilike('slug', `${base}%`)
+    const slug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
+
+    let logoUrl: string | null = null
+    if (websiteUrl) {
+      try {
+        const domain = new URL(websiteUrl).hostname
+        logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+      } catch { /* invalid URL — ignore */ }
+    }
+
+    await serviceClient.from('agencies').insert({
+      name: nameParsed.data,
+      slug,
+      owner_id: user.id,
+      status: 'active',
+      ...(logoUrl ? { logo_url: logoUrl } : {}),
+    })
+
+    // Route through /app so the onboarding welcome survey fires for new team users
+    return { redirectTo: '/app' }
+  }
+
+  // Solo: check for existing workspace, then create one
   const { data: existingMember } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
@@ -193,6 +234,9 @@ export async function saveOnboardingName(
     .ilike('slug', `${base}%`)
   const slug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
 
+  const trialStartedAt = new Date()
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+
   const { data: ws } = await serviceClient
     .from('workspaces')
     .insert({
@@ -201,8 +245,8 @@ export async function saveOnboardingName(
       plan: 'trial',
       trial_started_at: trialStartedAt.toISOString(),
       trial_ends_at: trialEndsAt.toISOString(),
-      account_type: accountType,
-      workspace_quota: workspaceQuota,
+      account_type: 'solo',
+      workspace_quota: 1,
     })
     .select('id')
     .single()

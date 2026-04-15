@@ -14,6 +14,8 @@ import { cn } from '@/lib/utils'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
 import { WorkspaceSwitcher } from './workspace-switcher'
 import { ThemeToggle } from './theme-toggle'
+import { TrialBanner } from './trial-banner'
+import type { PlanType } from '@/lib/utils/plan'
 
 interface NavItem {
   label: string
@@ -117,6 +119,9 @@ interface AppShellProps {
   allMemberships: Array<{ role: WorkspaceRole; workspaces: Workspace }>
   workspaceSlug: string
   agency?: { id: string; name: string; slug: string; logo_url?: string | null } | null
+  plan?: PlanType
+  /** Pre-computed server-side via computeDaysRemaining() — keeps Date.now() out of client render. */
+  daysRemaining?: number
 }
 
 export function AppShell({
@@ -127,6 +132,8 @@ export function AppShell({
   allMemberships,
   workspaceSlug,
   agency,
+  plan,
+  daysRemaining,
 }: AppShellProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
@@ -154,7 +161,20 @@ export function AppShell({
 
   return (
     <>
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+
+      {/* ── Trial banner — full-width above sidebar+content ──────────────────── */}
+      {plan !== undefined && daysRemaining !== undefined && (
+        <TrialBanner
+          plan={plan}
+          daysRemaining={daysRemaining}
+          workspaceSlug={workspaceSlug}
+          role={currentRole}
+        />
+      )}
+
+      {/* ── Sidebar + content row ─────────────────────────────────────────────── */}
+      <div className="flex flex-1 overflow-hidden">
 
       {/* ── Mobile overlay drawer ─────────────────────────────────────────────── */}
       <AnimatePresence>
@@ -275,7 +295,9 @@ export function AppShell({
         </div>
 
       </div>
-    </div>
+
+      </div>{/* end sidebar+content row */}
+    </div>{/* end outer flex-col */}
       <TourProvider tourId="workspace" />
       <WorkspaceTourAutoStart />
     </>

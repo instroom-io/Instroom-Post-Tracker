@@ -102,6 +102,28 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
         />
       </div>
 
+      {/* Website URL — team accounts only, used for favicon logo */}
+      {accountType === 'team' && (
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="website_url"
+            className="text-[12px] font-medium text-foreground-light"
+          >
+            Website{' '}
+            <span className="text-foreground-muted font-normal">(optional)</span>
+          </label>
+          <input
+            id="website_url"
+            name="website_url"
+            type="url"
+            autoComplete="url"
+            placeholder="https://yourteam.com"
+            className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+          />
+          <p className="text-[11px] text-foreground-muted">Used to show your team logo automatically.</p>
+        </div>
+      )}
+
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="email"

@@ -19,12 +19,14 @@ interface PageProps {
 
 async function AnalyticsBody({
   workspaceId,
+  workspaceSlug,
   campaigns,
   defaultFilters,
   timezone,
   plan,
 }: {
   workspaceId: string
+  workspaceSlug: string
   campaigns: { id: string; name: string }[]
   defaultFilters: AnalyticsFilters
   timezone: string
@@ -77,6 +79,7 @@ async function AnalyticsBody({
       defaultFilters={defaultFilters}
       timezone={timezone}
       plan={plan as import('@/lib/utils/plan').PlanType}
+      workspaceSlug={workspaceSlug}
     />
   )
 }
@@ -160,6 +163,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
           <Suspense fallback={<AnalyticsBodySkeleton />}>
             <AnalyticsBody
               workspaceId={workspace.id}
+              workspaceSlug={workspaceSlug}
               campaigns={campaigns ?? []}
               defaultFilters={defaultFilters}
               timezone={timezone}

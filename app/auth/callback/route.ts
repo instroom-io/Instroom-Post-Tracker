@@ -47,7 +47,7 @@ async function handlePostAuth(
     return null // Admin uses normal /app dispatcher
   }
 
-  // 3. Returning user with an existing workspace → redirect there directly
+  // 3. Returning solo user with an existing workspace → redirect there directly
   const { data: existingMember } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
@@ -60,8 +60,19 @@ async function handlePostAuth(
     return makeRedirect(request, `/${slug}/overview`)
   }
 
-  // 4. No workspace yet — new user flow
-  const { account_name, account_type } = user.user_metadata ?? {}
+  // Returning team user with an existing agency → route through /app dispatcher
+  const { data: existingAgency } = await serviceClient
+    .from('agencies')
+    .select('slug')
+    .eq('owner_id', user.id)
+    .maybeSingle()
+
+  if (existingAgency) {
+    return makeRedirect(request, '/app')
+  }
+
+  // 4. No workspace/agency yet — new user flow
+  const { account_name, account_type, website_url } = user.user_metadata ?? {}
 
   // account_name missing (Google OAuth without pre-filled form) → collect it
   if (!account_name) {
@@ -70,11 +81,40 @@ async function handlePostAuth(
     return makeRedirect(request, onboardingPath)
   }
 
-  const workspaceQuota = account_type === 'solo' ? 1 : 3
+  const base = toSlug(account_name as string)
+
+  if (account_type === 'team') {
+    // Team accounts: create agency only — workspaces are for brands
+    const { data: takenAgencyRows } = await serviceClient
+      .from('agencies')
+      .select('slug')
+      .ilike('slug', `${base}%`)
+    const agencySlug = deduplicateSlug(base, takenAgencyRows?.map((r) => r.slug) ?? [])
+
+    let logoUrl: string | null = null
+    if (website_url) {
+      try {
+        const domain = new URL(website_url as string).hostname
+        logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+      } catch { /* invalid URL — ignore */ }
+    }
+
+    await serviceClient.from('agencies').insert({
+      name: account_name as string,
+      slug: agencySlug,
+      owner_id: user.id,
+      status: 'active',
+      ...(logoUrl ? { logo_url: logoUrl } : {}),
+    })
+
+    // Route through /app so the onboarding welcome survey fires for new team users
+    return makeRedirect(request, '/app')
+  }
+
+  // Solo: create workspace
   const trialStartedAt = new Date()
   const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
 
-  const base = toSlug(account_name as string)
   const { data: takenRows } = await serviceClient
     .from('workspaces')
     .select('slug')
@@ -90,8 +130,8 @@ async function handlePostAuth(
       plan: 'trial',
       trial_started_at: trialStartedAt.toISOString(),
       trial_ends_at: trialEndsAt.toISOString(),
-      account_type: account_type ?? 'team',
-      workspace_quota: workspaceQuota,
+      account_type: 'solo',
+      workspace_quota: 1,
     })
     .select('id')
     .single()
