@@ -27,15 +27,28 @@ async function handlePostAuth(
   const serviceClient = createServiceClient()
 
   // 1. Ensure public.users row always exists (DB trigger may fail silently)
+  // When a Google identity is linked, Supabase stores the avatar in identity_data
+  // but does NOT automatically merge it into user_metadata — so we do it here.
+  const googleIdentity = user.identities?.find((i) => i.provider === 'google')
+  const googleAvatarUrl = (googleIdentity?.identity_data as { avatar_url?: string } | undefined)?.avatar_url ?? null
+  const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? googleAvatarUrl
+
   await serviceClient.from('users').upsert(
     {
       id: user.id,
       email: user.email!,
       full_name: user.user_metadata?.full_name ?? null,
-      avatar_url: user.user_metadata?.avatar_url ?? null,
+      avatar_url: avatarUrl,
     },
     { onConflict: 'id', ignoreDuplicates: false }
   )
+
+  // Persist Google avatar into user_metadata so getUser() returns it on future calls
+  if (googleAvatarUrl && !user.user_metadata?.avatar_url) {
+    await serviceClient.auth.admin.updateUserById(user.id, {
+      user_metadata: { ...user.user_metadata, avatar_url: googleAvatarUrl },
+    })
+  }
 
   // 2. Platform admin: always ensure flag is set
   const adminEmail = process.env.ADMIN_EMAIL
