@@ -57,6 +57,40 @@ export default async function InvitePage({ params }: PageProps) {
 
   const workspace = invitation.workspaces as { name: string } | null
 
+  // Email mismatch — logged in as wrong account
+  if (user && user.email !== invitation.email) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm">
+          <div className="mb-6 text-center">
+            <div className="flex justify-center mb-4">
+              <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={180} height={40} priority />
+            </div>
+            <h1 className="font-display text-[22px] font-extrabold text-foreground mb-1">
+              Wrong account
+            </h1>
+            <p className="text-[13px] text-foreground-lighter">
+              This invitation was sent to{' '}
+              <strong className="text-foreground">{invitation.email}</strong>.
+            </p>
+          </div>
+          <div className="rounded-xl border border-border bg-background-surface p-6 shadow-sm flex flex-col gap-3">
+            <p className="text-[12px] text-foreground-lighter text-center">
+              You&apos;re signed in as <strong className="text-foreground">{user.email}</strong>.
+              Please sign out and sign in with the correct account to accept this invitation.
+            </p>
+            <Link
+              href={`/login?redirectTo=/invite/${token}`}
+              className="flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-[12px] font-semibold text-white transition-colors hover:bg-brand/90"
+            >
+              Sign in with correct account
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
