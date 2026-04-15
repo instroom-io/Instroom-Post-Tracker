@@ -7,6 +7,17 @@ export function createClient() {
   )
 }
 
+export async function linkGoogleAccount() {
+  const supabase = createClient()
+  const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`)
+  url.searchParams.set('next', '/account/settings')
+
+  await supabase.auth.linkIdentity({
+    provider: 'google',
+    options: { redirectTo: url.toString() },
+  })
+}
+
 export async function signInWithGoogle(
   redirectTo?: string,
   accountType?: 'solo' | 'team',

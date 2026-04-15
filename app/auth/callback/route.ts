@@ -55,7 +55,14 @@ async function handlePostAuth(
     .eq('role', 'owner')
     .maybeSingle()
 
+  // Honour an explicit next param (e.g. /account/settings after identity linking)
+  const returnTo = (() => {
+    const n = new URL(request.url).searchParams.get('next')
+    return n && n.startsWith('/') ? n : null
+  })()
+
   if (existingMember) {
+    if (returnTo) return makeRedirect(request, returnTo)
     const slug = (existingMember.workspaces as unknown as { slug: string }).slug
     return makeRedirect(request, `/${slug}/overview`)
   }
@@ -68,6 +75,7 @@ async function handlePostAuth(
     .maybeSingle()
 
   if (existingAgency) {
+    if (returnTo) return makeRedirect(request, returnTo)
     return makeRedirect(request, '/app')
   }
 

@@ -21,6 +21,7 @@ export default async function AccountSettingsPage() {
 
   const displayName = (user.user_metadata?.full_name as string | undefined) ?? user.email?.split('@')[0] ?? ''
   const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null
+  const googleLinked = user.identities?.some((i) => i.provider === 'google') ?? false
 
   return (
     <AccountSettingsForm
@@ -31,6 +32,7 @@ export default async function AccountSettingsPage() {
       email={user.email ?? ''}
       connectedEmail={connectedEmail}
       personalDriveFolderId={(profile as unknown as { personal_drive_folder_id: string | null } | null)?.personal_drive_folder_id ?? null}
+      googleLinked={googleLinked}
     />
   )
 }
