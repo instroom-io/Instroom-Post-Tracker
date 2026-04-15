@@ -55,7 +55,7 @@ export function baseEmail({ body, preheader = '' }: BaseEmailOptions): string {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding-bottom:28px;border-bottom:1px solid #F0F0F0;">
-                    <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;"><span style="color:#1FAE5B;">Instroom</span><span style="color:#171717;"> Post Tracker</span></span>
+                    <img src="${process.env.NEXT_PUBLIC_APP_URL}/POST_TRACKER.png" alt="Instroom Post Tracker" width="160" style="display:block;border:0;outline:none;text-decoration:none;max-width:160px;height:auto;" />
                   </td>
                 </tr>
               </table>

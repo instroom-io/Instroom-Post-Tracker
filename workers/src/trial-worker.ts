@@ -1,41 +1,60 @@
 // workers/src/trial-worker.ts
 import { createServiceClient } from './lib/supabase'
-import { sendEmail, escapeHtml } from './lib/email'
+import { sendEmail, escapeHtml, baseEmail, ctaButton, expiryNote } from './lib/email'
 
 function trialDaysRemaining(trialEndsAt: string | null): number {
   if (!trialEndsAt) return 0
   return Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
 }
 
-function trialReminder7Html(accountName: string): string {
-  return `
-    <p>Hi there,</p>
-    <p>Your Instroom free trial for <strong>${escapeHtml(accountName)}</strong> ends in <strong>7 days</strong>.</p>
-    <p>You still have full access to Drive downloads, EMV reporting, advanced analytics, and team collaboration.</p>
-    <p>Upgrade before your trial ends to keep these features:</p>
-    <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/upgrade" style="color:#16a34a;">View upgrade options →</a></p>
-    <p style="color:#888;font-size:12px;">This is your 7-day trial reminder.</p>
-  `
+function trialReminder7Html(accountName: string, upgradeUrl: string): string {
+  return baseEmail({
+    preheader: `Your Instroom trial for ${accountName} ends in 7 days — upgrade to keep full access.`,
+    body: `
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:800;color:#171717;letter-spacing:-0.5px;">Your trial ends in 7 days</h1>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Hi there,</p>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Your Instroom free trial for <strong>${escapeHtml(accountName)}</strong> ends in <strong>7 days</strong>.</p>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">You still have full access to:</p>
+      <ul style="margin:0 0 12px;padding-left:20px;font-size:15px;color:#404040;line-height:1.8;">
+        <li>Drive downloads</li>
+        <li>EMV reporting</li>
+        <li>Advanced analytics</li>
+        <li>Team collaboration</li>
+      </ul>
+      <p style="margin:0 0 4px;font-size:15px;color:#404040;line-height:1.6;">Upgrade before your trial ends to keep these features.</p>
+      ${ctaButton('View upgrade options', upgradeUrl)}
+      ${expiryNote('This is your 7-day trial reminder.')}
+    `,
+  })
 }
 
-function trialReminder2Html(accountName: string): string {
-  return `
-    <p>Hi there,</p>
-    <p>Just 2 days left in your Instroom trial for <strong>${escapeHtml(accountName)}</strong>.</p>
-    <p>After your trial ends, Drive downloads, EMV reporting, advanced analytics, and team invites will be locked.</p>
-    <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/upgrade" style="color:#16a34a;">Upgrade now to keep full access →</a></p>
-    <p style="color:#888;font-size:12px;">This is your 2-day trial reminder.</p>
-  `
+function trialReminder2Html(accountName: string, upgradeUrl: string): string {
+  return baseEmail({
+    preheader: `Only 2 days left in your Instroom trial for ${accountName} — upgrade now.`,
+    body: `
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:800;color:#171717;letter-spacing:-0.5px;">Only 2 days left in your trial</h1>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Hi there,</p>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Just <strong>2 days left</strong> in your Instroom trial for <strong>${escapeHtml(accountName)}</strong>.</p>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">After your trial ends, Drive downloads, EMV reporting, advanced analytics, and team invites will be locked.</p>
+      <p style="margin:0 0 4px;font-size:15px;color:#404040;line-height:1.6;">Upgrade now to keep full access without interruption.</p>
+      ${ctaButton('Upgrade now', upgradeUrl)}
+      ${expiryNote('This is your 2-day trial reminder.')}
+    `,
+  })
 }
 
-function trialEndedHtml(accountName: string): string {
-  return `
-    <p>Hi there,</p>
-    <p>Your Instroom free trial for <strong>${escapeHtml(accountName)}</strong> has ended.</p>
-    <p>Your account is now on the free plan. Core features (campaigns, influencers, post detection) remain active.</p>
-    <p>Upgrade to restore Drive downloads, EMV reporting, advanced analytics, and team collaboration:</p>
-    <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/upgrade" style="color:#16a34a;">View upgrade options →</a></p>
-  `
+function trialEndedHtml(accountName: string, upgradeUrl: string): string {
+  return baseEmail({
+    preheader: `Your Instroom trial for ${accountName} has ended — subscribe to restore full access.`,
+    body: `
+      <h1 style="margin:0 0 16px;font-size:22px;font-weight:800;color:#171717;letter-spacing:-0.5px;">Your trial has ended</h1>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Hi there,</p>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Your Instroom free trial for <strong>${escapeHtml(accountName)}</strong> has ended.</p>
+      <p style="margin:0 0 12px;font-size:15px;color:#404040;line-height:1.6;">Your account is now on the free plan. Core features (campaigns, influencers, post detection) remain active.</p>
+      <p style="margin:0 0 4px;font-size:15px;color:#404040;line-height:1.6;">Subscribe to restore Drive downloads, EMV reporting, advanced analytics, and team collaboration.</p>
+      ${ctaButton('View upgrade options', upgradeUrl)}
+    `,
+  })
 }
 
 async function processWorkspaces(
@@ -46,6 +65,7 @@ async function processWorkspaces(
     .select(`
       id,
       name,
+      slug,
       plan,
       trial_ends_at,
       trial_reminder_7_sent_at,
@@ -83,13 +103,14 @@ async function processWorkspaces(
       }
 
       const name = escapeHtml(row.name as string)
+      const upgradeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${row.slug}/upgrade`
 
       // Day 7 reminder
       if (days <= 7 && !row.trial_reminder_7_sent_at) {
         await sendEmail({
           to: ownerEmail,
           subject: 'Your Instroom trial ends in 7 days',
-          html: trialReminder7Html(name),
+          html: trialReminder7Html(name, upgradeUrl),
         })
         await supabase
           .from('workspaces')
@@ -104,7 +125,7 @@ async function processWorkspaces(
         await sendEmail({
           to: ownerEmail,
           subject: '2 days left in your Instroom trial',
-          html: trialReminder2Html(name),
+          html: trialReminder2Html(name, upgradeUrl),
         })
         await supabase
           .from('workspaces')
@@ -119,7 +140,7 @@ async function processWorkspaces(
         await sendEmail({
           to: ownerEmail,
           subject: 'Your Instroom trial has ended',
-          html: trialEndedHtml(name),
+          html: trialEndedHtml(name, upgradeUrl),
         })
         await supabase
           .from('workspaces')
