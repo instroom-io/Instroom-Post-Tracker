@@ -69,7 +69,6 @@ export async function createLemonSqueezyCheckout(
   const storeId = process.env.LEMONSQUEEZY_STORE_ID?.trim()
   if (!apiKey || !storeId) throw new Error('Lemon Squeezy env vars not configured')
 
-  console.log('[LS] apiKey length:', apiKey.length, 'storeId:', storeId, 'variantId:', variantId.trim())
 
   // Only send customPrice when extra workspaces are added (requires "Allow custom prices"
   // in LS product settings). Base variant prices are already correct for standard plans.
