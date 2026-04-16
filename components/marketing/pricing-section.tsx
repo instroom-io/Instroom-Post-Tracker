@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Check } from '@phosphor-icons/react'
 import { PRICING } from '@/lib/billing/pricing'
+import type { BillingPeriod } from '@/lib/billing/pricing'
 
 const containerVariants = {
   hidden: {},
@@ -32,10 +33,10 @@ const TEAM_FEATURES = [
 ]
 
 export function PricingSection() {
-  const [annual, setAnnual] = useState(false)
+  const [period, setPeriod] = useState<BillingPeriod>('monthly')
 
-  const soloPrice = annual ? PRICING.solo.annual : PRICING.solo.monthly
-  const teamPrice = annual ? PRICING.team.annual : PRICING.team.monthly
+  const soloPrice = PRICING.solo[period]
+  const teamPrice = PRICING.team[period]
 
   return (
     <section id="pricing" className="py-20">
@@ -62,20 +63,26 @@ export function PricingSection() {
 
             {/* Billing period toggle */}
             <div className="mt-6 flex items-center justify-center gap-3">
-              <span className={`text-[13px] font-medium ${!annual ? 'text-foreground' : 'text-foreground-muted'}`}>
-                Monthly
-              </span>
               <button
-                onClick={() => setAnnual(!annual)}
-                className={`relative h-6 w-11 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${annual ? 'bg-brand' : 'bg-background-muted border border-border'}`}
-                aria-label="Toggle annual billing"
+                onClick={() => setPeriod('monthly')}
+                className={`text-[13px] font-medium transition-colors ${period === 'monthly' ? 'text-foreground' : 'text-foreground-muted hover:text-foreground'}`}
               >
-                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${annual ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                Monthly
               </button>
-              <span className={`flex items-center gap-1.5 text-[13px] font-medium ${annual ? 'text-foreground' : 'text-foreground-muted'}`}>
+              <button
+                onClick={() => setPeriod(period === 'monthly' ? 'annual' : 'monthly')}
+                className={`relative h-6 w-11 overflow-hidden rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${period === 'annual' ? 'bg-brand' : 'bg-border-strong'}`}
+                aria-label="Toggle billing period"
+              >
+                <span className={`absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${period === 'annual' ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+              </button>
+              <button
+                onClick={() => setPeriod('annual')}
+                className={`flex items-center gap-1.5 text-[13px] font-medium transition-colors ${period === 'annual' ? 'text-foreground' : 'text-foreground-muted hover:text-foreground'}`}
+              >
                 Annual
                 <span className="rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">Save ~21%</span>
-              </span>
+              </button>
             </div>
           </motion.div>
 
@@ -95,7 +102,7 @@ export function PricingSection() {
                 ${soloPrice}
               </div>
               <p className="mb-6 text-[0.8rem] text-foreground-lighter">
-                per month{annual ? ', billed annually' : ''}
+                per month{period === 'annual' ? ', billed annually' : ''}
               </p>
 
               <ul className="mb-7 space-y-0">
@@ -137,7 +144,7 @@ export function PricingSection() {
                 ${teamPrice}
               </div>
               <p className="mb-6 text-[0.8rem] text-white/50">
-                per month{annual ? ', billed annually' : ''}
+                per month{period === 'annual' ? ', billed annually' : ''}
               </p>
 
               <ul className="mb-7 space-y-0">
