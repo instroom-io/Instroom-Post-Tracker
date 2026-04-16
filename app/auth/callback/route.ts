@@ -78,52 +78,62 @@ async function handlePostAuth(
   })()
 
   // 3. Returning team user who owns an agency → redirect to team dashboard
-  const { data: existingAgency } = await serviceClient
+  // Use limit(1) not maybeSingle() — maybeSingle() errors (returns null) if multiple rows exist,
+  // which would incorrectly fall through to the new-user creation path.
+  const { data: agencyRows } = await serviceClient
     .from('agencies')
     .select('slug')
     .eq('owner_id', user.id)
-    .maybeSingle()
+    .limit(1)
+
+  const existingAgency = agencyRows?.[0] ?? null
 
   if (existingAgency) {
-    if (returnTo) return makeRedirect(request, returnTo)
+    if (returnTo && !returnTo.startsWith('/app')) return makeRedirect(request, returnTo)
     return makeRedirect(request, `/agency/${existingAgency.slug}/dashboard`)
   }
 
   // 4. Returning solo user who owns a workspace → redirect there directly
-  const { data: existingMember } = await serviceClient
+  // limit(1) + array index: a team owner who is also a brand workspace owner can have
+  // multiple owner rows — maybeSingle() would silently return null, falling through to
+  // new workspace creation. The agency check above catches team owners first, so this
+  // path is only reached by true solo users, but limit(1) is safer regardless.
+  const { data: ownerRows } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
     .eq('user_id', user.id)
     .eq('role', 'owner')
-    .maybeSingle()
+    .order('joined_at', { ascending: false })
+    .limit(1)
+
+  const existingMember = ownerRows?.[0] ?? null
 
   if (existingMember) {
-    if (returnTo) return makeRedirect(request, returnTo)
+    if (returnTo && !returnTo.startsWith('/app')) return makeRedirect(request, returnTo)
     const slug = (existingMember.workspaces as unknown as { slug: string }).slug
     return makeRedirect(request, `/${slug}/overview`)
   }
 
-  // Returning invited member (non-owner role) — already belongs to a workspace,
-  // must not create a new one (e.g. when linking Google OAuth from account settings).
-  const { data: existingAnyMembership } = await serviceClient
+  // 5. Returning invited member (non-owner role) — already belongs to a workspace.
+  // /invite/ check comes FIRST so an existing member clicking a new invite link is
+  // correctly routed to the invite page rather than bounced to /app.
+  if (returnTo?.startsWith('/invite/')) {
+    return makeRedirect(request, returnTo)
+  }
+
+  const { data: membershipRows } = await serviceClient
     .from('workspace_members')
     .select('workspace_id')
     .eq('user_id', user.id)
-    .maybeSingle()
+    .limit(1)
+
+  const existingAnyMembership = membershipRows?.[0] ?? null
 
   if (existingAnyMembership) {
-    if (returnTo) return makeRedirect(request, returnTo)
     return makeRedirect(request, '/app')
   }
 
   // 6. No agency/workspace yet — new user signup flow
-
-  // Invited members don't need their own workspace — send them to accept the invite.
-  // This must run before workspace/agency creation so we don't create an unwanted entity
-  // for someone who is only here to join an existing workspace.
-  if (returnTo?.startsWith('/invite/')) {
-    return makeRedirect(request, returnTo)
-  }
 
   const { account_name: metaAccountName, website_url } = user.user_metadata ?? {}
 
@@ -165,7 +175,7 @@ async function handlePostAuth(
       .from('agencies').select('slug').ilike('slug', `${base}%`)
     const agencySlug = deduplicateSlug(base, takenAgencyRows?.map((r) => r.slug) ?? [])
 
-    await serviceClient.from('agencies').insert({
+    const { error: agencyInsertError } = await serviceClient.from('agencies').insert({
       name: account_name as string,
       slug: agencySlug,
       owner_id: user.id,
@@ -173,6 +183,7 @@ async function handlePostAuth(
       ...(logoUrl ? { logo_url: logoUrl } : {}),
     })
 
+    if (agencyInsertError) return makeRedirect(request, '/onboarding/name?type=team')
     return makeRedirect(request, `/agency/${agencySlug}/dashboard`)
   }
 

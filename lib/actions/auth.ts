@@ -187,15 +187,17 @@ export async function saveOnboardingName(
 
   // Team account → create agency record (the "team dashboard" entity)
   if (accountType === 'team') {
-    const { data: existingAgency } = await serviceClient
-      .from('agencies').select('slug').eq('owner_id', user.id).maybeSingle()
+    // Use limit(1) not maybeSingle() — maybeSingle() errors if multiple rows exist
+    const { data: existingAgencyRows } = await serviceClient
+      .from('agencies').select('slug').eq('owner_id', user.id).limit(1)
+    const existingAgency = existingAgencyRows?.[0] ?? null
     if (existingAgency) return { redirectTo: `/agency/${existingAgency.slug}/dashboard` }
 
     const { data: takenRows } = await serviceClient
       .from('agencies').select('slug').ilike('slug', `${base}%`)
     const slug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
 
-    await serviceClient.from('agencies').insert({
+    const { error: agencyInsertError } = await serviceClient.from('agencies').insert({
       name: nameParsed.data,
       slug,
       owner_id: user.id,
@@ -203,16 +205,19 @@ export async function saveOnboardingName(
       ...(logoUrl ? { logo_url: logoUrl } : {}),
     })
 
+    if (agencyInsertError) return { error: 'Failed to create team account. Please try again.' }
     return { redirectTo: `/agency/${slug}/dashboard` }
   }
 
   // Solo account → create workspace (idempotent — handles re-submission)
-  const { data: existingMember } = await serviceClient
+  // Use limit(1) not maybeSingle() — maybeSingle() errors if multiple rows exist
+  const { data: existingMemberRows } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
     .eq('user_id', user.id)
     .eq('role', 'owner')
-    .maybeSingle()
+    .limit(1)
+  const existingMember = existingMemberRows?.[0] ?? null
 
   if (existingMember) {
     const s = (existingMember.workspaces as unknown as { slug: string }).slug

@@ -17,12 +17,14 @@ export default async function AppPage() {
   if (profile?.is_platform_admin) redirect('/admin')
 
   // Case 2: Team/agency owner
-  const { data: agency } = await supabase
+  // Use limit(1) not maybeSingle() — maybeSingle() errors if multiple rows exist
+  const { data: agencyRows } = await supabase
     .from('agencies')
     .select('slug')
     .eq('owner_id', user.id)
-    .maybeSingle()
+    .limit(1)
 
+  const agency = agencyRows?.[0] ?? null
   if (agency) redirect(`/agency/${agency.slug}/dashboard`)
 
   // Case 3: Workspace member
