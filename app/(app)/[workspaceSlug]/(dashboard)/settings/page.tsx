@@ -11,7 +11,7 @@ import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
 import { MembersSkeleton } from '@/components/dashboard/members-skeleton'
 import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
 import { computeDaysRemaining } from '@/lib/billing/trial-state'
-import type { WorkspaceRole, Workspace, PlanType } from '@/lib/types'
+import type { WorkspaceRole, Workspace, PlanType, WorkspaceJoinRequest } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
@@ -21,28 +21,44 @@ interface PageProps {
 
 async function MembersSection({
   workspaceId,
+  workspaceSlug,
   currentRole,
   canEdit,
   userId,
 }: {
   workspaceId: string
+  workspaceSlug: string
   currentRole: WorkspaceRole
   canEdit: boolean
   userId: string
 }) {
   const supabase = await createClient()
-  const { data: members } = await supabase
-    .from('workspace_members')
-    .select('id, user_id, role, user:users!workspace_members_user_id_fkey(full_name, email, avatar_url)')
-    .eq('workspace_id', workspaceId)
-    .order('joined_at')
+  const isOwner = currentRole === 'owner'
 
-  const membersData = (members ?? []).map((m) => ({
+  const [membersResult, joinRequestsResult] = await Promise.all([
+    supabase
+      .from('workspace_members')
+      .select('id, user_id, role, user:users!workspace_members_user_id_fkey(full_name, email, avatar_url)')
+      .eq('workspace_id', workspaceId)
+      .order('joined_at'),
+    isOwner
+      ? supabase
+          .from('workspace_join_requests')
+          .select('id, requester_id, status, requested_at, requester:users!workspace_join_requests_requester_id_fkey(full_name, email, avatar_url)')
+          .eq('workspace_id', workspaceId)
+          .eq('status', 'pending')
+          .order('requested_at', { ascending: true })
+      : Promise.resolve({ data: [] as WorkspaceJoinRequest[] }),
+  ])
+
+  const membersData = (membersResult.data ?? []).map((m) => ({
     id: m.id,
     user_id: m.user_id,
     role: m.role,
     user: Array.isArray(m.user) ? (m.user[0] ?? null) : m.user,
   }))
+
+  const joinRequests = (joinRequestsResult.data ?? []) as WorkspaceJoinRequest[]
 
   return (
     <div className="rounded-xl border border-border bg-background-surface shadow-sm">
@@ -51,6 +67,11 @@ async function MembersSection({
           <h2 className="font-display text-[15px] font-bold text-foreground">Members</h2>
           <p className="mt-0.5 text-[12px] text-foreground-lighter">
             {membersData.length} member{membersData.length !== 1 ? 's' : ''}
+            {joinRequests.length > 0 && (
+              <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                {joinRequests.length} pending
+              </span>
+            )}
           </p>
         </div>
         {canEdit && <InviteMemberDialog workspaceId={workspaceId} />}
@@ -60,6 +81,8 @@ async function MembersSection({
         currentUserId={userId}
         currentRole={currentRole}
         workspaceId={workspaceId}
+        workspaceSlug={workspaceSlug}
+        joinRequests={joinRequests}
       />
     </div>
   )
@@ -189,6 +212,7 @@ export default async function SettingsPage({ params }: PageProps) {
           <Suspense fallback={<MembersSkeleton />}>
             <MembersSection
               workspaceId={workspace.id}
+              workspaceSlug={workspaceSlug}
               currentRole={currentRole}
               canEdit={canEdit}
               userId={user.id}

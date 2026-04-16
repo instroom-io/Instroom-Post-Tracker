@@ -217,3 +217,20 @@ export interface PostWithDetails extends Post {
   campaign: Campaign
   metrics: PostMetrics | undefined
 }
+
+export type WorkspaceJoinRequestStatus = 'pending' | 'approved' | 'denied'
+
+export interface WorkspaceJoinRequest {
+  id: string
+  workspace_id: string
+  requester_id: string
+  status: WorkspaceJoinRequestStatus
+  requested_at: string
+  reviewed_at: string | null
+  reviewed_by: string | null
+  requester?: {
+    full_name: string | null
+    email: string
+    avatar_url: string | null
+  } | null
+}

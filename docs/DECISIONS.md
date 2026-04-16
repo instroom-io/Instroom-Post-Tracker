@@ -207,7 +207,7 @@ Implication: The download worker must load the workspace's drive_connection_type
 
 ---
 
-D-015 · Workspace creation is agency-triggered via approval flow ⚠️ REVISED
+D-015 · Workspace creation is agency-triggered via approval flow ⚠️ SUPERSEDED BY D-024
 Decision: Workspaces are auto-created when the agency approves a brand's connection request submitted via the public /request-access form. The manual /onboarding form is for local development only and must return 404 or redirect in production.
 Replaces: Original D-015 which described workspace creation via an agency-generated invite link (/onboard/[token]).
 Rationale:
@@ -231,7 +231,7 @@ D-016 · Brand onboarding tokens are single-use and expire in 30 days
 ⚠️ SUPERSEDED by D-015 revision
 This decision is no longer applicable. The token-based onboarding system has been replaced by the brand request form + agency approval flow. There are no onboarding tokens to expire or consume.
 
-D-017 · Brands have portal-only access ⚠️ REVISED
+D-017 · Brands have portal-only access ⚠️ SUPERSEDED BY D-024
 Decision: Brands can log in but only access the read-only `/[workspaceSlug]/portal` route. They cannot access the full agency dashboard (`/(dashboard)/` route group).
 Replaces: Original D-017 which stated brands never have login access.
 Rationale:
@@ -248,7 +248,7 @@ Implication:
 The viewer role in workspace_role enum still exists for internal agency staff only
 
 
-D-018 · Brand connection initiated by brand, approved by agency ✨ NEW
+D-018 · Brand connection initiated by brand, approved by agency ⚠️ SUPERSEDED BY D-024
 Decision: The flow for onboarding a new brand client is: brand submits /request-access form → agency reviews in /agency/requests → agency approves → workspace auto-created.
 Rationale:
 
@@ -285,7 +285,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON_B64 env var is removed — replaced by per-workspace
 
 ---
 
-## D-020 · Workspace auto-created on agency approval, not on brand confirmation ✨ NEW
+## D-020 · Workspace auto-created on agency approval, not on brand confirmation ⚠️ SUPERSEDED BY D-024
 
 **Decision:** The workspace is auto-created the moment the agency clicks Approve on the brand request. The brand's onboarding confirmation step (`/onboard/[token]`) only creates the `workspace_members(role='brand')` row — it does not create the workspace.
 
@@ -298,7 +298,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON_B64 env var is removed — replaced by per-workspace
 
 ---
 
-## D-021 · `role='brand'` is portal-only ✨ NEW
+## D-021 · `role='brand'` is portal-only ⚠️ SUPERSEDED BY D-024
 
 **Decision:** Users with `workspace_members.role = 'brand'` can only access the `/(portal)/portal` route group. They are explicitly blocked from all `/(dashboard)/` routes.
 
@@ -311,7 +311,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON_B64 env var is removed — replaced by per-workspace
 
 ---
 
-## D-022 · `onboard_token` stored on `brand_requests`, not a separate table ✨ NEW
+## D-022 · `onboard_token` stored on `brand_requests`, not a separate table ⚠️ SUPERSEDED BY D-024
 
 **Decision:** The brand onboarding token fields (`onboard_token`, `onboard_token_expires_at`, `onboard_accepted_at`) are columns on `brand_requests`, not in a separate `brand_onboard_tokens` table.
 
@@ -324,7 +324,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON_B64 env var is removed — replaced by per-workspace
 
 ---
 
-## D-023 · `approveAgencyRequest` falls back to current admin as owner ✨ NEW
+## D-023 · `approveAgencyRequest` falls back to current admin as owner ⚠️ SUPERSEDED BY D-024
 
 **Decision:** When the platform admin approves an agency request, if the agency contact email does not match an existing `auth.users` account, the approving platform admin becomes the temporary `owner_id` of the agency.
 

@@ -17,7 +17,7 @@
 |-------|---------|
 | `users` | Public user profiles (mirrors `auth.users`); `is_platform_admin` flag for Instroom admins |
 | `agencies` | **Deprecated in v2.0** — kept for data migration safety, no longer used in production |
-| `agency_requests` | **Deprecated in v2.0** |
+| `agency_requests` | **DROPPED** — migration 0036 (04/2026) |
 | `brand_invites` | **Deprecated in v2.0** |
 | `workspaces` | One per account/brand — billing + isolation unit; owns `account_type`, `workspace_quota`, and `plan` |
 | `workspace_members` | User ↔ workspace with role (owner \| manager \| viewer; legacy: admin \| editor \| brand) |
@@ -31,9 +31,11 @@
 | `post_metrics` | Frozen 7-day analytics snapshot per post |
 | `emv_config` | CPM rates per platform per workspace |
 | `retry_queue` | Async job queue for downloads + metrics fetches |
+| `workspace_join_requests` | Pending/approved/denied join requests from shareable link (Path B) |
 
 > **Deprecated tables (v2.0):**
-> `agencies`, `agency_requests`, and `brand_invites` are no longer used in production code. They remain in the DB for data migration safety and will be dropped in a future cleanup migration.
+> `agencies` and `brand_invites` are no longer used in production code. They remain in the DB for data migration safety.
+> `agency_requests` was **DROPPED** in migration 0036 (04/2026).
 > `brands` and `brand_invitations` (from the original Flow 0 design) are also unused — same treatment.
 
 ---
@@ -283,6 +285,24 @@ scheduled_at  timestamptz not null default now()
 processed_at  timestamptz
 error         text
 ```
+
+### `workspace_join_requests`
+Added in migration `0037_workspace_join_requests.sql` (04/2026).
+
+```sql
+id            uuid primary key default gen_random_uuid()
+workspace_id  uuid not null references workspaces on delete cascade
+requester_id  uuid not null references users on delete cascade
+status        workspace_join_request_status not null default 'pending'  -- enum: pending|approved|denied
+requested_at  timestamptz not null default now()
+reviewed_at   timestamptz
+reviewed_by   uuid references users
+unique (workspace_id, requester_id)
+```
+
+> **Usage:** Supports Path B workspace access — anyone with the join link (`/join/[workspaceSlug]`) can request access. Workspace Admin reviews in Settings → Members and approves (adds as Manager) or denies. A previously denied user can re-request.
+>
+> **RLS:** Requester sees their own rows; workspace owner sees all pending requests for their workspaces.
 
 ---
 

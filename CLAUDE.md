@@ -16,9 +16,9 @@ Instroom Post Tracker is a **multi-tenant B2B SaaS** for influencer marketing ag
 5. **Calculates EMV** (Estimated Media Value) using configurable CPM rates per platform
 6. **Tracks Instagram collab tag** status per post
 
-**3-Tier Hierarchy:** Instroom platform (super admin) → **Agencies** → brand **workspaces** → many **campaigns** → many **influencers + posts**.
+**2-Tier Hierarchy:** Instroom platform (super admin) → **workspaces** → many **campaigns** → many **influencers + posts**.
 
-**Workspace creation:** Agency invites a brand via the **Invite Brand** dialog → brand receives an emailed link (or the agency copies it manually) → brand completes a public form at `/brand-invite/[token]` (no auth required) → workspace is auto-created with the agency as owner. The manual `/onboarding` page exists **for local development only** and must be disabled in production.
+**Workspace creation:** Users sign up directly at `/signup`, choosing Solo or Team. The workspace is auto-created after email verification. Additional workspaces can be created from the workspace settings page (Team accounts only). The manual `/onboarding` page exists **for local development only** and must be disabled in production.
 
 ---
 
@@ -165,10 +165,7 @@ instroom/
 │   ├── layout.tsx                         ← Root: fonts (Inter + Manrope), Providers
 │   ├── (marketing)/                       ← SSG — no auth, no sidebar
 │   │   ├── layout.tsx                     ← Nav + footer only
-│   │   ├── page.tsx                       ← Landing page
-│   │   └── request-access/
-│   │       ├── page.tsx                   ← Public form: Brand tab + Agency tab
-│   │       └── request-access-tabs.tsx    ← Client component — tab switcher + forms
+│   │   └── page.tsx                       ← Landing page
 │   ├── (auth)/                            ← Auth pages — minimal layout
 │   │   ├── login/page.tsx
 │   │   ├── signup/page.tsx
@@ -202,9 +199,8 @@ instroom/
 │   │   ├── auth/google-drive/callback/route.ts  ← Google OAuth callback
 │   │   ├── proxy-image/route.ts                 ← Thumbnail proxy
 │   │   └── proxy-drive/route.ts                 ← Drive file proxy
-│   ├── app/page.tsx                       ← Redirect: admin→/admin, agency→/agency/[slug]/dashboard,
-│   │                                         member→/[slug]/overview, else→/no-access
-│   ├── brand-invite/[token]/page.tsx      ← Public brand onboard form (no auth required)
+│   ├── app/page.tsx                       ← Redirect: admin→/admin, member→/[slug]/overview, else→/no-access
+│   ├── join/[workspaceSlug]/page.tsx      ← Public join request page (Path B — shareable link)
 │   ├── invite/[token]/page.tsx            ← Public invite acceptance (team members)
 │   └── onboarding/page.tsx               ← DEV ONLY: Manual workspace creation (disable in production)
 │
@@ -226,7 +222,7 @@ instroom/
 │   │   └── client.ts                     ← createBrowserClient()
 │   ├── actions/                          ← Server Actions — one file per domain
 │   │   ├── auth.ts
-│   │   ├── agencies.ts                   ← submitAgencyRequest, approveAgencyRequest, rejectAgencyRequest, inviteBrand, acceptBrandInvite, getAgencies, getActiveAgenciesPublic
+│   │   ├── agencies.ts                   ← inviteBrand, acceptBrandInvite, getAgencies
 │   │   ├── workspace.ts
 │   │   ├── campaigns.ts
 │   │   ├── influencers.ts

@@ -58,16 +58,20 @@
 - Blocks download worker until rights granted
 - Optimistic UI with `useOptimistic`
 
-### Phase 15 — Multi-Agency Platform (core built; portal + requests page pending)
-- 3-tier hierarchy: Instroom (super admin) → Agencies → Brand workspaces
-- **Admin routes:** `/admin`, `/admin/agencies`, `/admin/agencies/[agencySlug]`
-- **Agency routes built:** `/agency/[slug]/dashboard`, `/brands`, `/settings`
-- **Agency routes missing:** `/requests` (brand request queue for agency owners — see backlog)
-- **Brand request flow:** `/request-access` (Brand tab) → agency approves → workspace auto-created → brand receives onboarding email
-- **Agency request flow:** `/request-access` (Agency tab) → Instroom admin approves → agency owner gets access
-- **Email flows:** brand request → agency notification email; approval → brand confirmation email with onboarding link; team invite → invitation email (SendGrid)
-- DB migration `0011_multi_agency_platform.sql`: `agencies`, `agency_requests`, `is_platform_admin`, `agency_id` FKs, brand role
-- **Not built:** brand portal (`/[slug]/portal`) — see backlog
+### Phase 15 — Multi-Agency Platform (REMOVED in v2.0)
+- 3-tier hierarchy replaced by 2-tier self-serve model (see D-024)
+- **Admin routes kept:** `/admin`, `/admin/agencies` (platform admin workspace management)
+- **Agency routes deprecated:** `/agency/[slug]/*` routes (no longer active)
+- **Removed:** `/request-access` page, `agency_requests` table (dropped in migration 0036), brand portal
+- DB migration `0011_multi_agency_platform.sql`: historical record only
+
+### Phase 17 — Shared Workspace Path B (Join Request Flow)
+- Shareable link `/join/[workspaceSlug]` — public page, no auth required to view
+- Logged-in users can request access; Admin receives email notification
+- Settings → Members shows pending requests with Approve / Deny buttons
+- Approve → adds member as Manager + sends confirmation email
+- Deny → marks denied + sends email to requester
+- DB: `workspace_join_requests` table + RLS (migration 0037)
 
 ### Phase 16 — Rate Limiting
 - Hybrid Edge + per-surface rate limiting using Upstash Redis (`@upstash/ratelimit`)
@@ -131,13 +135,9 @@ The brand onboarding confirmation page (`/onboard/[token]`) is absent from the `
 
 ## 🟡 Feature Backlog (post-launch)
 
-### Phase 11 — Brand Portal
+### Phase 11 — Brand Portal (REMOVED — role='brand' dropped in v2.0)
 
-No portal route exists. The `/(portal)/portal` route group was never created and the redesigned `/[slug]/portal` path was never built either. Brands who complete onboarding have nowhere to land.
-
-- [ ] Create `app/(app)/[workspaceSlug]/(portal)/portal/page.tsx` — read-only view for `role='brand'` members
-- [ ] Brand portal layout: no sidebar, Drive status banner, read-only post list
-- [ ] Confirm portal path is auth-gated correctly in `proxy.ts`
+The brand portal and `role='brand'` were removed in v2.0. Members now join as Manager or Viewer via invite or join request. This backlog item is no longer applicable.
 
 ### Phase 14 — Google Drive OAuth per Brand Workspace
 
@@ -150,11 +150,9 @@ Schema columns exist (`drive_oauth_token`, `drive_connection_type`, `drive_folde
 - [ ] Update download worker to use workspace Drive token
 - [ ] `components/settings/drive-connection-panel.tsx` — UI for connecting Drive
 
-### Phase 15 — Agency Request Queue
+### Phase 15 — Agency Request Queue (REMOVED)
 
-The brand request queue for agency owners was not built.
-
-- [ ] `app/agency/[agencySlug]/requests/page.tsx` — brand request queue (approve / reject)
+Removed in v2.0. The agency/brand approval flow was replaced by self-serve signup. No longer applicable.
 
 ### UI Polish
 

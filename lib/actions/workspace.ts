@@ -15,6 +15,9 @@ import { canUseFeature } from '@/lib/utils/plan'
 import type { PlanType } from '@/lib/utils/plan'
 import { sendEmail, escapeHtml } from '@/lib/email'
 import { teamInviteEmail } from '@/lib/email/templates/team-invite'
+import { joinRequestReceivedEmail } from '@/lib/email/templates/join-request-received'
+import { joinRequestApprovedEmail } from '@/lib/email/templates/join-request-approved'
+import { joinRequestDeniedEmail } from '@/lib/email/templates/join-request-denied'
 import type { WorkspaceRole } from '@/lib/types'
 
 export async function createWorkspace(
@@ -462,6 +465,250 @@ export async function updateWorkspaceStorageFolder(
     .eq('id', workspaceId)
 
   if (error) return { error: 'Failed to update storage folder.' }
+
+  revalidatePath('/', 'layout')
+}
+
+// ─── Shared Workspace Path B — join request flow ──────────────────────────────
+
+export async function requestWorkspaceAccess(
+  workspaceId: string
+): Promise<{ error: string } | { success: true }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You must be signed in to request access.' }
+
+  // Use service client — requester is not yet a member, so RLS would block workspace_members reads
+  const serviceClient = createServiceClient()
+
+  // Check not already a member
+  const { data: existingMember } = await serviceClient
+    .from('workspace_members')
+    .select('id')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (existingMember) return { error: 'You are already a member of this workspace.' }
+
+  // Check for existing request
+  const { data: existingRequest } = await serviceClient
+    .from('workspace_join_requests')
+    .select('id, status')
+    .eq('workspace_id', workspaceId)
+    .eq('requester_id', user.id)
+    .maybeSingle()
+
+  if (existingRequest) {
+    if (existingRequest.status === 'pending') {
+      return { error: 'Your request is already pending review.' }
+    }
+    // Previously denied — allow re-request by resetting to pending
+    const { error: updateError } = await serviceClient
+      .from('workspace_join_requests')
+      .update({
+        status: 'pending',
+        requested_at: new Date().toISOString(),
+        reviewed_at: null,
+        reviewed_by: null,
+      })
+      .eq('id', existingRequest.id)
+    if (updateError) return { error: 'Failed to submit request.' }
+  } else {
+    const { error: insertError } = await serviceClient
+      .from('workspace_join_requests')
+      .insert({ workspace_id: workspaceId, requester_id: user.id })
+    if (insertError) return { error: 'Failed to submit request.' }
+  }
+
+  // Fetch workspace name + owner email to send notification
+  const [{ data: workspace }, { data: ownerMember }, { data: requesterProfile }] = await Promise.all([
+    serviceClient.from('workspaces').select('name, slug').eq('id', workspaceId).single(),
+    serviceClient
+      .from('workspace_members')
+      .select('user:users!workspace_members_user_id_fkey(email, full_name)')
+      .eq('workspace_id', workspaceId)
+      .eq('role', 'owner')
+      .single(),
+    serviceClient.from('users').select('full_name, email').eq('id', user.id).single(),
+  ])
+
+  const rawOwnerUser = ownerMember?.user
+  const ownerUser = (Array.isArray(rawOwnerUser) ? (rawOwnerUser[0] ?? null) : rawOwnerUser) as { email: string; full_name: string | null } | null
+  const requesterName =
+    requesterProfile?.full_name?.trim() ||
+    user.email?.split('@')[0] ||
+    'Someone'
+  const requesterEmail = requesterProfile?.email ?? user.email ?? ''
+
+  if (ownerUser?.email && workspace) {
+    try {
+      await sendEmail({
+        to: ownerUser.email,
+        subject: `${escapeHtml(requesterName)} requested access to ${escapeHtml(workspace.name)}`,
+        html: joinRequestReceivedEmail({
+          workspaceName: workspace.name,
+          workspaceSlug: workspace.slug,
+          requesterName,
+          requesterEmail,
+          settingsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/${workspace.slug}/settings`,
+        }),
+      })
+    } catch (err) {
+      console.error('[email] Failed to send join request received email:', err)
+    }
+  }
+
+  return { success: true }
+}
+
+export async function approveJoinRequest(
+  requestId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const serviceClient = createServiceClient()
+
+  // Fetch the request
+  const { data: request } = await serviceClient
+    .from('workspace_join_requests')
+    .select('workspace_id, requester_id, status')
+    .eq('id', requestId)
+    .single()
+
+  if (!request) return { error: 'Request not found.' }
+  if (request.status !== 'pending') return { error: 'This request has already been reviewed.' }
+
+  // Verify caller is the workspace owner
+  const { data: callerMember } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', request.workspace_id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!callerMember || callerMember.role !== 'owner') {
+    return { error: 'Only the workspace Admin can approve requests.' }
+  }
+
+  // Add member with manager role
+  const { error: memberError } = await serviceClient
+    .from('workspace_members')
+    .insert({
+      workspace_id: request.workspace_id,
+      user_id: request.requester_id,
+      role: 'manager' as WorkspaceRole,
+      invited_by: user.id,
+    })
+
+  if (memberError) {
+    if (memberError.code === '23505') {
+      // Already a member — still mark as approved
+    } else {
+      return { error: 'Failed to add member.' }
+    }
+  }
+
+  // Mark request approved
+  await serviceClient
+    .from('workspace_join_requests')
+    .update({
+      status: 'approved',
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.id,
+    })
+    .eq('id', requestId)
+
+  // Send approval email to requester
+  const [{ data: workspace }, { data: requesterProfile }] = await Promise.all([
+    serviceClient.from('workspaces').select('name, slug').eq('id', request.workspace_id).single(),
+    serviceClient.from('users').select('email, full_name').eq('id', request.requester_id).single(),
+  ])
+
+  if (requesterProfile?.email && workspace) {
+    try {
+      await sendEmail({
+        to: requesterProfile.email,
+        subject: `You've been added to ${escapeHtml(workspace.name)} on Instroom`,
+        html: joinRequestApprovedEmail({
+          workspaceName: workspace.name,
+          workspaceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/${workspace.slug}/overview`,
+        }),
+      })
+    } catch (err) {
+      console.error('[email] Failed to send join request approved email:', err)
+    }
+  }
+
+  revalidatePath('/', 'layout')
+}
+
+export async function denyJoinRequest(
+  requestId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const serviceClient = createServiceClient()
+
+  // Fetch the request
+  const { data: request } = await serviceClient
+    .from('workspace_join_requests')
+    .select('workspace_id, requester_id, status')
+    .eq('id', requestId)
+    .single()
+
+  if (!request) return { error: 'Request not found.' }
+  if (request.status !== 'pending') return { error: 'This request has already been reviewed.' }
+
+  // Verify caller is the workspace owner
+  const { data: callerMember } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', request.workspace_id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!callerMember || callerMember.role !== 'owner') {
+    return { error: 'Only the workspace Admin can deny requests.' }
+  }
+
+  // Mark request denied
+  await serviceClient
+    .from('workspace_join_requests')
+    .update({
+      status: 'denied',
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.id,
+    })
+    .eq('id', requestId)
+
+  // Send denial email to requester
+  const [{ data: workspace }, { data: requesterProfile }] = await Promise.all([
+    serviceClient.from('workspaces').select('name').eq('id', request.workspace_id).single(),
+    serviceClient.from('users').select('email').eq('id', request.requester_id).single(),
+  ])
+
+  if (requesterProfile?.email && workspace) {
+    try {
+      await sendEmail({
+        to: requesterProfile.email,
+        subject: `Your request to join ${escapeHtml(workspace.name)} was not approved`,
+        html: joinRequestDeniedEmail({ workspaceName: workspace.name }),
+      })
+    } catch (err) {
+      console.error('[email] Failed to send join request denied email:', err)
+    }
+  }
 
   revalidatePath('/', 'layout')
 }
