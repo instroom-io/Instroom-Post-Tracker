@@ -155,7 +155,7 @@ export function UpgradeClient({
         </button>
         <button
           onClick={() => setPeriod(period === 'monthly' ? 'annual' : 'monthly')}
-          className={`relative h-6 w-11 overflow-hidden rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${period === 'annual' ? 'bg-brand' : 'bg-background-muted border border-border'}`}
+          className={`relative h-6 w-11 overflow-hidden rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${period === 'annual' ? 'bg-brand' : 'bg-border-strong'}`}
           aria-label="Toggle billing period"
         >
           <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${period === 'annual' ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
