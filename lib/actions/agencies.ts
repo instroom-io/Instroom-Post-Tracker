@@ -136,6 +136,9 @@ export async function acceptBrandInvite(
       slug,
       agency_id: invite.agency_id,
       logo_url,
+      plan: 'free',        // Brand workspaces never start a trial — agency billing covers access
+      account_type: 'solo',
+      workspace_quota: 1,
     })
     .select('id, slug')
     .single()

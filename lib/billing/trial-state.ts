@@ -34,7 +34,7 @@ export function computeDaysRemaining(trialEndsAt: string | null): number {
   if (mockDaysEnv !== undefined && mockDaysEnv !== '') {
     return parseInt(mockDaysEnv, 10)
   }
-  if (!trialEndsAt) return 0
+  if (!trialEndsAt) return Infinity  // No trial end date configured → never expires
   return Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000)
 }
 
@@ -45,12 +45,14 @@ export function computeDaysRemaining(trialEndsAt: string | null): number {
 export function getTrialState(plan: PlanType, daysRemaining: number): TrialState {
   const mockSubscribed = process.env.NEXT_PUBLIC_SUBSCRIPTION_ACTIVE === 'true'
   const isSubscribed = mockSubscribed || plan === 'pro'
+  // Infinity means trial_ends_at was null — workspace was never put on a trial
+  const hasNoTrial = daysRemaining === Infinity
 
-  const isTrialing = !isSubscribed && daysRemaining > 0
-  const isGracePeriod = !isSubscribed && daysRemaining <= 0 && daysRemaining >= -3
-  const isExpired = !isSubscribed && daysRemaining < -3
-  const isCritical = !isSubscribed && daysRemaining >= 0 && daysRemaining <= 3
-  const isWarning = !isSubscribed && daysRemaining > 3 && daysRemaining <= 7
+  const isTrialing    = !isSubscribed && !hasNoTrial && daysRemaining > 0
+  const isGracePeriod = !isSubscribed && !hasNoTrial && daysRemaining <= 0 && daysRemaining >= -3
+  const isExpired     = !isSubscribed && !hasNoTrial && daysRemaining < -3
+  const isCritical    = !isSubscribed && !hasNoTrial && daysRemaining >= 0 && daysRemaining <= 3
+  const isWarning     = !isSubscribed && !hasNoTrial && daysRemaining > 3 && daysRemaining <= 7
 
   return {
     isSubscribed,
