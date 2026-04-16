@@ -12,11 +12,12 @@ interface TrialBannerProps {
   plan: PlanType
   /** Pre-computed on the server via computeDaysRemaining() — never call Date.now() here. */
   daysRemaining: number
-  workspaceSlug: string
+  /** Full href for the upgrade/compare-plans link (e.g. /${workspaceSlug}/upgrade or /agency/${slug}/settings) */
+  upgradeHref: string
   role: WorkspaceRole
 }
 
-export function TrialBanner({ plan, daysRemaining, workspaceSlug, role }: TrialBannerProps) {
+export function TrialBanner({ plan, daysRemaining, upgradeHref, role }: TrialBannerProps) {
   // Only show to workspace owners during trial
   if (role !== 'owner') return null
 
@@ -61,7 +62,7 @@ export function TrialBanner({ plan, daysRemaining, workspaceSlug, role }: TrialB
         </span>
       </div>
       <Link
-        href={`/${workspaceSlug}/upgrade`}
+        href={upgradeHref}
         className="shrink-0 text-[12px] font-medium text-brand transition-colors hover:text-brand/80"
       >
         Compare plans ↗

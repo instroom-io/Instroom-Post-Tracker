@@ -175,11 +175,17 @@ async function handlePostAuth(
       .from('agencies').select('slug').ilike('slug', `${base}%`)
     const agencySlug = deduplicateSlug(base, takenAgencyRows?.map((r) => r.slug) ?? [])
 
+    const trialStartedAt = new Date()
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+
     const { error: agencyInsertError } = await serviceClient.from('agencies').insert({
       name: account_name as string,
       slug: agencySlug,
       owner_id: user.id,
       status: 'active',
+      plan: 'trial',
+      trial_started_at: trialStartedAt.toISOString(),
+      trial_ends_at: trialEndsAt.toISOString(),
       ...(logoUrl ? { logo_url: logoUrl } : {}),
     })
 

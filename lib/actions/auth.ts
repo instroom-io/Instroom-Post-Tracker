@@ -197,11 +197,17 @@ export async function saveOnboardingName(
       .from('agencies').select('slug').ilike('slug', `${base}%`)
     const slug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
 
+    const trialStartedAt = new Date()
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+
     const { error: agencyInsertError } = await serviceClient.from('agencies').insert({
       name: nameParsed.data,
       slug,
       owner_id: user.id,
       status: 'active',
+      plan: 'trial',
+      trial_started_at: trialStartedAt.toISOString(),
+      trial_ends_at: trialEndsAt.toISOString(),
       ...(logoUrl ? { logo_url: logoUrl } : {}),
     })
 

@@ -34,6 +34,8 @@ export interface Agency {
   google_connected_email: string | null
   // google_refresh_token / google_access_token / google_token_expiry are server-only
   // credentials — intentionally excluded from UI-layer types.
+  plan: string
+  trial_ends_at: string | null
   created_at: string
 }
 

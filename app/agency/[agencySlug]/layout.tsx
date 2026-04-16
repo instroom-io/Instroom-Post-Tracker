@@ -6,6 +6,10 @@ import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
 import { AgencyLogoImage } from '@/components/agency/agency-logo-image'
 import { AgencyTourWrapper, AgencyTourButton } from '@/components/agency/agency-tour-wrapper'
+import { TrialBanner } from '@/components/layout/trial-banner'
+import { computeDaysRemaining } from '@/lib/billing/trial-state'
+import type { PlanType } from '@/lib/utils/plan'
+import type { WorkspaceRole } from '@/lib/types'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -20,18 +24,30 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
   if (!user) redirect('/login')
 
   // Verify user owns this agency
-  const { data: agency } = await supabase
+  const { data: agencyRaw } = await supabase
     .from('agencies')
-    .select('id, name, slug, logo_url, status')
+    .select('id, name, slug, logo_url, status, plan, trial_ends_at')
     .eq('slug', agencySlug)
     .eq('owner_id', user.id)
     .single()
 
-  if (!agency) redirect('/app')
-  if (agency.status === 'suspended') redirect('/no-access')
+  if (!agencyRaw) redirect('/app')
+  if (agencyRaw.status === 'suspended') redirect('/no-access')
+
+  // Cast to include billing columns added in migration 0038 (pending type regen)
+  const agency = agencyRaw as typeof agencyRaw & { plan: PlanType; trial_ends_at: string | null }
+
+  const agencyPlan = agency.plan ?? 'free'
+  const daysRemaining = computeDaysRemaining(agency.trial_ends_at ?? null)
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <TrialBanner
+        plan={agencyPlan}
+        daysRemaining={daysRemaining}
+        upgradeHref={`/agency/${agencySlug}/settings`}
+        role={'owner' as WorkspaceRole}
+      />
       <div className="flex h-14 items-center justify-between border-b border-border px-6">
         <div className="flex items-center gap-4">
           <Link href={`/agency/${agencySlug}/dashboard`}><Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} priority /></Link>
