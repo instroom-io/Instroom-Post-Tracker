@@ -50,14 +50,25 @@ async function handlePostAuth(
     })
   }
 
-  // 2. Platform admin: always ensure flag is set
-  const adminEmail = process.env.ADMIN_EMAIL
-  const email = user.email!
-  const isAdmin = adminEmail && email.toLowerCase() === adminEmail.toLowerCase()
+  // 2. Platform admin check — authoritative source is the DB flag.
+  // ADMIN_EMAIL is only used to bootstrap the flag on first login; once set in the
+  // DB, the flag alone is enough so this works even without the env var.
+  const { data: dbProfile } = await serviceClient
+    .from('users')
+    .select('is_platform_admin')
+    .eq('id', user.id)
+    .single()
 
-  if (isAdmin) {
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdminByEnv = Boolean(adminEmail && user.email!.toLowerCase() === adminEmail.toLowerCase())
+
+  // Bootstrap: set the flag the first time the admin email is seen
+  if (isAdminByEnv && !dbProfile?.is_platform_admin) {
     await serviceClient.from('users').update({ is_platform_admin: true }).eq('id', user.id)
-    return null // Admin uses normal /app dispatcher
+  }
+
+  if (isAdminByEnv || dbProfile?.is_platform_admin) {
+    return null // Platform admin — fall through to /app dispatcher → /admin
   }
 
   // Honour an explicit next param (e.g. /account/settings after identity linking)
@@ -80,18 +91,6 @@ async function handlePostAuth(
     return makeRedirect(request, `/${slug}/overview`)
   }
 
-  // Returning team user with an existing agency → route through /app dispatcher
-  const { data: existingAgency } = await serviceClient
-    .from('agencies')
-    .select('slug')
-    .eq('owner_id', user.id)
-    .maybeSingle()
-
-  if (existingAgency) {
-    if (returnTo) return makeRedirect(request, returnTo)
-    return makeRedirect(request, '/app')
-  }
-
   // Returning invited member (non-owner role) — already belongs to a workspace,
   // must not create a new one (e.g. when linking Google OAuth from account settings).
   const { data: existingAnyMembership } = await serviceClient
@@ -105,26 +104,29 @@ async function handlePostAuth(
     return makeRedirect(request, '/app')
   }
 
-  // 4. No workspace/agency yet — new user flow
+  // 4. No workspace yet — new user signup flow
 
-  // Invited members don't need their own workspace/agency — send them to accept the invite.
+  // Invited members don't need their own workspace — send them to accept the invite.
   // This must run before workspace creation so we don't create an unwanted workspace for
-  // someone who is only here to join an existing one (regardless of whether they filled
-  // in an account_name on the signup form).
+  // someone who is only here to join an existing one.
   if (returnTo?.startsWith('/invite/')) {
     return makeRedirect(request, returnTo)
   }
 
-  const { account_name: metaAccountName, account_type, website_url } = user.user_metadata ?? {}
+  const { account_name: metaAccountName, website_url } = user.user_metadata ?? {}
 
-  // For Google OAuth: account_name may be in the callback URL instead of user_metadata
-  const urlAccountName = new URL(request.url).searchParams.get('account_name')
+  // For Google OAuth: account_name and account_type arrive as URL params, not user_metadata.
+  const urlParams = new URL(request.url).searchParams
+  const urlAccountName = urlParams.get('account_name')
+  const urlAccountType = urlParams.get('account_type')
+
   const account_name = metaAccountName ?? (urlAccountName?.trim() || null)
+  const account_type: 'solo' | 'team' =
+    (urlAccountType === 'team' || user.user_metadata?.account_type === 'team') ? 'team' : 'solo'
 
   // Still no name → redirect to name collection (fallback for direct OAuth without signup form)
   if (!account_name || account_name.length < 2) {
-    const hintType = new URL(request.url).searchParams.get('account_type')
-    const onboardingPath = hintType ? `/onboarding/name?type=${hintType}` : '/onboarding/name'
+    const onboardingPath = urlAccountType ? `/onboarding/name?type=${urlAccountType}` : '/onboarding/name'
     return makeRedirect(request, onboardingPath)
   }
 
@@ -136,36 +138,6 @@ async function handlePostAuth(
   }
 
   const base = toSlug(account_name as string)
-
-  if (account_type === 'team') {
-    // Team accounts: create agency only — workspaces are for brands
-    const { data: takenAgencyRows } = await serviceClient
-      .from('agencies')
-      .select('slug')
-      .ilike('slug', `${base}%`)
-    const agencySlug = deduplicateSlug(base, takenAgencyRows?.map((r) => r.slug) ?? [])
-
-    let logoUrl: string | null = null
-    if (website_url) {
-      try {
-        const domain = new URL(website_url as string).hostname
-        logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
-      } catch { /* invalid URL — ignore */ }
-    }
-
-    await serviceClient.from('agencies').insert({
-      name: account_name as string,
-      slug: agencySlug,
-      owner_id: user.id,
-      status: 'active',
-      ...(logoUrl ? { logo_url: logoUrl } : {}),
-    })
-
-    // Route through /app so the onboarding welcome survey fires for new team users
-    return makeRedirect(request, '/app')
-  }
-
-  // Solo: create workspace
   const trialStartedAt = new Date()
   const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
 
@@ -176,11 +148,11 @@ async function handlePostAuth(
 
   const workspaceSlug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
 
-  let soloLogoUrl: string | null = null
+  let logoUrl: string | null = null
   if (website_url) {
     try {
       const domain = new URL(website_url as string).hostname
-      soloLogoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+      logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
     } catch { /* invalid URL — ignore */ }
   }
 
@@ -192,9 +164,9 @@ async function handlePostAuth(
       plan: 'trial',
       trial_started_at: trialStartedAt.toISOString(),
       trial_ends_at: trialEndsAt.toISOString(),
-      account_type: 'solo',
+      account_type,
       workspace_quota: 1,
-      ...(soloLogoUrl ? { logo_url: soloLogoUrl } : {}),
+      ...(logoUrl ? { logo_url: logoUrl } : {}),
     })
     .select('id')
     .single()

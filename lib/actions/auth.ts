@@ -175,46 +175,7 @@ export async function saveOnboardingName(
 
   const serviceClient = createServiceClient()
 
-  if (accountType === 'team') {
-    // Team accounts get an agency record only — workspaces are for brands
-    const { data: existingAgency } = await serviceClient
-      .from('agencies')
-      .select('slug')
-      .eq('owner_id', user.id)
-      .maybeSingle()
-
-    if (existingAgency) {
-      return { redirectTo: '/app' }
-    }
-
-    const base = toSlug(nameParsed.data)
-    const { data: takenRows } = await serviceClient
-      .from('agencies')
-      .select('slug')
-      .ilike('slug', `${base}%`)
-    const slug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
-
-    let logoUrl: string | null = null
-    if (websiteUrl) {
-      try {
-        const domain = new URL(websiteUrl).hostname
-        logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
-      } catch { /* invalid URL — ignore */ }
-    }
-
-    await serviceClient.from('agencies').insert({
-      name: nameParsed.data,
-      slug,
-      owner_id: user.id,
-      status: 'active',
-      ...(logoUrl ? { logo_url: logoUrl } : {}),
-    })
-
-    // Route through /app so the onboarding welcome survey fires for new team users
-    return { redirectTo: '/app' }
-  }
-
-  // Solo: check for existing workspace, then create one
+  // Check for an existing workspace (idempotent — handles re-submission)
   const { data: existingMember } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
@@ -237,11 +198,11 @@ export async function saveOnboardingName(
   const trialStartedAt = new Date()
   const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
 
-  let soloLogoUrl: string | null = null
+  let logoUrl: string | null = null
   if (websiteUrl) {
     try {
       const domain = new URL(websiteUrl).hostname
-      soloLogoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+      logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
     } catch { /* invalid URL — ignore */ }
   }
 
@@ -253,9 +214,9 @@ export async function saveOnboardingName(
       plan: 'trial',
       trial_started_at: trialStartedAt.toISOString(),
       trial_ends_at: trialEndsAt.toISOString(),
-      account_type: 'solo',
+      account_type: accountType,
       workspace_quota: 1,
-      ...(soloLogoUrl ? { logo_url: soloLogoUrl } : {}),
+      ...(logoUrl ? { logo_url: logoUrl } : {}),
     })
     .select('id')
     .single()
