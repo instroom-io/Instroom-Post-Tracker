@@ -200,11 +200,15 @@ export async function inviteMember(
 
   // Send invite email (fire-and-forget)
   // invitations.token is DB-generated; SELECT policy is using(true) so read-back is permitted.
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('name')
-    .eq('id', workspaceId)
-    .single()
+  const [{ data: workspace }, { data: inviterProfile }] = await Promise.all([
+    supabase.from('workspaces').select('name').eq('id', workspaceId).single(),
+    supabase.from('users').select('full_name').eq('id', user.id).single(),
+  ])
+
+  const inviterName =
+    inviterProfile?.full_name?.trim() ||
+    user.email?.split('@')[0] ||
+    'Someone'
 
   try {
     await sendEmail({
@@ -214,6 +218,7 @@ export async function inviteMember(
         workspaceName: workspace?.name ?? 'a workspace',
         role: parsed.data.role,
         inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`,
+        inviterName,
       }),
     })
   } catch (err) {
