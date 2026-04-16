@@ -15,6 +15,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [accountType, setAccountType] = useState<'team' | 'solo'>('solo')
   const [accountName, setAccountName] = useState('')
   const [googleError, setGoogleError] = useState<string | null>(null)
+  const isInviteSignup = redirectTo?.startsWith('/invite/')
 
   if (state && 'success' in state && state.success) {
     return (
@@ -56,73 +57,85 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
       {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
       <input type="hidden" name="account_type" value={accountType} />
 
-      <div className="flex rounded-lg border border-border bg-background-muted p-0.5">
-        <button
-          type="button"
-          onClick={() => setAccountType('solo')}
-          className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-            accountType === 'solo'
-              ? 'bg-brand text-white shadow-sm'
-              : 'text-foreground-muted hover:text-foreground'
-          }`}
-        >
-          Solo
-        </button>
-        <button
-          type="button"
-          onClick={() => setAccountType('team')}
-          className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-            accountType === 'team'
-              ? 'bg-brand text-white shadow-sm'
-              : 'text-foreground-muted hover:text-foreground'
-          }`}
-        >
-          Team
-        </button>
-      </div>
+      {isInviteSignup ? (
+        <>
+          {/* Invite path: pass placeholder values to satisfy schema — workspace creation is skipped in handlePostAuth */}
+          <input type="hidden" name="account_name" value="member" />
+          <p className="text-[12px] text-foreground-lighter text-center">
+            Create an account to accept the invitation.
+          </p>
+        </>
+      ) : (
+        <>
+          <div className="flex rounded-lg border border-border bg-background-muted p-0.5">
+            <button
+              type="button"
+              onClick={() => setAccountType('solo')}
+              className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                accountType === 'solo'
+                  ? 'bg-brand text-white shadow-sm'
+                  : 'text-foreground-muted hover:text-foreground'
+              }`}
+            >
+              Solo
+            </button>
+            <button
+              type="button"
+              onClick={() => setAccountType('team')}
+              className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                accountType === 'team'
+                  ? 'bg-brand text-white shadow-sm'
+                  : 'text-foreground-muted hover:text-foreground'
+              }`}
+            >
+              Team
+            </button>
+          </div>
 
-      {/* Account name */}
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="account_name"
-          className="text-[12px] font-medium text-foreground-light"
-        >
-          {accountType === 'team' ? 'Agency / team name' : 'Workspace name'}
-        </label>
-        <input
-          id="account_name"
-          name="account_name"
-          type="text"
-          autoComplete="organization"
-          required
-          minLength={2}
-          maxLength={60}
-          placeholder={accountType === 'team' ? 'e.g. Armful Media' : 'e.g. NovaSkin Beauty'}
-          value={accountName}
-          onChange={(e) => { setAccountName(e.target.value); setGoogleError(null) }}
-          className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
-        />
-      </div>
+          {/* Account name */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="account_name"
+              className="text-[12px] font-medium text-foreground-light"
+            >
+              {accountType === 'team' ? 'Agency / team name' : 'Workspace name'}
+            </label>
+            <input
+              id="account_name"
+              name="account_name"
+              type="text"
+              autoComplete="organization"
+              required
+              minLength={2}
+              maxLength={60}
+              placeholder={accountType === 'team' ? 'e.g. Armful Media' : 'e.g. NovaSkin Beauty'}
+              value={accountName}
+              onChange={(e) => { setAccountName(e.target.value); setGoogleError(null) }}
+              className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+            />
+          </div>
 
-      {/* Website URL — all account types, used for favicon logo */}
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="website_url"
-          className="text-[12px] font-medium text-foreground-light"
-        >
-          Website{' '}
-          <span className="text-foreground-muted font-normal">(optional)</span>
-        </label>
-        <input
-          id="website_url"
-          name="website_url"
-          type="url"
-          autoComplete="url"
-          placeholder={accountType === 'team' ? 'https://yourteam.com' : 'https://yourbrand.com'}
-          className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
-        />
-        <p className="text-[11px] text-foreground-muted">Used to show your logo automatically.</p>
-      </div>
+          {/* Website URL — all account types, used for favicon logo */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="website_url"
+              className="text-[12px] font-medium text-foreground-light"
+            >
+              Website{' '}
+              <span className="text-foreground-muted font-normal">(optional)</span>
+            </label>
+            <input
+              id="website_url"
+              name="website_url"
+              type="url"
+              autoComplete="url"
+              placeholder={accountType === 'team' ? 'https://yourteam.com' : 'https://yourbrand.com'}
+              className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+            />
+            <p className="text-[11px] text-foreground-muted">Used to show your logo automatically.</p>
+          </div>
+        </>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <label
@@ -198,12 +211,14 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
       <button
         type="button"
         onClick={() => {
-          if (!accountName.trim() || accountName.trim().length < 2) {
-            setGoogleError(`Enter a ${accountType === 'team' ? 'team' : 'workspace'} name above first.`)
-            return
+          if (!isInviteSignup) {
+            if (!accountName.trim() || accountName.trim().length < 2) {
+              setGoogleError(`Enter a ${accountType === 'team' ? 'team' : 'workspace'} name above first.`)
+              return
+            }
           }
           setGoogleError(null)
-          signInWithGoogle(redirectTo, accountType, accountName.trim())
+          signInWithGoogle(redirectTo, isInviteSignup ? undefined : accountType, isInviteSignup ? undefined : accountName.trim())
         }}
         className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-border bg-background-surface text-[13px] font-medium text-foreground hover:bg-background-muted transition-colors"
       >

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { AcceptInviteButton } from './accept-invite-button'
@@ -92,40 +93,18 @@ export default async function InvitePage({ params }: PageProps) {
   }
 
   if (!user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="flex justify-center mb-4">
-            <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={180} height={40} priority />
-          </div>
-          <h1 className="font-display text-[22px] font-extrabold text-foreground mb-2">
-            You've been invited
-          </h1>
-          <p className="text-[13px] text-foreground-lighter mb-6">
-            You've been invited to join{' '}
-            <strong className="text-foreground">{workspace?.name}</strong> as{' '}
-            <strong className="text-foreground">{invitation.role}</strong>.
-          </p>
-          <p className="text-[11px] text-foreground-lighter mb-1">
-            Use <strong className="text-foreground">{invitation.email}</strong> to sign in or create your account.
-          </p>
-          <div className="flex flex-col gap-3">
-            <Link
-              href={`/login?redirectTo=/invite/${token}`}
-              className="flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-[12px] font-semibold text-white transition-colors hover:bg-brand/90"
-            >
-              Sign in to accept
-            </Link>
-            <Link
-              href={`/signup?redirectTo=/invite/${token}`}
-              className="flex h-10 items-center justify-center rounded-lg border border-border bg-background-surface px-4 text-[12px] font-medium text-foreground transition-colors hover:bg-background-muted"
-            >
-              Create account
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
+    // Check if the invited email already has an account — send them to the right page directly
+    const { data: existingUser } = await serviceClient
+      .from('users')
+      .select('id')
+      .eq('email', invitation.email)
+      .maybeSingle()
+
+    if (existingUser) {
+      redirect(`/login?redirectTo=/invite/${token}`)
+    } else {
+      redirect(`/signup?redirectTo=/invite/${token}`)
+    }
   }
 
   return (
