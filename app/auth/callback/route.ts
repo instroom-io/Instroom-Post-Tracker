@@ -60,19 +60,19 @@ async function handlePostAuth(
     return null // Admin uses normal /app dispatcher
   }
 
-  // 3. Returning solo user with an existing workspace → redirect there directly
+  // Honour an explicit next param (e.g. /account/settings after identity linking)
+  const returnTo = (() => {
+    const n = new URL(request.url).searchParams.get('next')
+    return n && n.startsWith('/') ? n : null
+  })()
+
+  // 3. Returning solo user who owns a workspace → redirect there directly
   const { data: existingMember } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
     .eq('user_id', user.id)
     .eq('role', 'owner')
     .maybeSingle()
-
-  // Honour an explicit next param (e.g. /account/settings after identity linking)
-  const returnTo = (() => {
-    const n = new URL(request.url).searchParams.get('next')
-    return n && n.startsWith('/') ? n : null
-  })()
 
   if (existingMember) {
     if (returnTo) return makeRedirect(request, returnTo)
@@ -88,6 +88,19 @@ async function handlePostAuth(
     .maybeSingle()
 
   if (existingAgency) {
+    if (returnTo) return makeRedirect(request, returnTo)
+    return makeRedirect(request, '/app')
+  }
+
+  // Returning invited member (non-owner role) — already belongs to a workspace,
+  // must not create a new one (e.g. when linking Google OAuth from account settings).
+  const { data: existingAnyMembership } = await serviceClient
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (existingAnyMembership) {
     if (returnTo) return makeRedirect(request, returnTo)
     return makeRedirect(request, '/app')
   }
