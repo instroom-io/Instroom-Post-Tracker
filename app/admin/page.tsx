@@ -1,16 +1,14 @@
 import { Suspense } from 'react'
 import { AdminStatCards } from '@/components/admin/admin-stat-cards'
-import { AgencyRequestsTable } from '@/components/admin/agency-requests-table'
 import { AgenciesTable } from '@/components/admin/agencies-table'
 import { WorkspacesTable } from '@/components/admin/workspaces-table'
-import { getAgencyRequests, getAgencies } from '@/lib/actions/agencies'
+import { getAgencies } from '@/lib/actions/agencies'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function AdminPage() {
   const supabase = await createClient()
 
-  const [pendingRequests, agencies, { data: workspacesRaw }] = await Promise.all([
-    getAgencyRequests('pending'),
+  const [agencies, { data: workspacesRaw }] = await Promise.all([
     getAgencies(),
     supabase
       .from('workspaces')
@@ -49,23 +47,9 @@ export default async function AdminPage() {
         <AdminStatCards />
       </Suspense>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-border bg-background-surface p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[14px] font-semibold text-foreground">Pending Agency Requests</h2>
-            {pendingRequests.length > 0 && (
-              <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-background">
-                {pendingRequests.length}
-              </span>
-            )}
-          </div>
-          <AgencyRequestsTable requests={pendingRequests} />
-        </div>
-
-        <div className="rounded-xl border border-border bg-background-surface p-5">
-          <h2 className="mb-4 text-[14px] font-semibold text-foreground">Active Agencies</h2>
-          <AgenciesTable agencies={agencies.filter((a) => a.status === 'active')} />
-        </div>
+      <div className="rounded-xl border border-border bg-background-surface p-5">
+        <h2 className="mb-4 text-[14px] font-semibold text-foreground">Active Agencies</h2>
+        <AgenciesTable agencies={agencies.filter((a) => a.status === 'active')} />
       </div>
 
       <div className="rounded-xl border border-border bg-background-surface p-5">

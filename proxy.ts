@@ -44,7 +44,6 @@ export async function proxy(request: NextRequest) {
     '/invite',
     '/brand-invite',
     '/onboard',
-    '/request-access',
     '/onboarding',
     '/no-access',
     '/forgot-password',

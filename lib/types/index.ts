@@ -8,7 +8,6 @@ export type Platform = 'instagram' | 'tiktok' | 'youtube'
 export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'manager' | 'viewer'
 
 export type AgencyStatus = 'pending' | 'active' | 'suspended'
-export type AgencyRequestStatus = 'pending' | 'approved' | 'rejected'
 
 export type CampaignStatus = 'draft' | 'active' | 'ended' | 'archived'
 
@@ -35,19 +34,6 @@ export interface Agency {
   google_connected_email: string | null
   // google_refresh_token / google_access_token / google_token_expiry are server-only
   // credentials — intentionally excluded from UI-layer types.
-  created_at: string
-}
-
-export interface AgencyRequest {
-  id: string
-  agency_name: string
-  website_url: string
-  contact_name: string
-  contact_email: string
-  description: string | null
-  status: AgencyRequestStatus
-  reviewed_by: string | null
-  reviewed_at: string | null
   created_at: string
 }
 

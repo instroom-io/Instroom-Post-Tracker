@@ -197,16 +197,6 @@ export type ContactInquiryInput = z.infer<typeof contactInquirySchema>
 
 // ─── Agency ───────────────────────────────────────────────────────────────────
 
-export const agencyRequestSchema = z.object({
-  agency_name: z.string().min(2, 'Agency name must be at least 2 characters').max(100),
-  website_url: websiteUrl,
-  contact_name: z.string().min(2, 'Contact name must be at least 2 characters').max(100),
-  contact_email: z.string().email('Please enter a valid email address'),
-  description: z.string().max(500).optional(),
-})
-
-export type AgencyRequestInput = z.infer<typeof agencyRequestSchema>
-
 const RESERVED_AGENCY_SLUGS = ['requests', 'admin', 'api', 'settings', 'login', 'signup']
 
 export const agencySchema = z.object({
