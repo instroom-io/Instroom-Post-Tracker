@@ -164,7 +164,7 @@ export async function addInfluencer(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -233,7 +233,7 @@ export async function addInfluencersBatch(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.', added: 0, skipped: 0 }
   }
 
@@ -393,7 +393,7 @@ export async function removeInfluencerFromWorkspace(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -474,7 +474,7 @@ export async function refreshInfluencerProfile(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 

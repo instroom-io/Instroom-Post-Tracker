@@ -452,7 +452,7 @@ export async function updateWorkspaceStorageFolder(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 

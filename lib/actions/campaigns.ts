@@ -30,7 +30,7 @@ export async function createCampaign(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -79,7 +79,7 @@ export async function updateCampaign(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -108,7 +108,7 @@ export async function archiveCampaign(
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
     .single()
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -136,7 +136,7 @@ export async function restoreCampaign(
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
     .single()
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -164,7 +164,7 @@ export async function deleteCampaign(
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
     .single()
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -205,7 +205,7 @@ export async function upsertTrackingConfig(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
