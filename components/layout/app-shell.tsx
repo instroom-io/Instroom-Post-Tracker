@@ -262,22 +262,16 @@ export function AppShell({
           </button>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            {/* Agency logo / user avatar */}
-            <div
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg overflow-hidden bg-background-muted ring-1 ring-border"
-              title={agency?.name || displayName || user.email}
-            >
-              {agency?.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
+            {/* Agency logo — only shown for agency members; solo/team profile is in the workspace switcher dropdown */}
+            {agency?.logo_url && (
+              <div
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg overflow-hidden bg-background-muted ring-1 ring-border"
+                title={agency.name}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-contain" />
-              ) : avatarUrl ? (
-                <Image src={avatarUrl} alt={displayName} width={32} height={32} className="rounded-lg object-cover" />
-              ) : (
-                <span className="text-[11px] font-semibold text-foreground-lighter">
-                  {(agency?.name || displayName || user.email?.split('@')[0] || '?').charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
+              </div>
+            )}
             <WorkspaceSwitcher
               currentWorkspace={currentWorkspace}
               currentRole={currentRole}
