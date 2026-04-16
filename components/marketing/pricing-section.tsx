@@ -102,7 +102,7 @@ export function PricingSection() {
                 ${soloPrice}
               </div>
               <p className="mb-6 text-[0.8rem] text-foreground-lighter">
-                per month{period === 'annual' ? ', billed annually' : ''}
+                per month{period === 'annual' ? `, billed annually · $${soloPrice * 12}/year` : ''}
               </p>
 
               <ul className="mb-7 space-y-0">
@@ -144,7 +144,7 @@ export function PricingSection() {
                 ${teamPrice}
               </div>
               <p className="mb-6 text-[0.8rem] text-white/50">
-                per month{period === 'annual' ? ', billed annually' : ''}
+                per month{period === 'annual' ? `, billed annually · $${teamPrice * 12}/year` : ''}
               </p>
 
               <ul className="mb-7 space-y-0">

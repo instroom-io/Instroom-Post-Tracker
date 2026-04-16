@@ -30,3 +30,10 @@ export function calcTeamTotal(extraWorkspaces: number, period: BillingPeriod = '
 export function getExtraWorkspacePrice(period: BillingPeriod = 'monthly'): number {
   return period === 'annual' ? PRICING.team.extraAnnual : PRICING.team.extraMonthly
 }
+
+/** Returns the total amount charged upfront for an annual subscription (per-month rate × 12). */
+export function calcAnnualTotal(planType: 'solo' | 'team', extraWorkspaces: number = 0): number {
+  return planType === 'solo'
+    ? PRICING.solo.annual * 12
+    : calcTeamTotal(extraWorkspaces, 'annual') * 12
+}

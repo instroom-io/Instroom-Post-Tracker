@@ -10,7 +10,7 @@ import {
   createLemonSqueezyCheckout,
   getVariantId,
 } from '@/lib/billing/lemonsqueezy'
-import { calcTeamTotal, getSoloPrice } from '@/lib/billing/pricing'
+import { calcTeamTotal, getSoloPrice, calcAnnualTotal } from '@/lib/billing/pricing'
 import type { BillingPeriod } from '@/lib/billing/pricing'
 
 export async function createCheckoutSession(
@@ -30,11 +30,12 @@ export async function createCheckoutSession(
     return { error: 'Billing not configured. Contact support.' }
   }
 
-  // Compute display total for the success-screen query param
-  const displayTotal =
-    planType === 'solo'
-      ? getSoloPrice(billingPeriod)
-      : calcTeamTotal(extraWorkspaces, billingPeriod)
+  // Compute display total for the success-screen query param.
+  // For annual plans: send the full annual charge (e.g. $180 for Solo annual).
+  // For monthly plans: send the monthly rate (e.g. $19 for Solo monthly).
+  const displayTotal = billingPeriod === 'annual'
+    ? calcAnnualTotal(planType, extraWorkspaces)
+    : planType === 'solo' ? getSoloPrice('monthly') : calcTeamTotal(extraWorkspaces, 'monthly')
 
   const redirectUrl =
     `${process.env.NEXT_PUBLIC_APP_URL}/${workspaceSlug}/upgrade` +

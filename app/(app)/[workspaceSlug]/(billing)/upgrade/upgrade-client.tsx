@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle, Check } from '@phosphor-icons/react'
 import { SubscriptionCheckout } from '@/components/billing/subscription-checkout'
-import { PRICING, getSoloPrice, calcTeamTotal, getExtraWorkspacePrice } from '@/lib/billing/pricing'
+import { PRICING, getSoloPrice, calcTeamTotal, getExtraWorkspacePrice, calcAnnualTotal } from '@/lib/billing/pricing'
 import type { PlanType } from '@/lib/utils/plan'
 import type { BillingPeriod } from '@/lib/billing/pricing'
 
@@ -113,7 +113,9 @@ export function UpgradeClient({
       )
     }
 
-    const total = successTotal ?? (successType === 'solo' ? getSoloPrice(successPeriod) : calcTeamTotal(0, successPeriod))
+    const total = successTotal ?? (successPeriod === 'annual'
+      ? calcAnnualTotal(successType, 0)
+      : successType === 'solo' ? getSoloPrice('monthly') : calcTeamTotal(0, 'monthly'))
     const workspaceCount = successType === 'solo' ? 1 : PRICING.team.includedWorkspaces
 
     return (
@@ -142,7 +144,7 @@ export function UpgradeClient({
         <div className="w-full rounded-xl border border-border bg-background-surface px-5 py-4 text-left text-[13px]">
           <p className="text-foreground-lighter">Account summary</p>
           <p className="mt-2 font-semibold text-foreground">
-            {successType === 'solo' ? 'Solo' : 'Team'} · {workspaceCount} workspace{workspaceCount !== 1 ? 's' : ''} · ${total}/month
+            {successType === 'solo' ? 'Solo' : 'Team'} · {workspaceCount} workspace{workspaceCount !== 1 ? 's' : ''} · ${total}/{successPeriod === 'annual' ? 'year' : 'month'}
           </p>
           {successPeriod === 'annual' && (
             <p className="mt-0.5 text-[11px] text-foreground-muted">Billed annually</p>
@@ -239,12 +241,16 @@ export function UpgradeClient({
             </p>
           </div>
           <div className="text-right">
-            <span className="text-[24px] font-bold text-foreground">
-              ${selected === 'solo' ? soloPrice : teamTotal}
-            </span>
-            <span className="text-[12px] text-foreground-lighter">/mo</span>
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-[24px] font-bold text-foreground">
+                ${selected === 'solo' ? soloPrice : teamTotal}
+              </span>
+              <span className="text-[12px] text-foreground-lighter">/mo</span>
+            </div>
             {period === 'annual' && (
-              <p className="text-[10px] text-foreground-muted">billed annually</p>
+              <p className="text-[10px] text-foreground-muted">
+                ${(selected === 'solo' ? soloPrice : teamTotal) * 12}/year billed annually
+              </p>
             )}
           </div>
         </div>
@@ -277,7 +283,10 @@ export function UpgradeClient({
             </div>
             <p className="mt-2 text-[12px] text-foreground-light">
               {PRICING.team.includedWorkspaces} included + {extra} extra ={' '}
-              <span className="font-semibold text-foreground">${teamTotal}/month</span>
+              <span className="font-semibold text-foreground">${teamTotal}/mo</span>
+              {period === 'annual' && (
+                <span className="text-foreground-muted"> · ${teamTotal * 12}/year</span>
+              )}
             </p>
           </div>
         )}
