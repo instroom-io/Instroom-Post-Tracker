@@ -21,7 +21,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
           htmlFor="email"
           className="text-[12px] font-medium text-foreground-light"
         >
-          Work email
+          Email
         </label>
         <input
           id="email"
@@ -29,7 +29,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
           type="email"
           autoComplete="email"
           required
-          placeholder="instroom@agency.com"
+          placeholder="you@example.com"
           className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
         />
       </div>

@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { signUp } from '@/lib/actions/auth'
 import { signInWithGoogle } from '@/lib/supabase/client'
-import { isPersonalEmail } from '@/lib/utils'
 
 const initialState = undefined
 
@@ -15,7 +14,6 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [showPassword, setShowPassword] = useState(false)
   const [accountType, setAccountType] = useState<'team' | 'solo'>('solo')
   const [accountName, setAccountName] = useState('')
-  const [emailValue, setEmailValue] = useState('')
   const [googleError, setGoogleError] = useState<string | null>(null)
 
   if (state && 'success' in state && state.success) {
@@ -131,7 +129,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
           htmlFor="email"
           className="text-[12px] font-medium text-foreground-light"
         >
-          {accountType === 'team' ? 'Work email' : 'Email'}
+          Email
         </label>
         <input
           id="email"
@@ -139,15 +137,9 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
           type="email"
           autoComplete="email"
           required
-          placeholder={accountType === 'team' ? 'instroom@agency.com' : 'you@example.com'}
-          onChange={(e) => setEmailValue(e.target.value)}
+          placeholder="you@example.com"
           className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
         />
-        {accountType === 'team' && isPersonalEmail(emailValue) && (
-          <p className="text-[11px] text-amber-600 dark:text-amber-400">
-            We recommend a work email for team accounts.
-          </p>
-        )}
       </div>
 
       <div className="flex flex-col gap-1.5">

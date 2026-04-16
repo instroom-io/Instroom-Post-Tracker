@@ -93,6 +93,15 @@ async function handlePostAuth(
   }
 
   // 4. No workspace/agency yet — new user flow
+
+  // Invited members don't need their own workspace/agency — send them to accept the invite.
+  // This must run before workspace creation so we don't create an unwanted workspace for
+  // someone who is only here to join an existing one (regardless of whether they filled
+  // in an account_name on the signup form).
+  if (returnTo?.startsWith('/invite/')) {
+    return makeRedirect(request, returnTo)
+  }
+
   const { account_name: metaAccountName, account_type, website_url } = user.user_metadata ?? {}
 
   // For Google OAuth: account_name may be in the callback URL instead of user_metadata

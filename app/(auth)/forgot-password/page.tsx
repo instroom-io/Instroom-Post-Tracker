@@ -15,7 +15,7 @@ export default function ForgotPasswordPage() {
             Reset your password
           </h1>
           <p className="mt-1 text-[13px] text-foreground-lighter">
-            Enter your work email and we&apos;ll send you a reset link
+            Enter your email and we&apos;ll send you a reset link
           </p>
           <div className="mt-3 flex justify-center">
             <Link href="/login" className="inline-flex items-center gap-1 text-[12px] text-foreground-muted transition-colors hover:text-foreground">

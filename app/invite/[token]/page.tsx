@@ -106,6 +106,9 @@ export default async function InvitePage({ params }: PageProps) {
             <strong className="text-foreground">{workspace?.name}</strong> as{' '}
             <strong className="text-foreground">{invitation.role}</strong>.
           </p>
+          <p className="text-[11px] text-foreground-lighter mb-1">
+            Use <strong className="text-foreground">{invitation.email}</strong> to sign in or create your account.
+          </p>
           <div className="flex flex-col gap-3">
             <Link
               href={`/login?redirectTo=/invite/${token}`}

@@ -51,7 +51,7 @@ export function ForgotPasswordForm() {
           htmlFor="email"
           className="text-[12px] font-medium text-foreground-light"
         >
-          Work email
+          Email
         </label>
         <input
           id="email"
