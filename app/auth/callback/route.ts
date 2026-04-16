@@ -77,7 +77,19 @@ async function handlePostAuth(
     return n && n.startsWith('/') ? n : null
   })()
 
-  // 3. Returning solo user who owns a workspace → redirect there directly
+  // 3. Returning team user who owns an agency → redirect to team dashboard
+  const { data: existingAgency } = await serviceClient
+    .from('agencies')
+    .select('slug')
+    .eq('owner_id', user.id)
+    .maybeSingle()
+
+  if (existingAgency) {
+    if (returnTo) return makeRedirect(request, returnTo)
+    return makeRedirect(request, `/agency/${existingAgency.slug}/dashboard`)
+  }
+
+  // 4. Returning solo user who owns a workspace → redirect there directly
   const { data: existingMember } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
@@ -104,11 +116,11 @@ async function handlePostAuth(
     return makeRedirect(request, '/app')
   }
 
-  // 4. No workspace yet — new user signup flow
+  // 6. No agency/workspace yet — new user signup flow
 
   // Invited members don't need their own workspace — send them to accept the invite.
-  // This must run before workspace creation so we don't create an unwanted workspace for
-  // someone who is only here to join an existing one.
+  // This must run before workspace/agency creation so we don't create an unwanted entity
+  // for someone who is only here to join an existing workspace.
   if (returnTo?.startsWith('/invite/')) {
     return makeRedirect(request, returnTo)
   }
@@ -138,15 +150,6 @@ async function handlePostAuth(
   }
 
   const base = toSlug(account_name as string)
-  const trialStartedAt = new Date()
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-
-  const { data: takenRows } = await serviceClient
-    .from('workspaces')
-    .select('slug')
-    .ilike('slug', `${base}%`)
-
-  const workspaceSlug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
 
   let logoUrl: string | null = null
   if (website_url) {
@@ -156,6 +159,31 @@ async function handlePostAuth(
     } catch { /* invalid URL — ignore */ }
   }
 
+  // Team account → create agency record (the "team dashboard" entity)
+  if (account_type === 'team') {
+    const { data: takenAgencyRows } = await serviceClient
+      .from('agencies').select('slug').ilike('slug', `${base}%`)
+    const agencySlug = deduplicateSlug(base, takenAgencyRows?.map((r) => r.slug) ?? [])
+
+    await serviceClient.from('agencies').insert({
+      name: account_name as string,
+      slug: agencySlug,
+      owner_id: user.id,
+      status: 'active',
+      ...(logoUrl ? { logo_url: logoUrl } : {}),
+    })
+
+    return makeRedirect(request, `/agency/${agencySlug}/dashboard`)
+  }
+
+  // Solo account → create workspace
+  const trialStartedAt = new Date()
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+
+  const { data: takenRows } = await serviceClient
+    .from('workspaces').select('slug').ilike('slug', `${base}%`)
+  const workspaceSlug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
+
   const { data: ws } = await serviceClient
     .from('workspaces')
     .insert({
@@ -164,7 +192,7 @@ async function handlePostAuth(
       plan: 'trial',
       trial_started_at: trialStartedAt.toISOString(),
       trial_ends_at: trialEndsAt.toISOString(),
-      account_type,
+      account_type: 'solo',
       workspace_quota: 1,
       ...(logoUrl ? { logo_url: logoUrl } : {}),
     })

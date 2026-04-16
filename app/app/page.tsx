@@ -16,7 +16,16 @@ export default async function AppPage() {
 
   if (profile?.is_platform_admin) redirect('/admin')
 
-  // Case 2: Workspace member
+  // Case 2: Team/agency owner
+  const { data: agency } = await supabase
+    .from('agencies')
+    .select('slug')
+    .eq('owner_id', user.id)
+    .maybeSingle()
+
+  if (agency) redirect(`/agency/${agency.slug}/dashboard`)
+
+  // Case 3: Workspace member
   const { data: memberships } = await supabase
     .from('workspace_members')
     .select('role, workspace_id, workspaces(slug)')

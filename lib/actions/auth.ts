@@ -175,7 +175,38 @@ export async function saveOnboardingName(
 
   const serviceClient = createServiceClient()
 
-  // Check for an existing workspace (idempotent — handles re-submission)
+  const base = toSlug(nameParsed.data)
+
+  let logoUrl: string | null = null
+  if (websiteUrl) {
+    try {
+      const domain = new URL(websiteUrl).hostname
+      logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+    } catch { /* invalid URL — ignore */ }
+  }
+
+  // Team account → create agency record (the "team dashboard" entity)
+  if (accountType === 'team') {
+    const { data: existingAgency } = await serviceClient
+      .from('agencies').select('slug').eq('owner_id', user.id).maybeSingle()
+    if (existingAgency) return { redirectTo: `/agency/${existingAgency.slug}/dashboard` }
+
+    const { data: takenRows } = await serviceClient
+      .from('agencies').select('slug').ilike('slug', `${base}%`)
+    const slug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
+
+    await serviceClient.from('agencies').insert({
+      name: nameParsed.data,
+      slug,
+      owner_id: user.id,
+      status: 'active',
+      ...(logoUrl ? { logo_url: logoUrl } : {}),
+    })
+
+    return { redirectTo: `/agency/${slug}/dashboard` }
+  }
+
+  // Solo account → create workspace (idempotent — handles re-submission)
   const { data: existingMember } = await serviceClient
     .from('workspace_members')
     .select('workspace_id, workspaces(slug)')
@@ -188,23 +219,12 @@ export async function saveOnboardingName(
     return { redirectTo: `/${s}/overview` }
   }
 
-  const base = toSlug(nameParsed.data)
   const { data: takenRows } = await serviceClient
-    .from('workspaces')
-    .select('slug')
-    .ilike('slug', `${base}%`)
+    .from('workspaces').select('slug').ilike('slug', `${base}%`)
   const slug = deduplicateSlug(base, takenRows?.map((r) => r.slug) ?? [])
 
   const trialStartedAt = new Date()
   const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-
-  let logoUrl: string | null = null
-  if (websiteUrl) {
-    try {
-      const domain = new URL(websiteUrl).hostname
-      logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
-    } catch { /* invalid URL — ignore */ }
-  }
 
   const { data: ws } = await serviceClient
     .from('workspaces')
@@ -214,7 +234,7 @@ export async function saveOnboardingName(
       plan: 'trial',
       trial_started_at: trialStartedAt.toISOString(),
       trial_ends_at: trialEndsAt.toISOString(),
-      account_type: accountType,
+      account_type: 'solo',
       workspace_quota: 1,
       ...(logoUrl ? { logo_url: logoUrl } : {}),
     })
