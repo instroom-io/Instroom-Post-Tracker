@@ -1,96 +1,89 @@
 'use client'
 
 // components/billing/subscription-checkout.tsx
-// Shared PayPal subscription checkout button used on /upgrade and /trial-expired.
-// Renders nothing when NEXT_PUBLIC_PAYPAL_CLIENT_ID is not set.
+// Lemon Squeezy overlay checkout button.
+// Calls createCheckoutSession server action → gets checkout URL → opens LS overlay.
 
-import { useRouter } from 'next/navigation'
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
-import { getSoloPrice, calcTeamTotal } from '@/lib/billing/pricing'
-import { activateSubscription } from '@/lib/actions/billing'
+import { useState } from 'react'
+import { createCheckoutSession } from '@/lib/actions/billing'
 import type { BillingPeriod } from '@/lib/billing/pricing'
+
+// Lemon.js window globals (loaded via Script tag in billing layout)
+declare global {
+  interface Window {
+    createLemonSqueezy?: () => void
+    LemonSqueezy?: {
+      Setup: (options: { eventHandler?: (event: unknown) => void }) => void
+      Url: { Open: (url: string) => void; Close: () => void }
+    }
+  }
+}
 
 interface SubscriptionCheckoutProps {
   accountType: 'solo' | 'team'
   extraWorkspaces?: number
   workspaceSlug: string
-  userId: string
   billingPeriod?: BillingPeriod
 }
 
-function CheckoutButtons({ accountType, extraWorkspaces = 0, workspaceSlug, userId, billingPeriod = 'monthly' }: SubscriptionCheckoutProps) {
-  const router = useRouter()
+export function SubscriptionCheckout({
+  accountType,
+  extraWorkspaces = 0,
+  workspaceSlug,
+  billingPeriod = 'monthly',
+}: SubscriptionCheckoutProps) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const soloPlanId = billingPeriod === 'annual'
-    ? process.env.NEXT_PUBLIC_PAYPAL_SOLO_PLAN_ID_ANNUAL
-    : process.env.NEXT_PUBLIC_PAYPAL_SOLO_PLAN_ID
+  async function handleClick() {
+    setError(null)
+    setLoading(true)
 
-  const teamPlanId = billingPeriod === 'annual'
-    ? process.env.NEXT_PUBLIC_PAYPAL_TEAM_PLAN_ID_ANNUAL
-    : process.env.NEXT_PUBLIC_PAYPAL_TEAM_PLAN_ID
-
-  const planId = accountType === 'solo' ? soloPlanId : teamPlanId
-
-  if (!planId) {
-    return (
-      <div className="rounded-lg border border-border bg-background-muted px-4 py-3 text-center text-[12px] text-foreground-lighter">
-        PayPal plan ID not configured. Set <code>NEXT_PUBLIC_PAYPAL_SOLO_PLAN_ID</code> / <code>NEXT_PUBLIC_PAYPAL_TEAM_PLAN_ID</code>.
-      </div>
+    const result = await createCheckoutSession(
+      workspaceSlug,
+      accountType,
+      billingPeriod,
+      extraWorkspaces
     )
+
+    setLoading(false)
+
+    if ('error' in result) {
+      setError(result.error)
+      return
+    }
+
+    // Initialise Lemon.js overlay (idempotent — safe to call multiple times)
+    if (typeof window !== 'undefined') {
+      window.createLemonSqueezy?.()
+      window.LemonSqueezy?.Url.Open(result.url)
+    }
   }
 
-  const total =
-    accountType === 'solo'
-      ? getSoloPrice(billingPeriod)
-      : calcTeamTotal(extraWorkspaces, billingPeriod)
-
   return (
-    <div>
-      <PayPalButtons
-        style={{ layout: 'vertical', color: 'gold', shape: 'rect', label: 'subscribe' }}
-        createSubscription={(_data: Record<string, unknown>, actions: { subscription: { create: (opts: { plan_id: string; custom_id: string }) => Promise<string> } }) => {
-          return actions.subscription.create({ plan_id: planId, custom_id: userId })
-        }}
-        onApprove={async (data: { subscriptionID?: string | null }) => {
-          if (data.subscriptionID) {
-            await activateSubscription(data.subscriptionID, accountType, extraWorkspaces)
-          }
-          router.push(`/${workspaceSlug}/upgrade?success=true&type=${accountType}&total=${total}&period=${billingPeriod}`)
-        }}
-        onCancel={() => {
-          router.push(`/${workspaceSlug}/upgrade?cancelled=true`)
-        }}
-        onError={(err: Record<string, unknown>) => {
-          console.error('PayPal error', err)
-        }}
-      />
-      <p className="mt-2 text-center text-[11px] text-foreground-muted">
-        Secured by PayPal · Cancel anytime · All users free
+    <div className="flex flex-col gap-2">
+      <button
+        onClick={handleClick}
+        disabled={loading}
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-[13px] font-semibold text-white shadow-xs transition-colors hover:bg-brand/90 active:bg-brand/80 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+      >
+        {loading ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            Preparing checkout…
+          </>
+        ) : (
+          'Subscribe now'
+        )}
+      </button>
+
+      {error && (
+        <p className="text-center text-[12px] text-destructive">{error}</p>
+      )}
+
+      <p className="text-center text-[11px] text-foreground-muted">
+        Secured by Lemon Squeezy · Cancel anytime · All users free
       </p>
     </div>
-  )
-}
-
-export function SubscriptionCheckout(props: SubscriptionCheckoutProps) {
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim()
-
-  if (!clientId) {
-    return (
-      <div className="rounded-lg border border-dashed border-border px-4 py-3 text-center text-[12px] text-foreground-lighter">
-        PayPal not configured. Set <code>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code> in <code>.env.local</code> to enable checkout.
-      </div>
-    )
-  }
-
-  return (
-    <PayPalScriptProvider
-      options={{
-        clientId,
-        vault: true,
-        intent: 'subscription',
-      }}
-    >
-      <CheckoutButtons {...props} />
-    </PayPalScriptProvider>
   )
 }

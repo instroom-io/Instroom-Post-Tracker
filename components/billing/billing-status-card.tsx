@@ -106,12 +106,12 @@ export function BillingStatusCard({
             Amount: <span className="font-medium text-foreground">${monthlyTotal}/month</span>
           </p>
           <a
-            href="https://www.paypal.com/myaccount/autopay/"
+            href="https://app.lemonsqueezy.com/my-orders"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-[12px] font-medium text-foreground transition-colors hover:bg-background-muted"
           >
-            Manage or cancel on PayPal ↗
+            Manage or cancel subscription ↗
           </a>
         </div>
       )}

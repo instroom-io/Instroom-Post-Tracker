@@ -36,8 +36,9 @@ export default async function UpgradePage({ params, searchParams }: PageProps) {
   // Only owner can upgrade
   if (!membership || membership.role !== 'owner') redirect(`/${workspaceSlug}/overview`)
 
-  // Already subscribed → go to billing settings
-  if ((workspace.plan as PlanType) === 'pro') {
+  // Already subscribed → go to billing settings (unless arriving from successful checkout)
+  const isSuccess = sp.success === 'true'
+  if ((workspace.plan as PlanType) === 'pro' && !isSuccess) {
     redirect(`/${workspaceSlug}/settings?tab=billing`)
   }
 
@@ -46,12 +47,11 @@ export default async function UpgradePage({ params, searchParams }: PageProps) {
       workspaceSlug={workspaceSlug}
       plan={workspace.plan as PlanType}
       accountType={(workspace.account_type as 'solo' | 'team') ?? 'solo'}
-      success={sp.success === 'true'}
+      success={isSuccess}
       cancelled={sp.cancelled === 'true'}
       successType={(sp.type as 'solo' | 'team') ?? 'solo'}
       successTotal={sp.total ? parseInt(sp.total, 10) : undefined}
       successPeriod={billingPeriod}
-      userId={user.id}
     />
   )
 }

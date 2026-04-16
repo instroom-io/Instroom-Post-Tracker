@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import Script from 'next/script'
 import { createClient } from '@/lib/supabase/server'
 
 interface BillingLayoutProps {
@@ -25,6 +26,7 @@ export default async function BillingLayout({ children, params }: BillingLayoutP
       <div className="mx-auto max-w-lg px-6 py-16">
         {children}
       </div>
+      <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="afterInteractive" />
     </div>
   )
 }

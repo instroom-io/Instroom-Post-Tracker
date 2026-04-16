@@ -49,7 +49,7 @@ export async function proxy(request: NextRequest) {
     '/no-access',
     '/forgot-password',
     '/reset-password',
-    '/api/webhooks/paypal',
+    '/api/webhooks/lemonsqueezy',
   ]
 
   const isPublicPath =

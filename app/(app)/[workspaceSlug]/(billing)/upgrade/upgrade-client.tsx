@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle, Check } from '@phosphor-icons/react'
@@ -18,7 +19,6 @@ interface UpgradeClientProps {
   successType: 'solo' | 'team'
   successTotal?: number
   successPeriod?: BillingPeriod
-  userId: string
 }
 
 const SOLO_FEATURES = [
@@ -39,19 +39,39 @@ const TEAM_FEATURES = [
 
 export function UpgradeClient({
   workspaceSlug,
+  plan,
   accountType,
   success,
   cancelled,
   successType,
   successTotal,
   successPeriod = 'monthly',
-  userId,
 }: UpgradeClientProps) {
   const [selected, setSelected] = useState<'solo' | 'team'>(accountType)
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
   const [extra, setExtra] = useState(0)
+  const router = useRouter()
+
+  // Webhook-only activation: poll until plan becomes 'pro' after successful checkout
+  useEffect(() => {
+    if (success && plan !== 'pro') {
+      const id = setInterval(() => router.refresh(), 2000)
+      return () => clearInterval(id)
+    }
+  }, [success, plan, router])
 
   if (success) {
+    // Waiting for webhook to activate the subscription
+    if (plan !== 'pro') {
+      return (
+        <div className="flex flex-col items-center gap-4 py-12 text-center">
+          <span className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-brand" />
+          <p className="text-[14px] font-medium text-foreground">Activating your subscription…</p>
+          <p className="text-[12px] text-foreground-lighter">This usually takes a few seconds.</p>
+        </div>
+      )
+    }
+
     const total = successTotal ?? (successType === 'solo' ? getSoloPrice(successPeriod) : calcTeamTotal(0, successPeriod))
     const workspaceCount = successType === 'solo' ? 1 : PRICING.team.includedWorkspaces
 
@@ -226,7 +246,6 @@ export function UpgradeClient({
         accountType={selected}
         extraWorkspaces={extra}
         workspaceSlug={workspaceSlug}
-        userId={userId}
         billingPeriod={period}
       />
 
