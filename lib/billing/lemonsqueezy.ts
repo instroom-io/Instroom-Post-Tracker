@@ -2,7 +2,6 @@
 // Server-only: Lemon Squeezy API client + checkout creation.
 // Never import this in client components.
 
-import { lemonSqueezySetup, createCheckout } from '@lemonsqueezy/lemonsqueezy.js'
 import { calcTeamTotal, getSoloPrice } from '@/lib/billing/pricing'
 import type { BillingPeriod } from '@/lib/billing/pricing'
 
@@ -50,6 +49,7 @@ export interface CreateCheckoutOptions {
 }
 
 // Creates a hosted checkout session via the LS API and returns the checkout URL.
+// Uses native fetch directly (bypasses SDK) for reliable env var access on Vercel.
 // Throws on API error.
 export async function createLemonSqueezyCheckout(
   opts: CreateCheckoutOptions
@@ -65,51 +65,71 @@ export async function createLemonSqueezyCheckout(
     redirectUrl,
   } = opts
 
+  const apiKey = process.env.LEMONSQUEEZY_API_KEY
+  const storeId = process.env.LEMONSQUEEZY_STORE_ID
+  if (!apiKey || !storeId) throw new Error('Lemon Squeezy env vars not configured')
+
   // Only send customPrice when extra workspaces are added (requires "Allow custom prices"
   // in LS product settings). Base variant prices are already correct for standard plans.
-  // Initialise SDK at call time (not module level) so env vars are guaranteed available
-  lemonSqueezySetup({
-    apiKey: process.env.LEMONSQUEEZY_API_KEY!,
-    onError: (error) => console.error('[LemonSqueezy]', error),
-  })
-
   const hasExtraWorkspaces = planType === 'team' && extraWorkspaces > 0
   const customPrice = hasExtraWorkspaces
     ? calcCustomPriceCents(planType, billingPeriod, extraWorkspaces)
     : undefined
 
-  const { data, error } = await createCheckout(
-    process.env.LEMONSQUEEZY_STORE_ID!,
-    variantId,
-    {
-      ...(customPrice !== undefined && { customPrice }),
-      checkoutData: {
-        email: userEmail,
-        // All values must be strings — parsed back in webhook handler
-        custom: {
-          user_id: userId,
-          workspace_slug: workspaceSlug,
-          plan_type: planType,
-          billing_period: billingPeriod,
-          extra_workspaces: String(extraWorkspaces),
+  const body = {
+    data: {
+      type: 'checkouts',
+      attributes: {
+        ...(customPrice !== undefined && { custom_price: customPrice }),
+        checkout_data: {
+          email: userEmail,
+          custom: {
+            user_id: userId,
+            workspace_slug: workspaceSlug,
+            plan_type: planType,
+            billing_period: billingPeriod,
+            extra_workspaces: String(extraWorkspaces),
+          },
+        },
+        product_options: {
+          redirect_url: redirectUrl,
+          receipt_button_text: 'Go to Dashboard',
+          receipt_link_url: redirectUrl,
+        },
+        checkout_options: {
+          embed: true,
+          media: false,
+          logo: true,
         },
       },
-      productOptions: {
-        redirectUrl,
-        receiptButtonText: 'Go to Dashboard',
-        receiptLinkUrl: redirectUrl,
+      relationships: {
+        store: { data: { type: 'stores', id: storeId } },
+        variant: { data: { type: 'variants', id: variantId } },
       },
-      checkoutOptions: {
-        embed: true,  // opens as overlay on our page
-        media: false,
-        logo: true,
-      },
-    }
-  )
+    },
+  }
 
-  if (error) throw new Error(error.message)
+  const res = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify(body),
+  })
 
-  const url = data?.data?.attributes?.url
+  const json = await res.json() as Record<string, unknown>
+
+  if (!res.ok) {
+    const errDetail = (json as { errors?: Array<{detail: string}> }).errors?.[0]?.detail
+      ?? res.statusText
+    console.error('[createLemonSqueezyCheckout] LS error', res.status, JSON.stringify(json))
+    throw new Error(errDetail)
+  }
+
+  const url = (json as { data?: { attributes?: { url?: string } } })
+    ?.data?.attributes?.url
   if (!url) throw new Error('Lemon Squeezy returned no checkout URL')
 
   return url
