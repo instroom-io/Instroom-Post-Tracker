@@ -53,7 +53,9 @@ const roleLabel: Record<WorkspaceRole, string> = {
 
 function JoinLinkCopy({ workspaceSlug }: { workspaceSlug: string }) {
   const [copied, setCopied] = useState(false)
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (typeof window !== 'undefined' ? window.location.origin : '')
   const joinUrl = `${appUrl}/join/${workspaceSlug}`
 
   function handleCopy() {

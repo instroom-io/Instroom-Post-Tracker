@@ -597,22 +597,26 @@ export async function approveJoinRequest(
     return { error: 'Only the workspace Admin can approve requests.' }
   }
 
-  // Add member with manager role
-  const { error: memberError } = await serviceClient
+  // Check if requester is already a member (could happen if approved via another path)
+  const { data: alreadyMember } = await serviceClient
     .from('workspace_members')
-    .insert({
-      workspace_id: request.workspace_id,
-      user_id: request.requester_id,
-      role: 'manager' as WorkspaceRole,
-      invited_by: user.id,
-    })
+    .select('id')
+    .eq('workspace_id', request.workspace_id)
+    .eq('user_id', request.requester_id)
+    .maybeSingle()
 
-  if (memberError) {
-    if (memberError.code === '23505') {
-      // Already a member — still mark as approved
-    } else {
-      return { error: 'Failed to add member.' }
-    }
+  if (!alreadyMember) {
+    // Add member with manager role
+    const { error: memberError } = await serviceClient
+      .from('workspace_members')
+      .insert({
+        workspace_id: request.workspace_id,
+        user_id: request.requester_id,
+        role: 'manager' as WorkspaceRole,
+        invited_by: user.id,
+      })
+
+    if (memberError) return { error: 'Failed to add member.' }
   }
 
   // Mark request approved

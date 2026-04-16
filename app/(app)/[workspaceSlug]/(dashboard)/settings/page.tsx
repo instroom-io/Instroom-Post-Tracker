@@ -58,7 +58,9 @@ async function MembersSection({
     user: Array.isArray(m.user) ? (m.user[0] ?? null) : m.user,
   }))
 
-  const joinRequests = (joinRequestsResult.data ?? []) as WorkspaceJoinRequest[]
+  const joinRequests = (!('error' in joinRequestsResult) || !joinRequestsResult.error
+    ? (joinRequestsResult.data ?? [])
+    : []) as WorkspaceJoinRequest[]
 
   return (
     <div className="rounded-xl border border-border bg-background-surface shadow-sm">
