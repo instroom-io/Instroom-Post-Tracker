@@ -57,10 +57,7 @@ export async function triggerPostDownload(
   }
 
   const personalFolderId = (userRecord as unknown as { personal_drive_folder_id: string | null }).personal_drive_folder_id
-
-  if (!personalFolderId) {
-    return { error: 'Set your personal Drive folder in Account Settings → Integrations before downloading.' }
-  }
+  // null means "My Drive root" — upload.ts handles this via rootFolderId ?? 'root'
 
   // 5. Validate post belongs to workspace
   const { data: post } = await supabase
@@ -80,7 +77,10 @@ export async function triggerPostDownload(
       refreshToken: userRecord.google_refresh_token,
     })
 
-    return { driveUrl: `https://drive.google.com/drive/folders/${personalFolderId}` }
+    const driveUrl = personalFolderId
+      ? `https://drive.google.com/drive/folders/${personalFolderId}`
+      : 'https://drive.google.com/'
+    return { driveUrl }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Download failed.'
     return { error: message }
