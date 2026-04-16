@@ -36,7 +36,7 @@ export function AgenciesTable({ agencies }: Props) {
   if (agencies.length === 0) {
     return (
       <p className="py-8 text-center text-[13px] text-foreground-lighter">
-        No agencies yet. Approve a request to add one.
+        No agencies on record.
       </p>
     )
   }

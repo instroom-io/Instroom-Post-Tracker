@@ -10,27 +10,13 @@ export default async function AppPage() {
   // Case 1: Platform admin
   const { data: profile } = await supabase
     .from('users')
-    .select('is_platform_admin, onboarding_completed')
+    .select('is_platform_admin')
     .eq('id', user.id)
     .single()
 
   if (profile?.is_platform_admin) redirect('/admin')
 
-  // Case 2: Agency owner
-  const { data: agency } = await supabase
-    .from('agencies')
-    .select('slug')
-    .eq('owner_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-
-  if (agency) {
-    // New agency owners must complete onboarding survey first
-    if (!profile?.onboarding_completed) redirect('/onboarding/welcome')
-    redirect(`/agency/${agency.slug}/dashboard`)
-  }
-
-  // Case 3 & 4: Workspace member (brand portal or regular dashboard)
+  // Case 2: Workspace member
   const { data: memberships } = await supabase
     .from('workspace_members')
     .select('role, workspace_id, workspaces(slug)')
@@ -42,5 +28,5 @@ export default async function AppPage() {
     if (workspace?.slug) redirect(`/${workspace.slug}/overview`)
   }
 
-  redirect('/onboarding/name')
+  redirect('/no-access')
 }

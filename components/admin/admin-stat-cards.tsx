@@ -1,4 +1,4 @@
-import { Buildings, Users, HardDrives, TrendUp } from '@phosphor-icons/react/dist/ssr'
+import { UsersThree, Buildings, HardDrives, TrendUp } from '@phosphor-icons/react/dist/ssr'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 
@@ -6,12 +6,12 @@ export async function AdminStatCards() {
   const supabase = createServiceClient()
 
   const [
-    { count: agencyCount },
-    { count: brandCount },
+    { count: userCount },
+    { count: workspaceCount },
     { count: postCount },
     { data: emvRows },
   ] = await Promise.all([
-    supabase.from('agencies').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('users').select('*', { count: 'exact', head: true }),
     supabase.from('workspaces').select('*', { count: 'exact', head: true }),
     supabase.from('posts').select('*', { count: 'exact', head: true }),
     supabase.from('post_metrics').select('emv').not('emv', 'is', null),
@@ -24,18 +24,18 @@ export async function AdminStatCards() {
 
   const stats = [
     {
-      label: 'Active Agencies',
-      value: agencyCount ?? 0,
-      sub: 'on the platform',
-      icon: Buildings,
+      label: 'Total Users',
+      value: userCount ?? 0,
+      sub: 'registered accounts',
+      icon: UsersThree,
       iconBg: 'bg-brand/10',
       iconColor: 'text-brand',
     },
     {
-      label: 'Brand Clients',
-      value: brandCount ?? 0,
+      label: 'Total Workspaces',
+      value: workspaceCount ?? 0,
       sub: 'active workspaces',
-      icon: Users,
+      icon: Buildings,
       iconBg: 'bg-accent/10',
       iconColor: 'text-accent',
     },
