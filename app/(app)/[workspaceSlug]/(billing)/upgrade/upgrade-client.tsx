@@ -37,6 +37,8 @@ const TEAM_FEATURES = [
   '14-day free trial, no credit card required',
 ]
 
+const MAX_POLL_MS = 45_000
+
 export function UpgradeClient({
   workspaceSlug,
   plan,
@@ -50,12 +52,22 @@ export function UpgradeClient({
   const [selected, setSelected] = useState<'solo' | 'team'>(accountType)
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
   const [extra, setExtra] = useState(0)
+  const [pollingTimedOut, setPollingTimedOut] = useState(false)
   const router = useRouter()
 
-  // Webhook-only activation: poll until plan becomes 'pro' after successful checkout
+  // Webhook-only activation: poll until plan becomes 'pro' after successful checkout.
+  // Times out after 45s in case the webhook is delayed or fails to deliver.
   useEffect(() => {
     if (success && plan !== 'pro') {
-      const id = setInterval(() => router.refresh(), 2000)
+      const deadline = Date.now() + MAX_POLL_MS
+      const id = setInterval(() => {
+        if (Date.now() > deadline) {
+          clearInterval(id)
+          setPollingTimedOut(true)
+          return
+        }
+        router.refresh()
+      }, 2000)
       return () => clearInterval(id)
     }
   }, [success, plan, router])
@@ -63,6 +75,35 @@ export function UpgradeClient({
   if (success) {
     // Waiting for webhook to activate the subscription
     if (plan !== 'pro') {
+      if (pollingTimedOut) {
+        return (
+          <div className="flex flex-col items-center gap-4 py-12 text-center">
+            <p className="text-[14px] font-medium text-foreground">Activation is taking longer than usual</p>
+            <p className="text-[12px] text-foreground-lighter max-w-xs">
+              If you completed payment, your subscription will activate shortly. You can refresh this page or check your billing settings.
+            </p>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+              <button
+                onClick={() => { setPollingTimedOut(false); router.refresh() }}
+                className="flex h-10 w-full items-center justify-center rounded-lg bg-brand px-4 text-[13px] font-semibold text-white transition-colors hover:bg-brand/90"
+              >
+                Refresh page
+              </button>
+              <Link
+                href={`/${workspaceSlug}/settings?tab=billing`}
+                className="flex h-10 w-full items-center justify-center rounded-lg border border-border bg-background px-4 text-[13px] font-medium text-foreground transition-colors hover:bg-background-muted"
+              >
+                View billing settings →
+              </Link>
+            </div>
+            <p className="text-[11px] text-foreground-muted">
+              Need help?{' '}
+              <a href="mailto:support@instroom.co" className="underline hover:no-underline">Contact support</a>
+            </p>
+          </div>
+        )
+      }
+
       return (
         <div className="flex flex-col items-center gap-4 py-12 text-center">
           <span className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-brand" />

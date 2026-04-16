@@ -17,21 +17,20 @@ export default async function UpgradePage({ params, searchParams }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect(`/login?redirectTo=/${workspaceSlug}/upgrade`)
 
-  const [{ data: workspace }, { data: membership }] = await Promise.all([
-    supabase
-      .from('workspaces')
-      .select('id, plan, trial_ends_at, account_type')
-      .eq('slug', workspaceSlug)
-      .single(),
-    supabase
-      .from('workspace_members')
-      .select('role')
-      .eq('workspace_id', (await supabase.from('workspaces').select('id').eq('slug', workspaceSlug).single()).data?.id ?? '')
-      .eq('user_id', user.id)
-      .single(),
-  ])
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('id, plan, trial_ends_at, account_type')
+    .eq('slug', workspaceSlug)
+    .single()
 
   if (!workspace) redirect('/app')
+
+  const { data: membership } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspace.id)
+    .eq('user_id', user.id)
+    .single()
 
   // Only owner can upgrade
   if (!membership || membership.role !== 'owner') redirect(`/${workspaceSlug}/overview`)
