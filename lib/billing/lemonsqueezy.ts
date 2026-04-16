@@ -6,11 +6,6 @@ import { lemonSqueezySetup, createCheckout } from '@lemonsqueezy/lemonsqueezy.js
 import { calcTeamTotal, getSoloPrice } from '@/lib/billing/pricing'
 import type { BillingPeriod } from '@/lib/billing/pricing'
 
-lemonSqueezySetup({
-  apiKey: process.env.LEMONSQUEEZY_API_KEY!,
-  onError: (error) => console.error('[LemonSqueezy]', error),
-})
-
 export function getVariantId(
   planType: 'solo' | 'team',
   billingPeriod: BillingPeriod
@@ -72,6 +67,12 @@ export async function createLemonSqueezyCheckout(
 
   // Only send customPrice when extra workspaces are added (requires "Allow custom prices"
   // in LS product settings). Base variant prices are already correct for standard plans.
+  // Initialise SDK at call time (not module level) so env vars are guaranteed available
+  lemonSqueezySetup({
+    apiKey: process.env.LEMONSQUEEZY_API_KEY!,
+    onError: (error) => console.error('[LemonSqueezy]', error),
+  })
+
   const hasExtraWorkspaces = planType === 'team' && extraWorkspaces > 0
   const customPrice = hasExtraWorkspaces
     ? calcCustomPriceCents(planType, billingPeriod, extraWorkspaces)
