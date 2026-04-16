@@ -70,13 +70,18 @@ export async function createLemonSqueezyCheckout(
     redirectUrl,
   } = opts
 
-  const customPrice = calcCustomPriceCents(planType, billingPeriod, extraWorkspaces)
+  // Only send customPrice when extra workspaces are added (requires "Allow custom prices"
+  // in LS product settings). Base variant prices are already correct for standard plans.
+  const hasExtraWorkspaces = planType === 'team' && extraWorkspaces > 0
+  const customPrice = hasExtraWorkspaces
+    ? calcCustomPriceCents(planType, billingPeriod, extraWorkspaces)
+    : undefined
 
   const { data, error } = await createCheckout(
     process.env.LEMONSQUEEZY_STORE_ID!,
     variantId,
     {
-      customPrice,
+      ...(customPrice !== undefined && { customPrice }),
       checkoutData: {
         email: userEmail,
         // All values must be strings — parsed back in webhook handler

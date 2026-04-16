@@ -53,7 +53,8 @@ export async function createCheckoutSession(
     })
     return { url }
   } catch (err) {
-    console.error('[createCheckoutSession]', err)
-    return { error: 'Failed to create checkout. Please try again.' }
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[createCheckoutSession]', msg)
+    return { error: `Failed to create checkout: ${msg}` }
   }
 }
