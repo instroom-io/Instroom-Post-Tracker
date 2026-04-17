@@ -39,6 +39,7 @@
     "node_modules",
     "workers",
     "e2e",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    ".worktrees"
   ]
 }
