@@ -62,3 +62,8 @@ landing-*.jpeg
 .worktrees/
 
 .vercel
+
+# Playwright
+e2e/.auth/
+e2e/test-results/
+playwright-report/
