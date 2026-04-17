@@ -54,8 +54,8 @@ test('usage rights toggle updates in UI and DB', async ({ page }) => {
   const initialRights = await getUsageRights(campaignInfluencerId)
   await toggle.click()
 
-  // Optimistic UI updates immediately; allow a brief moment for DB write
-  await page.waitForTimeout(1500)
+  // Optimistic UI updates immediately; wait for network to settle before verifying DB
+  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
 
   const updatedRights = await getUsageRights(campaignInfluencerId)
   expect(updatedRights).toBe(!initialRights)

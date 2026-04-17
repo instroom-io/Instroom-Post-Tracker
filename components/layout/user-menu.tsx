@@ -62,6 +62,7 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
         /* ── Compact trigger: avatar circle only ── */
         <button
           ref={triggerRef}
+          data-testid="user-menu-btn"
           onClick={() => setOpen(!open)}
           aria-haspopup="menu"
           aria-expanded={open}
@@ -84,6 +85,7 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
         /* ── Normal trigger: avatar + name ── */
         <button
           ref={triggerRef}
+          data-testid="user-menu-btn"
           onClick={() => setOpen(!open)}
           aria-haspopup="menu"
           aria-expanded={open}

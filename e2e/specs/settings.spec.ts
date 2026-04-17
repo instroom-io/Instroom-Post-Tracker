@@ -44,22 +44,22 @@ test.describe('Settings', () => {
   test('update workspace name persists after reload', async ({ page }) => {
     const settings = new SettingsPage(page)
     await settings.goto()
-
-    const nameInput = settings.workspaceNameInput()
-    await nameInput.clear()
-    await nameInput.fill(TEST_UPDATED_NAME)
-    await settings.saveBtn().click()
-
-    // Wait for save to complete (optimistic or server round-trip)
-    await page.waitForTimeout(1500)
-    await page.reload()
-
-    await expect(settings.workspaceNameInput()).toHaveValue(TEST_UPDATED_NAME, { timeout: 8000 })
-
-    // Restore original name so other tests are not affected
-    await settings.workspaceNameInput().clear()
-    await settings.workspaceNameInput().fill(ORIGINAL_WORKSPACE_NAME)
-    await settings.saveBtn().click()
-    await page.waitForTimeout(1500)
+    try {
+      const nameInput = settings.workspaceNameInput()
+      await nameInput.clear()
+      await nameInput.fill(TEST_UPDATED_NAME)
+      await settings.saveBtn().click()
+      await expect(page.getByText(/saved|success/i).or(page.locator('[data-sonner-toast]'))).toBeVisible({ timeout: 8000 }).catch(() => {})
+      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
+      await page.reload()
+      await expect(settings.workspaceNameInput()).toHaveValue(TEST_UPDATED_NAME, { timeout: 8000 })
+    } finally {
+      // Always restore original name, even on test failure
+      await settings.goto()
+      await settings.workspaceNameInput().clear()
+      await settings.workspaceNameInput().fill(ORIGINAL_WORKSPACE_NAME)
+      await settings.saveBtn().click()
+      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
+    }
   })
 })

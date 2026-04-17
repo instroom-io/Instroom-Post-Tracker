@@ -29,9 +29,8 @@ test('add single influencer → appears in table', async ({ page }) => {
 
   // After validation, a confirm step appears. Click the Confirm button.
   const confirmBtn = page.getByRole('button', { name: /confirm/i })
-  if (await confirmBtn.isVisible({ timeout: 8000 })) {
-    await confirmBtn.click()
-  }
+  await expect(confirmBtn).toBeVisible({ timeout: 3000 })
+  await confirmBtn.click()
 
   // Influencer handle should appear in the table
   await expect(influencerPage.rowByHandle('e2e_test_single')).toBeVisible({ timeout: 10000 })
@@ -51,9 +50,8 @@ test('adding duplicate handle in same workspace shows info or error feedback', a
 
   // After validation goes to confirm step, click Confirm
   const confirmBtn = page.getByRole('button', { name: /confirm/i })
-  if (await confirmBtn.isVisible({ timeout: 8000 })) {
-    await confirmBtn.click()
-  }
+  await expect(confirmBtn).toBeVisible({ timeout: 3000 })
+  await confirmBtn.click()
 
   // When all handles already exist the app shows an info toast "All handles already exist"
   // or an error toast — either way a sonner toast appears

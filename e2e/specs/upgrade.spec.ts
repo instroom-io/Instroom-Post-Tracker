@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { UpgradePage } from '../pages/upgrade.page'
 import { DashboardPage } from '../pages/dashboard.page'
+import { WORKSPACE_SLUG } from '../helpers/test-data'
 
 test.describe('Upgrade / Billing', () => {
   test('upgrade page accessible from trial banner upgrade link', async ({ page }) => {
@@ -9,7 +10,7 @@ test.describe('Upgrade / Billing', () => {
 
     await expect(dashboard.trialBannerUpgradeLink()).toBeVisible({ timeout: 8000 })
     await dashboard.trialBannerUpgradeLink().click()
-    await expect(page).toHaveURL(/\/flashbook\/upgrade/, { timeout: 8000 })
+    await expect(page).toHaveURL(new RegExp(`/${WORKSPACE_SLUG}/upgrade`), { timeout: 8000 })
   })
 
   test('upgrade page loads and shows solo pricing section', async ({ page }) => {

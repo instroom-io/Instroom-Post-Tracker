@@ -34,12 +34,11 @@ export async function cleanupCampaigns(workspaceId: string) {
 
 export async function cleanupInfluencers(workspaceId: string) {
   const sb = getClient()
-  // Delete campaign_influencers first (FK constraint)
   const { data: influencers } = await sb
     .from('influencers')
     .select('id')
     .eq('workspace_id', workspaceId)
-    .ilike('full_name', `${E2E_TAG}%`)
+    .or(`full_name.ilike.${E2E_TAG}%,handle.ilike.e2e%`)
   if (influencers?.length) {
     await sb
       .from('campaign_influencers')
@@ -50,7 +49,7 @@ export async function cleanupInfluencers(workspaceId: string) {
     .from('influencers')
     .delete()
     .eq('workspace_id', workspaceId)
-    .ilike('full_name', `${E2E_TAG}%`)
+    .or(`full_name.ilike.${E2E_TAG}%,handle.ilike.e2e%`)
 }
 
 export async function cleanupPosts(workspaceId: string) {
