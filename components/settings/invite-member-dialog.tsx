@@ -39,7 +39,7 @@ export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogP
         return
       }
       if (result && 'warning' in result) {
-        toast(result.warning)
+        toast.warning(result.warning)
       } else {
         toast.success(`Invitation sent to ${email}.`)
       }
