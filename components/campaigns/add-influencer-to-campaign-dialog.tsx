@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { UserPlus, ArrowLeft, CheckCircle, Warning, XCircle, UploadSimple } from '@phosphor-icons/react'
+import { UserPlus, ArrowLeft, CheckCircle, Warning, XCircle, DownloadSimple, UploadSimple } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -46,6 +46,70 @@ const ALL_BATCH_PLATFORMS: { key: BatchPlatform; label: string }[] = [
   { key: 'instagram', label: 'Instagram' },
   { key: 'youtube', label: 'YouTube' },
 ]
+
+// ── CSV template helpers ──────────────────────────────────────────────────────
+
+type ParseTemplateResult = { handles: Record<BatchPlatform, string[]>; total: number }
+
+function parseCsvTemplate(
+  text: string,
+  allowedPlatforms?: BatchPlatform[]
+): ParseTemplateResult | { error: string } {
+  const lines = text.split(/\r?\n/).filter(l => l.trim())
+  if (lines.length < 2) return { error: 'Template appears empty. Add at least one row below the header.' }
+
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^@/, ''))
+  const colMap: Record<BatchPlatform, number> = {
+    tiktok: headers.indexOf('tiktok_handle'),
+    instagram: headers.indexOf('ig_handle'),
+    youtube: headers.indexOf('youtube_handle'),
+  }
+
+  const recognized = Object.values(colMap).some(i => i !== -1)
+  if (!recognized) return { error: 'Unrecognized format. Please use the provided template.' }
+
+  const result: Record<BatchPlatform, string[]> = { tiktok: [], instagram: [], youtube: [] }
+
+  for (let i = 1; i < Math.min(lines.length, 501); i++) {
+    const cells = lines[i].split(',').map(c => c.trim().replace(/^@/, ''))
+    for (const p of (['tiktok', 'instagram', 'youtube'] as BatchPlatform[])) {
+      if (colMap[p] === -1) continue
+      if (allowedPlatforms && !allowedPlatforms.includes(p)) continue
+      const h = cells[colMap[p]] ?? ''
+      if (h.length > 0 && h.length <= 100) result[p].push(h)
+    }
+  }
+
+  const total = result.tiktok.length + result.instagram.length + result.youtube.length
+  if (total === 0) return { error: 'No handles found in the file. Check that you filled in the template correctly.' }
+
+  return { handles: result, total }
+}
+
+function downloadTemplate(platforms: BatchPlatform[]) {
+  const colHeaders = [
+    platforms.includes('tiktok') ? 'tiktok_handle' : null,
+    platforms.includes('instagram') ? 'ig_handle' : null,
+    platforms.includes('youtube') ? 'youtube_handle' : null,
+  ].filter(Boolean).join(',')
+
+  const sampleRow = [
+    platforms.includes('tiktok') ? 'example_tiktok' : null,
+    platforms.includes('instagram') ? 'example_instagram' : null,
+    platforms.includes('youtube') ? 'example_youtube' : null,
+  ].filter(Boolean).join(',')
+
+  const csv = `${colHeaders}\n${sampleRow}\n`
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'influencer-template.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function InfluencerAvatar({ handle, profilePicUrl }: { handle: string; profilePicUrl: string | null }) {
   const [failed, setFailed] = useState(false)
@@ -96,31 +160,16 @@ export function AddInfluencerToCampaignDialog({
   const defaultBatchPlatform = (batchTabs[0]?.key ?? 'tiktok') as BatchPlatform
   const [batchPlatform, setBatchPlatform] = useState<BatchPlatform>(defaultBatchPlatform)
 
-  // Validate mode state
-  const [validationResults, setValidationResults] = useState<HandleValidationResult[]>([])
+  // Validate mode state — augmented with platform for multi-platform CSV imports
+  const [validationResults, setValidationResults] = useState<(HandleValidationResult & { platform: BatchPlatform })[]>([])
   const [selectedHandles, setSelectedHandles] = useState<Set<string>>(new Set())
+
+  // CSV import state
+  const csvFileRef = useRef<HTMLInputElement>(null)
+  const [csvError, setCsvError] = useState<string | null>(null)
 
   // Shared
   const [productSentAt, setProductSentAt] = useState<string>('')
-
-  // CSV upload
-  const csvFileRef = useRef<HTMLInputElement>(null)
-
-  function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string
-      const handles = text
-        .split(/[\r\n,]+/)
-        .map((h) => h.trim().replace(/^@/, ''))
-        .filter((h) => h.length > 0 && h.length <= 100)
-      setBatchText(handles.join('\n'))
-    }
-    reader.readAsText(file)
-    if (csvFileRef.current) csvFileRef.current.value = ''
-  }
 
   // Only show influencers who have a handle on at least one campaign platform
   const platformFilteredInfluencers = availableInfluencers.filter((inf) =>
@@ -145,6 +194,8 @@ export function AddInfluencerToCampaignDialog({
       setValidationResults([])
       setSelectedHandles(new Set())
       setProductSentAt('')
+      setCsvError(null)
+      if (csvFileRef.current) csvFileRef.current.value = ''
       setMode(platformFilteredInfluencers.length > 0 ? 'select' : 'batch')
     }
   }
@@ -162,16 +213,56 @@ export function AddInfluencerToCampaignDialog({
     })
   }
 
+  // Validate handles from the manual textarea (single platform)
   function handleValidate() {
     if (parsedHandles.length === 0) return
     startTransition(async () => {
       const results = await validateInfluencerHandles(workspaceId, batchPlatform, parsedHandles)
-      setValidationResults(results)
-      // Auto-select valid + private, auto-deselect not_found
+      setValidationResults(results.map(r => ({ ...r, platform: batchPlatform })))
       const autoSelected = new Set(
         results
           .filter((r) => r.status === 'valid' || r.status === 'private')
           .map((r) => r.handle)
+      )
+      setSelectedHandles(autoSelected)
+      setMode('validate')
+    })
+  }
+
+  // Validate handles from CSV template upload (multi-platform)
+  function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCsvError(null)
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string
+      const parsed = parseCsvTemplate(text, campaignPlatforms as BatchPlatform[])
+      if ('error' in parsed) {
+        setCsvError(parsed.error)
+        return
+      }
+      runCsvValidation(parsed.handles)
+    }
+    reader.readAsText(file)
+    if (csvFileRef.current) csvFileRef.current.value = ''
+  }
+
+  function runCsvValidation(handlesByPlatform: Record<BatchPlatform, string[]>) {
+    startTransition(async () => {
+      const platforms = (campaignPlatforms as BatchPlatform[]).filter(p => handlesByPlatform[p].length > 0)
+      const allResults: (HandleValidationResult & { platform: BatchPlatform })[] = []
+      await Promise.all(
+        platforms.map(async p => {
+          const results = await validateInfluencerHandles(workspaceId, p, handlesByPlatform[p])
+          allResults.push(...results.map(r => ({ ...r, platform: p })))
+        })
+      )
+      setValidationResults(allResults)
+      const autoSelected = new Set(
+        allResults
+          .filter(r => r.status === 'valid' || r.status === 'private')
+          .map(r => r.handle)
       )
       setSelectedHandles(autoSelected)
       setMode('validate')
@@ -191,17 +282,36 @@ export function AddInfluencerToCampaignDialog({
     const handles = [...selectedHandles]
     if (handles.length === 0) return
     startTransition(async () => {
-      const result = await addInfluencersBatch(workspaceId, handles, batchPlatform, campaignId, productSentAt || null)
-      if (result?.error) {
-        toast.error(result.error)
-      } else {
-        toast.success(
-          result.skipped > 0
-            ? `${result.added} added, ${result.skipped} already existed`
-            : `${result.added} influencer${result.added !== 1 ? 's' : ''} added`
-        )
-        handleOpenChange(false)
+      // Group by platform using result data
+      const byPlatform: Record<BatchPlatform, string[]> = { tiktok: [], instagram: [], youtube: [] }
+      for (const handle of handles) {
+        const r = validationResults.find(v => v.handle === handle)
+        const platform = r?.platform ?? batchPlatform
+        byPlatform[platform].push(handle)
       }
+      const platformsToAdd = (['tiktok', 'instagram', 'youtube'] as BatchPlatform[])
+        .filter(p => byPlatform[p].length > 0)
+
+      let totalAdded = 0
+      let totalSkipped = 0
+      const errors: string[] = []
+      await Promise.all(
+        platformsToAdd.map(async p => {
+          const result = await addInfluencersBatch(workspaceId, byPlatform[p], p, campaignId, productSentAt || null)
+          if (result?.error) errors.push(result.error)
+          else { totalAdded += result.added; totalSkipped += result.skipped }
+        })
+      )
+      if (errors.length) {
+        errors.forEach(e => toast.error(e))
+        return
+      }
+      toast.success(
+        totalSkipped > 0
+          ? `${totalAdded} added, ${totalSkipped} already existed`
+          : `${totalAdded} influencer${totalAdded !== 1 ? 's' : ''} added`
+      )
+      handleOpenChange(false)
     })
   }
 
@@ -380,32 +490,67 @@ export function AddInfluencerToCampaignDialog({
                   </p>
                 </div>
 
-                {/* Textarea */}
+                {/* Manual textarea */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-medium text-foreground-light">Handles</span>
-                    <label className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-[11px] text-foreground-lighter hover:bg-background-muted transition-colors">
-                      <UploadSimple size={11} />
-                      Upload CSV
-                      <input
-                        type="file"
-                        accept=".csv,.txt"
-                        className="hidden"
-                        ref={csvFileRef}
-                        onChange={handleCsvUpload}
-                      />
-                    </label>
-                  </div>
+                  <span className="text-[11px] font-medium text-foreground-light">Paste handles</span>
                   <textarea
                     value={batchText}
                     onChange={(e) => setBatchText(e.target.value)}
                     placeholder="Paste handles without @, one per line or comma-separated&#10;e.g. kellyx, debalans, nadia"
-                    rows={5}
+                    rows={4}
                     className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-[13px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition-colors"
                   />
                   {parsedHandles.length > 0 && (
                     <p className="text-[11px] text-foreground-muted">
                       {parsedHandles.length} handle{parsedHandles.length !== 1 ? 's' : ''} detected
+                    </p>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-[11px] text-foreground-subtle">or import from template</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                {/* Template download + upload */}
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => downloadTemplate(campaignPlatforms as BatchPlatform[])}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-brand/20 bg-brand/5 px-3 py-2.5 text-left transition-colors hover:bg-brand/10"
+                  >
+                    <div>
+                      <p className="text-[12px] font-medium text-foreground">Download template</p>
+                      <p className="text-[11px] text-foreground-muted mt-0.5">
+                        {campaignPlatforms.map(p =>
+                          p === 'tiktok' ? 'tiktok_handle' : p === 'instagram' ? 'ig_handle' : 'youtube_handle'
+                        ).join(', ')} columns
+                      </p>
+                    </div>
+                    <DownloadSimple size={14} className="flex-shrink-0 text-brand" />
+                  </button>
+
+                  <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-dashed border-border px-3 py-3 transition-colors hover:border-brand/40 hover:bg-brand/5">
+                    <UploadSimple size={15} className="flex-shrink-0 text-foreground-muted" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[12px] font-medium text-foreground">Upload CSV</span>
+                      <span className="text-[12px] text-foreground-muted"> · .csv or .txt</span>
+                    </div>
+                    <input
+                      ref={csvFileRef}
+                      type="file"
+                      accept=".csv,.txt"
+                      className="hidden"
+                      onChange={handleCsvUpload}
+                    />
+                  </label>
+
+                  {csvError && (
+                    <p className="flex items-center gap-1.5 text-[11px] text-destructive">
+                      <XCircle size={11} className="flex-shrink-0" />
+                      {csvError}
                     </p>
                   )}
                 </div>
@@ -434,10 +579,11 @@ export function AddInfluencerToCampaignDialog({
               <DialogBody className="space-y-3">
                 {/* Results table */}
                 <div className="overflow-hidden rounded-lg border border-border">
-                  <div className="grid grid-cols-[16px_auto_1fr_auto] gap-3 border-b border-border bg-background-muted px-3 py-2">
+                  <div className="grid grid-cols-[16px_auto_1fr_auto_auto] gap-3 border-b border-border bg-background-muted px-3 py-2">
                     <span />
                     <span />
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Handle</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Platform</span>
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Status</span>
                   </div>
                   <div className="max-h-56 overflow-y-auto divide-y divide-border">
@@ -446,12 +592,12 @@ export function AddInfluencerToCampaignDialog({
                       const isNotFound = r.status === 'not_found'
                       return (
                         <button
-                          key={r.handle}
+                          key={`${r.platform}:${r.handle}`}
                           type="button"
                           onClick={() => !isNotFound && toggleHandle(r.handle)}
                           disabled={isNotFound}
                           className={cn(
-                            'grid w-full grid-cols-[16px_auto_1fr_auto] gap-3 px-3 py-2.5 text-left transition-colors',
+                            'grid w-full grid-cols-[16px_auto_1fr_auto_auto] gap-3 px-3 py-2.5 text-left transition-colors',
                             isNotFound
                               ? 'cursor-default opacity-50'
                               : 'hover:bg-background-muted cursor-pointer',
@@ -478,6 +624,8 @@ export function AddInfluencerToCampaignDialog({
                           <span className="font-mono text-[12px] text-foreground">
                             <span className="text-foreground-muted">@</span>{r.handle}
                           </span>
+                          {/* Platform */}
+                          <PlatformIcon platform={r.platform} size={13} />
                           {/* Status badge */}
                           {r.status === 'valid' && (
                             <span className="flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium text-brand">

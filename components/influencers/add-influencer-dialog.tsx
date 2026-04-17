@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { Plus, UploadSimple, CheckCircle, XCircle, Lock, FileText } from '@phosphor-icons/react'
+import { Plus, UploadSimple, CheckCircle, XCircle, FileText, DownloadSimple } from '@phosphor-icons/react'
 import { PlatformIcon } from '@/components/ui/platform-icon'
 import { toast } from 'sonner'
 import {
@@ -24,13 +24,13 @@ import {
 
 interface AddInfluencerDialogProps {
   workspaceId: string
-  campaignId?: string   // existing: hardcoded campaign (campaign detail page)
+  campaignId?: string
   trigger?: React.ReactNode
 }
 
 type Mode = 'manual' | 'csv'
 type CsvPlatform = 'instagram' | 'tiktok' | 'youtube'
-type CsvStep = 'idle' | 'parsed' | 'validating' | 'validated'
+type CsvImportStep = 'upload' | 'validating' | 'review'
 
 const PLATFORMS: { value: CsvPlatform; label: string }[] = [
   { value: 'tiktok', label: 'TikTok' },
@@ -44,6 +44,70 @@ function parseHandles(input: string): string[] {
     .map(h => h.trim().replace(/^@/, ''))
     .filter(Boolean)
 }
+
+// ── CSV template helpers ──────────────────────────────────────────────────────
+
+type ParseTemplateResult = { handles: Record<CsvPlatform, string[]>; total: number }
+
+function parseCsvTemplate(
+  text: string,
+  allowedPlatforms?: CsvPlatform[]
+): ParseTemplateResult | { error: string } {
+  const lines = text.split(/\r?\n/).filter(l => l.trim())
+  if (lines.length < 2) return { error: 'Template appears empty. Add at least one row below the header.' }
+
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^@/, ''))
+  const colMap: Record<CsvPlatform, number> = {
+    tiktok: headers.indexOf('tiktok_handle'),
+    instagram: headers.indexOf('ig_handle'),
+    youtube: headers.indexOf('youtube_handle'),
+  }
+
+  const recognized = Object.values(colMap).some(i => i !== -1)
+  if (!recognized) return { error: 'Unrecognized format. Please use the provided template.' }
+
+  const result: Record<CsvPlatform, string[]> = { tiktok: [], instagram: [], youtube: [] }
+
+  for (let i = 1; i < Math.min(lines.length, 501); i++) {
+    const cells = lines[i].split(',').map(c => c.trim().replace(/^@/, ''))
+    for (const p of (['tiktok', 'instagram', 'youtube'] as CsvPlatform[])) {
+      if (colMap[p] === -1) continue
+      if (allowedPlatforms && !allowedPlatforms.includes(p)) continue
+      const h = cells[colMap[p]] ?? ''
+      if (h.length > 0 && h.length <= 100) result[p].push(h)
+    }
+  }
+
+  const total = result.tiktok.length + result.instagram.length + result.youtube.length
+  if (total === 0) return { error: 'No handles found in the file. Check that you filled in the template correctly.' }
+
+  return { handles: result, total }
+}
+
+function downloadTemplate(platforms: CsvPlatform[]) {
+  const colHeaders = [
+    platforms.includes('tiktok') ? 'tiktok_handle' : null,
+    platforms.includes('instagram') ? 'ig_handle' : null,
+    platforms.includes('youtube') ? 'youtube_handle' : null,
+  ].filter(Boolean).join(',')
+
+  const sampleRow = [
+    platforms.includes('tiktok') ? 'example_tiktok' : null,
+    platforms.includes('instagram') ? 'example_instagram' : null,
+    platforms.includes('youtube') ? 'example_youtube' : null,
+  ].filter(Boolean).join(',')
+
+  const csv = `${colHeaders}\n${sampleRow}\n`
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'influencer-template.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function AddInfluencerDialog({
   workspaceId,
@@ -64,16 +128,15 @@ export function AddInfluencerDialog({
   const [manualResults, setManualResults] = useState<(HandleValidationResult & { platform: CsvPlatform })[]>([])
   const [manualSelected, setManualSelected] = useState<Set<string>>(new Set())
 
-  // ── CSV tab state ─────────────────────────────────────────────────────────
-  const [csvPlatform, setCsvPlatform] = useState<CsvPlatform>('tiktok')
-  const [parsedHandles, setParsedHandles] = useState<string[]>([])
-  const [csvFileName, setCsvFileName] = useState<string>('')
-  const [csvStep, setCsvStep] = useState<CsvStep>('idle')
-  const [csvError, setCsvError] = useState<string | null>(null)
-  const [validationResults, setValidationResults] = useState<HandleValidationResult[]>([])
-  const [isValidating, startValidateTransition] = useTransition()
-  const [isImporting, startImportTransition] = useTransition()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  // ── CSV import state ──────────────────────────────────────────────────────
+  const [csvImportStep, setCsvImportStep] = useState<CsvImportStep>('upload')
+  const [csvImportFileName, setCsvImportFileName] = useState('')
+  const [csvImportError, setCsvImportError] = useState<string | null>(null)
+  const [csvImportResults, setCsvImportResults] = useState<(HandleValidationResult & { platform: CsvPlatform })[]>([])
+  const [csvImportSelected, setCsvImportSelected] = useState<Set<string>>(new Set())
+  const [, startCsvValidateTransition] = useTransition()
+  const [isCsvImporting, startCsvImportTransition] = useTransition()
+  const csvFileRef = useRef<HTMLInputElement>(null)
 
   // ── Manual handlers ───────────────────────────────────────────────────────
   async function handleManualValidate() {
@@ -150,58 +213,91 @@ export function AddInfluencerDialog({
     }
   }
 
-  // ── CSV handlers ──────────────────────────────────────────────────────────
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  // ── CSV import handlers ───────────────────────────────────────────────────
+  function handleCsvFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setCsvFileName(file.name)
-    setCsvError(null)
-    setValidationResults([])
+    setCsvImportError(null)
+    setCsvImportFileName(file.name)
 
     const reader = new FileReader()
     reader.onload = (ev) => {
       const text = ev.target?.result as string
-      const handles = text
-        .split(/[\r\n,]+/)
-        .map((h) => h.trim().replace(/^@/, ''))
-        .filter((h) => h.length > 0 && h.length <= 100)
-
-      if (handles.length === 0) {
-        setCsvError('No valid handles found in file.')
-        setCsvStep('idle')
+      const parsed = parseCsvTemplate(text)
+      if ('error' in parsed) {
+        setCsvImportError(parsed.error)
+        setCsvImportFileName('')
         return
       }
-      setParsedHandles(handles)
-      setCsvStep('parsed')
+      runCsvValidation(parsed.handles)
     }
     reader.readAsText(file)
+    if (csvFileRef.current) csvFileRef.current.value = ''
   }
 
-  function handleValidate() {
-    setCsvError(null)
-    setCsvStep('validating')
-    startValidateTransition(async () => {
-      const results = await validateInfluencerHandles(workspaceId, csvPlatform, parsedHandles)
-      setValidationResults(results)
-      setCsvStep('validated')
+  function runCsvValidation(handlesByPlatform: Record<CsvPlatform, string[]>) {
+    setCsvImportStep('validating')
+    startCsvValidateTransition(async () => {
+      const platforms = (['tiktok', 'instagram', 'youtube'] as CsvPlatform[])
+        .filter(p => handlesByPlatform[p].length > 0)
+      const allResults: (HandleValidationResult & { platform: CsvPlatform })[] = []
+      await Promise.all(
+        platforms.map(async p => {
+          const results = await validateInfluencerHandles(workspaceId, p, handlesByPlatform[p])
+          allResults.push(...results.map(r => ({ ...r, platform: p })))
+        })
+      )
+      setCsvImportResults(allResults)
+      const autoSelected = new Set(
+        allResults
+          .filter(r => r.status !== 'not_found')
+          .map(r => `${r.platform}:${r.handle}`)
+      )
+      setCsvImportSelected(autoSelected)
+      setCsvImportStep('review')
     })
   }
 
-  function handleImport() {
-    const validHandles = validationResults.filter((r) => r.status === 'valid').map((r) => r.handle)
-    if (validHandles.length === 0) return
+  function toggleCsvImportHandle(key: string) {
+    const result = csvImportResults.find(r => `${r.platform}:${r.handle}` === key)
+    if (result?.status === 'not_found') return
+    setCsvImportSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
-    startImportTransition(async () => {
-      const result = await addInfluencersBatch(workspaceId, validHandles, csvPlatform, campaignId)
-      if (result?.error) { setCsvError(result.error); return }
+  function handleCsvImport() {
+    const byPlatform: Record<CsvPlatform, string[]> = { tiktok: [], instagram: [], youtube: [] }
+    for (const key of csvImportSelected) {
+      const colonIdx = key.indexOf(':')
+      const platform = key.slice(0, colonIdx) as CsvPlatform
+      const handle = key.slice(colonIdx + 1)
+      byPlatform[platform].push(handle)
+    }
+    const platformsToImport = (['tiktok', 'instagram', 'youtube'] as CsvPlatform[])
+      .filter(p => byPlatform[p].length > 0)
 
-      const { added, skipped } = result
-      if (added === 0) {
+    startCsvImportTransition(async () => {
+      let totalAdded = 0
+      let totalSkipped = 0
+      const errors: string[] = []
+      await Promise.all(
+        platformsToImport.map(async p => {
+          const result = await addInfluencersBatch(workspaceId, byPlatform[p], p, campaignId)
+          if (result.error) errors.push(result.error)
+          else { totalAdded += result.added; totalSkipped += result.skipped }
+        })
+      )
+      if (errors.length) { errors.forEach(e => toast.error(e)); return }
+      if (totalAdded === 0) {
         toast.info('All handles already exist in this workspace')
-      } else if (skipped > 0) {
-        toast.success(`Imported ${added} influencer(s) — ${skipped} already existed`)
+      } else if (totalSkipped > 0) {
+        toast.success(`Imported ${totalAdded} influencer${totalAdded !== 1 ? 's' : ''} — ${totalSkipped} already existed`)
       } else {
-        toast.success(`Imported ${added} influencer(s)`)
+        toast.success(`Imported ${totalAdded} influencer${totalAdded !== 1 ? 's' : ''}`)
       }
       handleClose()
     })
@@ -217,20 +313,21 @@ export function AddInfluencerDialog({
     setIsAdding(false)
     setManualResults([])
     setManualSelected(new Set())
-    // reset csv
-    setCsvPlatform('tiktok')
-    setParsedHandles([])
-    setCsvFileName('')
-    setCsvStep('idle')
-    setCsvError(null)
-    setValidationResults([])
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    // reset csv import
+    setCsvImportStep('upload')
+    setCsvImportFileName('')
+    setCsvImportError(null)
+    setCsvImportResults([])
+    setCsvImportSelected(new Set())
+    if (csvFileRef.current) csvFileRef.current.value = ''
   }
 
   // ── Derived ───────────────────────────────────────────────────────────────
-  const validCount = validationResults.filter((r) => r.status === 'valid').length
-  const privateCount = validationResults.filter((r) => r.status === 'private').length
-  const notFoundCount = validationResults.filter((r) => r.status === 'not_found').length
+  const csvValidCount = csvImportResults.filter(r => r.status === 'valid').length
+  const csvPrivateCount = csvImportResults.filter(r => r.status === 'private').length
+  const csvNotFoundCount = csvImportResults.filter(r => r.status === 'not_found').length
+  const csvSelectedCount = csvImportSelected.size
+  const csvDeselectedCount = csvImportResults.length - csvSelectedCount
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true) }}>
@@ -438,134 +535,222 @@ export function AddInfluencerDialog({
           </div>
         )}
 
-        {/* ── CSV tab ── */}
+        {/* ── CSV Import tab ── */}
         {mode === 'csv' && (
           <div>
             <DialogBody className="space-y-4">
 
-              {/* Platform selector */}
-              <div>
-                <p className="mb-2 text-[11px] font-medium text-foreground-light">Platform</p>
-                <div className="flex gap-2">
-                  {PLATFORMS.map((p) => (
-                    <button
-                      key={p.value}
-                      type="button"
-                      aria-label={p.label}
-                      aria-pressed={csvPlatform === p.value}
-                      onClick={() => {
-                        setCsvPlatform(p.value)
-                        // reset validation if platform changes after parse
-                        if (csvStep === 'validated') { setCsvStep('parsed'); setValidationResults([]) }
-                      }}
-                      className={cn(
-                        'flex flex-col items-center gap-1 rounded-lg border px-3 py-1.5 transition-colors',
-                        csvPlatform === p.value
-                          ? 'border-brand/40 bg-brand/10'
-                          : 'border-border bg-background-surface hover:bg-background-muted'
-                      )}
-                    >
-                      <PlatformIcon platform={p.value} size={16} />
-                      <span className="text-[10px] font-medium text-foreground-muted">{p.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Step: upload */}
+              {csvImportStep === 'upload' && (
+                <>
+                  {/* Download template card */}
+                  <button
+                    type="button"
+                    onClick={() => downloadTemplate(['tiktok', 'instagram', 'youtube'])}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-left transition-colors hover:bg-brand/10"
+                  >
+                    <div>
+                      <p className="text-[13px] font-medium text-foreground">Download template</p>
+                      <p className="text-[11px] text-foreground-muted mt-0.5">
+                        CSV with tiktok_handle, ig_handle, youtube_handle columns
+                      </p>
+                    </div>
+                    <DownloadSimple size={16} className="flex-shrink-0 text-brand" />
+                  </button>
 
-              {/* File upload zone */}
-              <div>
-                <p className="mb-2 text-[11px] font-medium text-foreground-light">CSV file</p>
-                <label
-                  className={cn(
-                    'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-center transition-colors',
-                    csvFileName
-                      ? 'border-border bg-background-muted'
-                      : 'border-border hover:border-brand/40 hover:bg-brand/5'
-                  )}
-                >
-                  {csvFileName ? (
-                    <>
-                      <FileText size={18} className="text-foreground-lighter" />
-                      <span className="text-[12px] font-medium text-foreground">{csvFileName}</span>
-                      <span className="text-[11px] text-foreground-lighter">{parsedHandles.length} handle{parsedHandles.length !== 1 ? 's' : ''} found</span>
-                    </>
-                  ) : (
-                    <>
-                      <UploadSimple size={18} className="text-foreground-muted" />
-                      <span className="text-[12px] text-foreground-light">Click to upload a CSV or TXT file</span>
-                      <span className="text-[11px] text-foreground-muted">One handle per row · @ symbol optional</span>
-                    </>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv,.txt"
-                    className="hidden"
-                    onChange={handleFileSelect}
-                  />
-                </label>
-              </div>
+                  {/* Upload zone */}
+                  <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border px-4 py-8 text-center transition-colors hover:border-brand/40 hover:bg-brand/5">
+                    <UploadSimple size={20} className="text-foreground-muted" />
+                    <div>
+                      <span className="text-[13px] font-medium text-foreground">Drop your CSV here</span>
+                      <span className="text-[13px] text-foreground-muted">, or </span>
+                      <span className="text-[13px] font-medium text-brand">browse</span>
+                    </div>
+                    <span className="text-[11px] text-foreground-muted">.csv or .txt · max 500 rows</span>
+                    <input
+                      ref={csvFileRef}
+                      type="file"
+                      accept=".csv,.txt"
+                      className="hidden"
+                      onChange={handleCsvFileSelect}
+                    />
+                  </label>
 
-              {/* Validation results */}
-              {csvStep === 'validated' && validationResults.length > 0 && (
-                <div className="rounded-xl border border-border bg-background-muted p-3 space-y-1.5">
-                  <p className="text-[11px] font-semibold text-foreground-light uppercase tracking-wide mb-2">Validation results</p>
-                  {validCount > 0 && (
-                    <div className="flex items-center gap-2">
-                      <CheckCircle size={13} className="text-brand flex-shrink-0" />
-                      <span className="text-[12px] text-foreground">{validCount} valid — will be imported</span>
+                  {/* Parse error */}
+                  {csvImportError && (
+                    <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+                      <XCircle size={13} className="mt-0.5 flex-shrink-0 text-destructive" />
+                      <div>
+                        <p className="text-[12px] text-destructive">{csvImportError}</p>
+                        <button
+                          type="button"
+                          onClick={() => { setCsvImportError(null); csvFileRef.current?.click() }}
+                          className="mt-0.5 text-[11px] text-foreground-muted underline"
+                        >
+                          Try a different file
+                        </button>
+                      </div>
                     </div>
                   )}
-                  {privateCount > 0 && (
-                    <div className="flex items-center gap-2">
-                      <Lock size={13} className="text-warning flex-shrink-0" />
-                      <span className="text-[12px] text-foreground-lighter">{privateCount} private — account exists, posts hidden</span>
-                    </div>
-                  )}
-                  {notFoundCount > 0 && (
-                    <div className="flex items-center gap-2">
-                      <XCircle size={13} className="text-destructive flex-shrink-0" />
-                      <span className="text-[12px] text-foreground-lighter">{notFoundCount} not found — username doesn&apos;t exist</span>
-                    </div>
-                  )}
+
+                  <p className="text-center text-[11px] text-foreground-subtle">
+                    Leave cells blank for platforms you don&apos;t track. @ symbols are optional.
+                  </p>
+                </>
+              )}
+
+              {/* Step: validating */}
+              {csvImportStep === 'validating' && (
+                <div className="flex flex-col items-center justify-center gap-3 py-8">
+                  <div className="flex items-center gap-2">
+                    <FileText size={16} className="text-foreground-lighter" />
+                    <span className="text-[13px] font-medium text-foreground">{csvImportFileName}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-foreground-muted">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span className="text-[13px]">Verifying handles…</span>
+                  </div>
                 </div>
               )}
 
-              {csvError && <p className="text-[11px] text-destructive">{csvError}</p>}
+              {/* Step: review */}
+              {csvImportStep === 'review' && (
+                <>
+                  {/* Summary pills */}
+                  <div className="flex flex-wrap gap-2">
+                    {csvValidCount > 0 && (
+                      <span className="flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/10 px-2.5 py-1 text-[11px] font-medium text-brand">
+                        <CheckCircle size={11} />
+                        {csvValidCount} valid
+                      </span>
+                    )}
+                    {csvPrivateCount > 0 && (
+                      <span className="flex items-center gap-1.5 rounded-full border border-warning/20 bg-warning/10 px-2.5 py-1 text-[11px] font-medium text-warning">
+                        ⚠ {csvPrivateCount} private
+                      </span>
+                    )}
+                    {csvNotFoundCount > 0 && (
+                      <span className="flex items-center gap-1.5 rounded-full border border-destructive/20 bg-destructive/10 px-2.5 py-1 text-[11px] font-medium text-destructive">
+                        <XCircle size={11} />
+                        {csvNotFoundCount} not found
+                      </span>
+                    )}
+                  </div>
+
+                  {/* All not-found empty state */}
+                  {csvValidCount === 0 && csvPrivateCount === 0 && csvImportResults.length > 0 && (
+                    <p className="text-center text-[12px] text-foreground-muted">
+                      No importable handles found. Check for typos in your file.
+                    </p>
+                  )}
+
+                  {/* Results list */}
+                  {csvImportResults.length > 0 && (
+                    <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
+                      {csvImportResults.map(r => {
+                        const key = `${r.platform}:${r.handle}`
+                        const isChecked = csvImportSelected.has(key)
+                        const isNotFound = r.status === 'not_found'
+                        return (
+                          <div
+                            key={key}
+                            role={isNotFound ? undefined : 'button'}
+                            tabIndex={isNotFound ? undefined : 0}
+                            onClick={() => toggleCsvImportHandle(key)}
+                            onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') toggleCsvImportHandle(key) }}
+                            className={cn(
+                              'flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors',
+                              isNotFound
+                                ? 'cursor-default opacity-50'
+                                : 'cursor-pointer hover:bg-background-surface'
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleCsvImportHandle(key)}
+                              disabled={isNotFound}
+                              onClick={e => e.stopPropagation()}
+                              className="h-4 w-4 flex-shrink-0 cursor-pointer rounded border-border"
+                            />
+                            {r.profile_pic_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={r.profile_pic_url}
+                                alt={r.handle}
+                                className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 flex-shrink-0 rounded-full border border-border bg-background-muted" />
+                            )}
+                            <span className="flex-1 truncate text-[13px] font-medium text-foreground">
+                              @{r.handle}
+                            </span>
+                            <PlatformIcon platform={r.platform} size={13} />
+                            <span
+                              className={cn(
+                                'flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium',
+                                r.status === 'valid' && 'bg-brand/10 text-brand',
+                                r.status === 'private' && 'bg-warning/10 text-warning',
+                                r.status === 'not_found' && 'bg-destructive/10 text-destructive'
+                              )}
+                            >
+                              {r.status === 'not_found' ? 'Not found' : r.status === 'private' ? 'Private' : 'Valid'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Private accounts note */}
+                  {csvPrivateCount > 0 && (
+                    <p className="text-[11px] text-foreground-muted">
+                      Private accounts will still be tracked. Handles marked &quot;not found&quot; are deselected by default.
+                    </p>
+                  )}
+
+                  {/* Upload different file */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCsvImportStep('upload')
+                      setCsvImportFileName('')
+                      setCsvImportResults([])
+                      setCsvImportSelected(new Set())
+                      setCsvImportError(null)
+                    }}
+                    className="text-[11px] text-foreground-muted underline"
+                  >
+                    Upload a different file
+                  </button>
+                </>
+              )}
 
             </DialogBody>
 
             <DialogFooter>
               <Button type="button" variant="secondary" size="md" onClick={handleClose}>Cancel</Button>
 
-              {csvStep === 'parsed' && (
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  loading={isValidating}
-                  onClick={handleValidate}
-                >
-                  Verify {parsedHandles.length} handle{parsedHandles.length !== 1 ? 's' : ''}
-                </Button>
-              )}
-
-              {csvStep === 'validated' && validCount > 0 && (
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  loading={isImporting}
-                  onClick={handleImport}
-                >
-                  Import {validCount} influencer{validCount !== 1 ? 's' : ''}
-                </Button>
-              )}
-
-              {csvStep === 'validated' && validCount === 0 && (
-                <Button type="button" variant="secondary" size="md" disabled>
-                  No valid handles
-                </Button>
+              {csvImportStep === 'review' && (
+                <div className="ml-auto flex items-center gap-3">
+                  <span className="text-[12px] text-foreground-muted">
+                    {csvSelectedCount} selected{csvDeselectedCount > 0 ? ` · ${csvDeselectedCount} skipped` : ''}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    disabled={csvSelectedCount === 0 || isCsvImporting}
+                    loading={isCsvImporting}
+                    onClick={handleCsvImport}
+                  >
+                    Import {csvSelectedCount > 0 ? csvSelectedCount : ''} influencer{csvSelectedCount !== 1 ? 's' : ''}
+                  </Button>
+                </div>
               )}
             </DialogFooter>
           </div>
