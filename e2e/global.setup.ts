@@ -1,4 +1,4 @@
-import { chromium, expect } from '@playwright/test'
+import { chromium } from '@playwright/test'
 import path from 'path'
 import fs from 'fs'
 

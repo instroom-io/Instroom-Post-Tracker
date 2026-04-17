@@ -1,4 +1,7 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { WORKSPACE_SLUG } from './test-data'
+
+export { WORKSPACE_SLUG }
 
 function getClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -8,7 +11,6 @@ function getClient() {
 }
 
 export const E2E_TAG = '[e2e]'
-export const WORKSPACE_SLUG = 'flashbook'
 
 export async function getWorkspaceId(): Promise<string> {
   const sb = getClient()
