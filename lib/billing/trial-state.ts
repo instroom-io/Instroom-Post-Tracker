@@ -30,7 +30,8 @@ export interface TrialState {
  * component render bodies, preventing SSR/hydration mismatches.
  */
 export function computeDaysRemaining(trialEndsAt: string | null): number {
-  const mockDaysEnv = process.env.NEXT_PUBLIC_TRIAL_DAYS_REMAINING
+  const isDev = process.env.NODE_ENV === 'development'
+  const mockDaysEnv = isDev ? process.env.NEXT_PUBLIC_TRIAL_DAYS_REMAINING : undefined
   if (mockDaysEnv !== undefined && mockDaysEnv !== '') {
     return parseInt(mockDaysEnv, 10)
   }
@@ -43,7 +44,8 @@ export function computeDaysRemaining(trialEndsAt: string | null): number {
  * Accept daysRemaining as a prop (computed server-side) — no Date.now() call.
  */
 export function getTrialState(plan: PlanType, daysRemaining: number): TrialState {
-  const mockSubscribed = process.env.NEXT_PUBLIC_SUBSCRIPTION_ACTIVE === 'true'
+  const isDev = process.env.NODE_ENV === 'development'
+  const mockSubscribed = isDev && process.env.NEXT_PUBLIC_SUBSCRIPTION_ACTIVE === 'true'
   const isSubscribed = mockSubscribed || plan === 'pro'
   // Infinity means trial_ends_at was null — workspace was never put on a trial
   const hasNoTrial = daysRemaining === Infinity

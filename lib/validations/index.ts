@@ -128,7 +128,10 @@ export const updateCampaignSchema = z.object({
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
   status: z.enum(['draft', 'active', 'ended', 'archived']).optional(),
-})
+}).refine(
+  (d) => !d.end_date || !d.start_date || new Date(d.end_date) >= new Date(d.start_date),
+  { message: 'End date must be on or after start date', path: ['end_date'] }
+)
 
 export const trackingConfigSchema = z.object({
   campaign_id: z.string().uuid(),

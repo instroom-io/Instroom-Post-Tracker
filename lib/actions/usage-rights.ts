@@ -14,6 +14,25 @@ export async function toggleUsageRights(
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const { data: ci } = await supabase
+    .from('campaign_influencers')
+    .select('campaign_id, campaigns(workspace_id)')
+    .eq('id', campaignInfluencerId)
+    .single()
+  if (!(ci?.campaigns as any)?.workspace_id) return { error: 'Not found.' }
+
+  const workspaceId = (ci!.campaigns as any).workspace_id as string
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
   const { error } = await supabase
     .from('campaign_influencers')
     .update({

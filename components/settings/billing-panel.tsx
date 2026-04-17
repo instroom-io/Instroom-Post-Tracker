@@ -29,7 +29,7 @@ export function BillingPanel({
   extraWorkspaces,
 }: BillingPanelProps) {
   return (
-    <div className="rounded-xl border border-border bg-background-surface shadow-sm">
+    <div data-testid="billing-panel" className="rounded-xl border border-border bg-background-surface shadow-sm">
       <div className="border-b border-border px-5 py-4">
         <h2 className="font-display text-[15px] font-bold text-foreground">Billing</h2>
         <p className="mt-0.5 text-[12px] text-foreground-lighter">

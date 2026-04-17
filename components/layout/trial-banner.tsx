@@ -52,7 +52,7 @@ export function TrialBanner({ plan, daysRemaining, upgradeHref, role }: TrialBan
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 bg-background px-5 py-2 border-b border-border">
+    <div data-testid="trial-banner" className="flex items-center justify-between gap-4 bg-background px-5 py-2 border-b border-border">
       <div className="flex items-center gap-3">
         <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${pillCls}`}>
           {pillLabel}
@@ -63,6 +63,7 @@ export function TrialBanner({ plan, daysRemaining, upgradeHref, role }: TrialBan
       </div>
       <Link
         href={upgradeHref}
+        data-testid="trial-banner-upgrade-link"
         className="shrink-0 text-[12px] font-medium text-brand transition-colors hover:text-brand/80"
       >
         Compare plans ↗

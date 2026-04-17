@@ -352,6 +352,7 @@ export function CampaignInfluencersList({
                         onCheckedChange={() => handleToggle(item.id, item.usage_rights)}
                         disabled={!canEdit || isPending}
                         aria-label={`Toggle usage rights for @${getInfluencerLabel(item.influencer)}`}
+                        data-testid="usage-rights-toggle"
                       />
                     </div>
                   </td>

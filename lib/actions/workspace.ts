@@ -137,7 +137,7 @@ export async function updateWorkspace(
 export async function inviteMember(
   workspaceId: string,
   data: unknown
-): Promise<{ error: string } | void> {
+): Promise<{ error: string } | { warning: string } | void> {
   const parsed = inviteMemberSchema.safeParse(data)
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
@@ -213,6 +213,7 @@ export async function inviteMember(
     user.email?.split('@')[0] ||
     'Someone'
 
+  let emailSent = true
   try {
     await sendEmail({
       to: parsed.data.email,
@@ -226,9 +227,14 @@ export async function inviteMember(
     })
   } catch (err) {
     console.error('[email] Failed to send team member invite email:', err)
+    emailSent = false
   }
 
   revalidatePath('/', 'layout')
+
+  if (!emailSent) {
+    return { warning: 'Invitation created but email failed to send. Share the invite link manually.' }
+  }
 }
 
 export async function acceptInvitation(

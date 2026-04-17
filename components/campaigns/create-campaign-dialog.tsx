@@ -85,6 +85,11 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
     e.preventDefault()
     setError(null)
 
+    if (endDate && startDate && new Date(endDate) < new Date(startDate)) {
+      setError('End date must be on or after start date.')
+      return
+    }
+
     const tracking_configs = selectedPlatforms
       .map((p) => ({
         platform: p,
@@ -115,7 +120,7 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); else setOpen(true) }}>
       <DialogTrigger>
-        <Button variant="primary" size="sm">
+        <Button variant="primary" size="sm" data-testid="create-campaign-btn">
           <Plus size={13} />
           New campaign
         </Button>
@@ -138,6 +143,7 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
               placeholder="Summer Collection 2025"
               required
               error={undefined}
+              data-testid="campaign-name-input"
             />
 
             {/* Platforms */}
@@ -238,6 +244,7 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   required
+                  data-testid="campaign-start-date"
                 />
               </div>
               <Input
@@ -245,6 +252,7 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                data-testid="campaign-end-date"
               />
             </div>
 
@@ -267,6 +275,7 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
               variant="primary"
               size="md"
               loading={isPending}
+              data-testid="campaign-submit-btn"
             >
               Create campaign
             </Button>

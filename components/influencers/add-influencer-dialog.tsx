@@ -47,7 +47,7 @@ function parseHandles(input: string): string[] {
 
 // ── CSV template helpers ──────────────────────────────────────────────────────
 
-type ParseTemplateResult = { handles: Record<CsvPlatform, string[]>; total: number }
+type ParseTemplateResult = { handles: Record<CsvPlatform, string[]>; total: number; truncated: boolean }
 
 function parseCsvTemplate(
   text: string,
@@ -67,6 +67,8 @@ function parseCsvTemplate(
   if (!recognized) return { error: 'Unrecognized format. Please use the provided template.' }
 
   const result: Record<CsvPlatform, string[]> = { tiktok: [], instagram: [], youtube: [] }
+  const rawRows = lines.length - 1 // exclude header
+  const truncated = rawRows > 500
 
   for (let i = 1; i < Math.min(lines.length, 501); i++) {
     const cells = lines[i].split(',').map(c => c.trim().replace(/^@/, ''))
@@ -81,7 +83,7 @@ function parseCsvTemplate(
   const total = result.tiktok.length + result.instagram.length + result.youtube.length
   if (total === 0) return { error: 'No handles found in the file. Check that you filled in the template correctly.' }
 
-  return { handles: result, total }
+  return { handles: result, total, truncated }
 }
 
 function downloadTemplate(platforms: CsvPlatform[]) {
@@ -132,6 +134,7 @@ export function AddInfluencerDialog({
   const [csvImportStep, setCsvImportStep] = useState<CsvImportStep>('upload')
   const [csvImportFileName, setCsvImportFileName] = useState('')
   const [csvImportError, setCsvImportError] = useState<string | null>(null)
+  const [csvWarning, setCsvWarning] = useState<string | null>(null)
   const [csvImportResults, setCsvImportResults] = useState<(HandleValidationResult & { platform: CsvPlatform })[]>([])
   const [csvImportSelected, setCsvImportSelected] = useState<Set<string>>(new Set())
   const [, startCsvValidateTransition] = useTransition()
@@ -218,6 +221,7 @@ export function AddInfluencerDialog({
     const file = e.target.files?.[0]
     if (!file) return
     setCsvImportError(null)
+    setCsvWarning(null)
     setCsvImportFileName(file.name)
 
     const reader = new FileReader()
@@ -228,6 +232,9 @@ export function AddInfluencerDialog({
         setCsvImportError(parsed.error)
         setCsvImportFileName('')
         return
+      }
+      if (parsed.truncated) {
+        setCsvWarning('Only the first 500 rows were imported. Split your file to import the rest.')
       }
       runCsvValidation(parsed.handles)
     }
@@ -317,6 +324,7 @@ export function AddInfluencerDialog({
     setCsvImportStep('upload')
     setCsvImportFileName('')
     setCsvImportError(null)
+    setCsvWarning(null)
     setCsvImportResults([])
     setCsvImportSelected(new Set())
     if (csvFileRef.current) csvFileRef.current.value = ''
@@ -333,7 +341,7 @@ export function AddInfluencerDialog({
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(true) }}>
       <DialogTrigger>
         {trigger ?? (
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" data-testid="add-influencer-btn">
             <Plus size={13} />
             Add influencer
           </Button>
@@ -404,6 +412,7 @@ export function AddInfluencerDialog({
                   {/* Textarea */}
                   <div className="space-y-1.5">
                     <textarea
+                      data-testid="influencer-handle-input"
                       value={manualHandleInputs[manualActivePlatform]}
                       onChange={e =>
                         setManualHandleInputs(prev => ({ ...prev, [manualActivePlatform]: e.target.value }))
@@ -498,6 +507,7 @@ export function AddInfluencerDialog({
                     p => parseHandles(manualHandleInputs[p]).length === 0
                   )}
                   onClick={handleManualValidate}
+                  data-testid="influencer-submit-btn"
                 >
                   Add Influencers
                 </Button>
@@ -573,8 +583,14 @@ export function AddInfluencerDialog({
                       accept=".csv,.txt"
                       className="hidden"
                       onChange={handleCsvFileSelect}
+                      data-testid="influencer-csv-input"
                     />
                   </label>
+
+                  {/* Truncation warning */}
+                  {csvWarning && (
+                    <p className="text-[11px] text-warning mt-1">{csvWarning}</p>
+                  )}
 
                   {/* Parse error */}
                   {csvImportError && (

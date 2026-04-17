@@ -34,11 +34,15 @@ export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogP
     setError(null)
     startTransition(async () => {
       const result = await inviteMember(workspaceId, { email, role })
-      if (result?.error) {
+      if (result && 'error' in result) {
         setError(result.error)
         return
       }
-      toast.success(`Invitation sent to ${email}.`)
+      if (result && 'warning' in result) {
+        toast(result.warning)
+      } else {
+        toast.success(`Invitation sent to ${email}.`)
+      }
       setOpen(false)
       setEmail('')
       setRole('manager')

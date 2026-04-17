@@ -288,18 +288,22 @@ export function AnalyticsClient({
 
       {/* Charts — 2-col grid */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <ChartCard title="Post Volume" badge={dateRangeLabel}>
-          <PostVolumeChart data={volumeData} multiPlatform={multiPlatform} />
-        </ChartCard>
+        <div data-testid="post-volume-chart">
+          <ChartCard title="Post Volume" badge={dateRangeLabel}>
+            <PostVolumeChart data={volumeData} multiPlatform={multiPlatform} />
+          </ChartCard>
+        </div>
 
         <ChartCard title="Platform Breakdown">
           <PlatformBreakdown data={platformData} />
         </ChartCard>
 
         <UpgradeGate plan={plan} feature="emv_reporting" workspaceSlug={workspaceSlug} minHeight="200px">
-          <ChartCard title="EMV by Influencer" badge="Top 10">
-            <EmvChart data={emvData} />
-          </ChartCard>
+          <div data-testid="emv-section">
+            <ChartCard title="EMV by Influencer" badge="Top 10">
+              <EmvChart data={emvData} />
+            </ChartCard>
+          </div>
         </UpgradeGate>
 
         <UpgradeGate plan={plan} feature="advanced_analytics" workspaceSlug={workspaceSlug} minHeight="200px">

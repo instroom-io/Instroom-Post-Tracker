@@ -9,6 +9,7 @@ interface SwitchProps {
   disabled?: boolean
   'aria-label'?: string
   size?: 'sm' | 'md'
+  'data-testid'?: string
 }
 
 const sizes = {
@@ -22,6 +23,7 @@ export function Switch({
   disabled,
   'aria-label': ariaLabel,
   size = 'md',
+  'data-testid': dataTestId,
 }: SwitchProps) {
   const shouldReduceMotion = useReducedMotion()
   const { track, thumb, translateX } = sizes[size]
@@ -45,6 +47,7 @@ export function Switch({
       aria-checked={checked}
       aria-label={ariaLabel}
       disabled={disabled}
+      data-testid={dataTestId}
       onClick={() => onCheckedChange(!checked)}
       whileTap={disabled ? undefined : { scale: 0.88 }}
       transition={tapTransition}

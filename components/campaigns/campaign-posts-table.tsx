@@ -86,7 +86,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table data-testid="campaign-posts-table" className="w-full">
           <thead>
             <tr className="border-b border-border">
               <th className="w-16 px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">

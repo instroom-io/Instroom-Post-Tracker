@@ -189,7 +189,7 @@ export function UpgradeClient({
       )}
 
       {/* Billing period toggle */}
-      <div className="flex items-center justify-center gap-3">
+      <div data-testid="billing-period-toggle" className="flex items-center justify-center gap-3">
         <button
           onClick={() => setPeriod('monthly')}
           className={`text-[13px] font-medium transition-colors ${period === 'monthly' ? 'text-foreground' : 'text-foreground-muted hover:text-foreground'}`}
@@ -230,7 +230,10 @@ export function UpgradeClient({
       </div>
 
       {/* Plan card */}
-      <div className="rounded-xl border border-border bg-background-surface p-6">
+      <div
+        data-testid={selected === 'solo' ? 'upgrade-solo-section' : undefined}
+        className="rounded-xl border border-border bg-background-surface p-6"
+      >
         <div className="flex items-baseline justify-between">
           <div>
             <p className="text-[16px] font-bold text-foreground capitalize">{selected}</p>
