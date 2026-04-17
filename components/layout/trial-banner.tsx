@@ -58,7 +58,7 @@ export function TrialBanner({ plan, daysRemaining, upgradeHref, role }: TrialBan
           {pillLabel}
         </span>
         <span className="hidden text-[12px] text-foreground-lighter sm:block">
-          Instroom Post Tracker · Free plan
+          Instroom Post Tracker · {plan === 'pro' ? 'Pro plan' : 'Trial plan'}
         </span>
       </div>
       <Link

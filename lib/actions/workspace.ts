@@ -52,10 +52,43 @@ export async function createWorkspace(
     : { data: null }
 
   const ownedCount = ownedMemberships?.length ?? 0
-  const quota = quotaRow?.workspace_quota ?? 1
+  const quota = quotaRow?.workspace_quota ?? (
+    // For team users creating their first workspace, check agency quota
+    user.user_metadata?.account_type === 'team' ? 3 : 1
+  )
 
   if (ownedCount >= quota) {
     return { error: `You've reached your workspace limit (${quota}). Contact us to expand your plan.` }
+  }
+
+  // For team users with no prior workspace, inherit trial dates from their agency
+  let inheritedPlan: PlanType = quotaRow?.plan ?? 'trial'
+  let inheritedTrialStartedAt: string | null = quotaRow?.trial_started_at ?? null
+  let inheritedTrialEndsAt: string | null = quotaRow?.trial_ends_at ?? null
+  const inheritedAccountType = quotaRow?.account_type ?? (user.user_metadata?.account_type as 'solo' | 'team' | undefined) ?? 'solo'
+  const inheritedQuota = quotaRow?.workspace_quota ?? (inheritedAccountType === 'team' ? 3 : 1)
+
+  if (!firstOwnedId) {
+    // No prior workspace — for team users, pull trial dates from their agency
+    if (inheritedAccountType === 'team') {
+      const { data: agencyRow } = await serviceClient
+        .from('agencies')
+        .select('plan, trial_started_at, trial_ends_at')
+        .eq('owner_id', user.id)
+        .limit(1)
+        .maybeSingle()
+      if (agencyRow) {
+        inheritedPlan = (agencyRow.plan as PlanType) ?? 'trial'
+        inheritedTrialStartedAt = agencyRow.trial_started_at ?? null
+        inheritedTrialEndsAt = agencyRow.trial_ends_at ?? null
+      }
+    }
+    // For solo users this path shouldn't occur (auth callback creates their first workspace),
+    // but as a safety net generate fresh trial dates
+    if (!inheritedTrialEndsAt) {
+      inheritedTrialStartedAt = new Date().toISOString()
+      inheritedTrialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+    }
   }
 
   // Generate unique slug
@@ -75,11 +108,11 @@ export async function createWorkspace(
     .insert({
       name: parsed.data.name,
       slug,
-      plan: quotaRow?.plan ?? 'trial',
-      trial_started_at: quotaRow?.trial_started_at ?? null,
-      trial_ends_at: quotaRow?.trial_ends_at ?? null,
-      account_type: quotaRow?.account_type ?? (user.user_metadata?.account_type as 'solo' | 'team' | undefined) ?? 'solo',
-      workspace_quota: quotaRow?.workspace_quota ?? 1,
+      plan: inheritedPlan,
+      trial_started_at: inheritedTrialStartedAt,
+      trial_ends_at: inheritedTrialEndsAt,
+      account_type: inheritedAccountType,
+      workspace_quota: inheritedQuota,
     })
     .select('id, slug')
     .single()
