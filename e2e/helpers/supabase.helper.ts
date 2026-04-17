@@ -38,7 +38,7 @@ export async function cleanupInfluencers(workspaceId: string) {
     .from('influencers')
     .select('id')
     .eq('workspace_id', workspaceId)
-    .or(`full_name.ilike.${E2E_TAG}%,handle.ilike.e2e%`)
+    .or('tiktok_handle.ilike.e2e%,ig_handle.ilike.e2e%,youtube_handle.ilike.e2e%,tiktok_handle.ilike.[e2e]%,ig_handle.ilike.[e2e]%,youtube_handle.ilike.[e2e]%')
   if (influencers?.length) {
     await sb
       .from('campaign_influencers')
@@ -49,7 +49,7 @@ export async function cleanupInfluencers(workspaceId: string) {
     .from('influencers')
     .delete()
     .eq('workspace_id', workspaceId)
-    .or(`full_name.ilike.${E2E_TAG}%,handle.ilike.e2e%`)
+    .or('tiktok_handle.ilike.e2e%,ig_handle.ilike.e2e%,youtube_handle.ilike.e2e%,tiktok_handle.ilike.[e2e]%,ig_handle.ilike.[e2e]%,youtube_handle.ilike.[e2e]%')
 }
 
 export async function cleanupPosts(workspaceId: string) {
@@ -87,9 +87,7 @@ export async function seedInfluencer(workspaceId: string): Promise<string> {
     .from('influencers')
     .insert({
       workspace_id: workspaceId,
-      full_name: `${E2E_TAG} Test Influencer`,
-      platform: 'tiktok',
-      handle: 'e2e_playwright_handle',
+      tiktok_handle: 'e2e_playwright_handle',
     })
     .select('id')
     .single()
@@ -105,7 +103,6 @@ export async function seedCampaignInfluencer(campaignId: string, influencerId: s
       campaign_id: campaignId,
       influencer_id: influencerId,
       monitoring_status: 'active',
-      usage_rights_granted: false,
     })
     .select('id')
     .single()
@@ -124,12 +121,8 @@ export async function seedPost(workspaceId: string, campaignId: string, influenc
       platform: 'tiktok',
       post_url: 'https://tiktok.com/@e2etest/video/99999999',
       caption: `${E2E_TAG} test post`,
-      views: 1000,
-      likes: 50,
-      comments: 5,
       posted_at: new Date().toISOString(),
       download_status: 'pending',
-      usage_rights_granted: false,
     })
     .select('id')
     .single()
@@ -141,8 +134,8 @@ export async function getUsageRights(campaignInfluencerId: string): Promise<bool
   const sb = getClient()
   const { data } = await sb
     .from('campaign_influencers')
-    .select('usage_rights_granted')
+    .select('usage_rights')
     .eq('id', campaignInfluencerId)
     .single()
-  return data?.usage_rights_granted ?? false
+  return data?.usage_rights ?? false
 }
