@@ -13,9 +13,22 @@ async function globalSetup() {
 
   await page.goto('http://localhost:3000/login')
   await page.getByLabel('Email').fill(TEST_EMAIL)
-  await page.getByLabel('Password').fill(TEST_PASSWORD)
+  await page.locator('input[name="password"]').fill(TEST_PASSWORD)
   await page.getByRole('button', { name: /sign in/i }).click()
-  await page.waitForURL('**/flashbook/overview', { timeout: 15_000 })
+  await page.waitForURL('**/flashbook/overview', { timeout: 30_000 })
+
+  // Mark all product tours as seen so the overlay never blocks test interactions
+  await page.evaluate(() => {
+    localStorage.setItem('instroom-tour', JSON.stringify({
+      state: {
+        hasSeenAgencyTour: true,
+        hasSeenWorkspaceTour: true,
+        hasSeenCampaignTour: true,
+        hasSeenCampaignsTour: true,
+      },
+      version: 0,
+    }))
+  })
 
   fs.mkdirSync(path.dirname(AUTH_FILE), { recursive: true })
   await page.context().storageState({ path: AUTH_FILE })

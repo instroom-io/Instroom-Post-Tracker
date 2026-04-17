@@ -97,7 +97,7 @@ export async function signUp(
 
 export async function signOut(): Promise<void> {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+  await supabase.auth.signOut({ scope: 'local' })
   revalidatePath('/', 'layout')
   redirect('/login')
 }

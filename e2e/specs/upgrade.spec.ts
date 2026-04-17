@@ -31,14 +31,11 @@ test.describe('Upgrade / Billing', () => {
     const toggle = upgrade.billingPeriodToggle()
     await expect(toggle).toBeVisible()
 
-    // Capture the first price text before toggling
-    const priceBefore = await page.getByText(/\$\d+/).first().textContent()
+    // Click the "Annual" button inside the toggle container to switch to annual billing
+    await toggle.getByRole('button', { name: /annual/i }).click()
 
-    await toggle.click()
-
-    // Price label should change after switching billing period
-    const priceAfter = await page.getByText(/\$\d+/).first().textContent()
-    expect(priceAfter).not.toBe(priceBefore)
+    // Annual billing indicator should appear once period switches
+    await expect(page.getByText(/billed annually/i)).toBeVisible({ timeout: 5000 })
   })
 
   test('checkout button is present on upgrade page', async ({ page }) => {

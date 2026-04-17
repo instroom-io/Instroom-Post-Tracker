@@ -11,6 +11,7 @@ function getClient() {
 }
 
 export const E2E_TAG = '[e2e]'
+const E2E_USER_ID = 'df7109cc-ec9f-4d97-b3ba-f9c85657a672'
 
 export async function getWorkspaceId(): Promise<string> {
   const sb = getClient()
@@ -74,6 +75,7 @@ export async function seedCampaign(workspaceId: string): Promise<string> {
       status: 'draft',
       start_date: today,
       end_date: future,
+      created_by: E2E_USER_ID,
     })
     .select('id')
     .single()
@@ -103,6 +105,7 @@ export async function seedCampaignInfluencer(campaignId: string, influencerId: s
       campaign_id: campaignId,
       influencer_id: influencerId,
       monitoring_status: 'active',
+      added_by: E2E_USER_ID,
     })
     .select('id')
     .single()
@@ -120,9 +123,10 @@ export async function seedPost(workspaceId: string, campaignId: string, influenc
       influencer_id: influencerId,
       platform: 'tiktok',
       post_url: 'https://tiktok.com/@e2etest/video/99999999',
+      platform_post_id: 'e2e_post_99999',
       caption: `${E2E_TAG} test post`,
       posted_at: new Date().toISOString(),
-      download_status: 'pending',
+      download_status: 'downloaded',
     })
     .select('id')
     .single()

@@ -9,7 +9,7 @@ export class SettingsPage {
   }
 
   workspaceNameInput() {
-    return this.page.locator('input[name="name"], input[placeholder*="workspace" i]').first()
+    return this.page.getByPlaceholder('My Agency')
   }
 
   saveBtn() {

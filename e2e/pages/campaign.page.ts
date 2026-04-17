@@ -8,8 +8,11 @@ export class CampaignPage {
     await this.page.goto(`/${WORKSPACE_SLUG}/campaigns`)
   }
 
-  async gotoDetail(campaignId: string) {
-    await this.page.goto(`/${WORKSPACE_SLUG}/campaigns/${campaignId}`)
+  async gotoDetail(campaignId: string, tab?: string) {
+    const url = tab
+      ? `/${WORKSPACE_SLUG}/campaigns/${campaignId}?tab=${tab}`
+      : `/${WORKSPACE_SLUG}/campaigns/${campaignId}`
+    await this.page.goto(url)
   }
 
   createBtn() {
@@ -45,10 +48,10 @@ export class CampaignPage {
     await this.nameInput().fill(opts.name)
     await this.startDateInput().fill(opts.startDate)
     await this.endDateInput().fill(opts.endDate)
-    // Select TikTok platform if available (check for checkboxes)
-    const tiktokCheckbox = this.page.getByRole('checkbox', { name: /tiktok/i })
-    if (await tiktokCheckbox.count() > 0 && !(await tiktokCheckbox.isChecked())) {
-      await tiktokCheckbox.click()
+    // Select TikTok platform using the platform button testid
+    const tiktokBtn = this.page.locator('[data-testid="platform-btn-tiktok"]')
+    if (await tiktokBtn.count() > 0) {
+      await tiktokBtn.click()
     }
     await this.submitBtn().click()
   }

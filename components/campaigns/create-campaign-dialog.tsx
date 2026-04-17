@@ -156,6 +156,7 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
                   <button
                     key={p.value}
                     type="button"
+                    data-testid={`platform-btn-${p.value}`}
                     onClick={() => togglePlatform(p.value)}
                     className={`rounded-lg border px-3 py-1.5 transition-colors ${
                       selectedPlatforms.includes(p.value)

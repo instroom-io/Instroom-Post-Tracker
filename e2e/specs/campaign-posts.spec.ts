@@ -32,56 +32,50 @@ test.afterEach(async () => {
   await cleanupCampaigns(workspaceId)
 })
 
-test('posts table renders in campaign detail with seeded post', async ({ page }) => {
+test('posts table renders in downloads tab with seeded post', async ({ page }) => {
   const campaign = new CampaignPage(page)
-  await campaign.gotoDetail(campaignId)
+  // CampaignPostsTable renders under the "downloads" tab (downloaded posts)
+  await campaign.gotoDetail(campaignId, 'downloads')
 
   const postsTable = campaign.postsTable()
   await expect(postsTable).toBeVisible({ timeout: 10000 })
 
   // Seeded post caption contains [e2e]
-  await expect(postsTable).toContainText(E2E_TAG)
+  await expect(postsTable).toContainText('e2e_playwright_handle')
 })
 
 test('usage rights toggle updates in UI and DB', async ({ page }) => {
   const campaign = new CampaignPage(page)
-  await campaign.gotoDetail(campaignId)
+  // Usage rights toggle is in the "influencers" tab (campaign-influencers-list)
+  await campaign.gotoDetail(campaignId, 'influencers')
 
-  // The usage rights toggle is on the influencer row in campaign-influencers-list
   const toggle = page.locator('[data-testid="usage-rights-toggle"]').first()
   await expect(toggle).toBeVisible({ timeout: 10000 })
 
   const initialRights = await getUsageRights(campaignInfluencerId)
-  await toggle.click()
 
-  // Optimistic UI updates immediately; wait for network to settle before verifying DB
-  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
+  // Start listening for the server action POST before clicking
+  const serverActionDone = page.waitForResponse(
+    (resp) => resp.request().method() === 'POST' && resp.status() === 200,
+    { timeout: 15000 }
+  )
+  await toggle.click()
+  // Wait for optimistic UI update (confirms click registered)
+  await expect(toggle).toHaveAttribute('aria-checked', 'true', { timeout: 5000 })
+  // Wait for server action to complete (POST 200 response)
+  await serverActionDone
 
   const updatedRights = await getUsageRights(campaignInfluencerId)
   expect(updatedRights).toBe(!initialRights)
 })
 
-test('posts table filters by platform', async ({ page }) => {
+test('posts gallery renders detected posts', async ({ page }) => {
   const campaign = new CampaignPage(page)
-  await campaign.gotoDetail(campaignId)
+  // CampaignPostsGallery renders under the "posts" tab
+  await campaign.gotoDetail(campaignId, 'posts')
 
-  // Wait for posts table first
-  await expect(campaign.postsTable()).toBeVisible({ timeout: 10000 })
-
-  // If there is a platform filter combobox / select, use it
-  const platformFilter = page
-    .getByRole('combobox')
-    .or(page.getByRole('listbox'))
-    .first()
-
-  if (await platformFilter.count() > 0) {
-    await platformFilter.click()
-    const tiktokOption = page.getByRole('option', { name: /tiktok/i })
-    if (await tiktokOption.count() > 0) {
-      await tiktokOption.click()
-    }
-  }
-
-  // Table should still be visible after any filter change (no crash)
-  await expect(campaign.postsTable()).toBeVisible({ timeout: 5000 })
+  // The posts tab shows detected posts count and gallery
+  await expect(page.getByText(/\d+ detected/i).first()).toBeVisible({ timeout: 8000 })
+  // Should not show an error boundary
+  await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0)
 })

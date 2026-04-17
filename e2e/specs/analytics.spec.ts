@@ -24,17 +24,13 @@ test.describe('Analytics — trial plan (all features unlocked)', () => {
     await analytics.goto()
     await expect(analytics.postVolumeChart()).toBeVisible({ timeout: 10000 })
 
-    // Attempt to interact with any date range combobox / select present on the page
-    const dateFilter = page
-      .getByRole('combobox')
-      .or(page.getByRole('button', { name: /last|days|range|period/i }))
-      .first()
-
+    // Attempt to interact with any date range select present on the page
+    const dateFilter = page.getByRole('combobox').first()
     if (await dateFilter.count() > 0) {
-      await dateFilter.click()
-      const firstOption = page.getByRole('option').first()
-      if (await firstOption.count() > 0) {
-        await firstOption.click()
+      const options = await dateFilter.locator('option').all()
+      if (options.length > 1) {
+        const secondValue = await options[1].getAttribute('value')
+        if (secondValue) await dateFilter.selectOption(secondValue)
       }
     }
 

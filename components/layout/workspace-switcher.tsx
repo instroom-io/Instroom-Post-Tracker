@@ -93,6 +93,7 @@ export function WorkspaceSwitcher({
       {/* ── Trigger button ─────────────────────────────────────────────── */}
       <button
         ref={triggerRef}
+        data-testid="ws-switcher-btn"
         onClick={() => setOpen(!open)}
         aria-haspopup="listbox"
         aria-expanded={open}

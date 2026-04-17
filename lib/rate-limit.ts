@@ -3,9 +3,14 @@ import { Redis } from '@upstash/redis'
 
 type Duration = `${number} ${'ms' | 's' | 'm' | 'h' | 'd'}`
 
-// Initialize Redis — gracefully skip if env vars are missing
+// Initialize Redis — only in production, and only if env vars are present.
+// In development, rate limiting is disabled so local testing is never blocked.
 let redis: Redis | null = null
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.UPSTASH_REDIS_REST_URL &&
+  process.env.UPSTASH_REDIS_REST_TOKEN
+) {
   redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL,
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
