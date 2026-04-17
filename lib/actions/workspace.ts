@@ -46,7 +46,7 @@ export async function createWorkspace(
   const { data: quotaRow } = firstOwnedId
     ? await supabase
         .from('workspaces')
-        .select('workspace_quota, plan')
+        .select('workspace_quota, plan, trial_started_at, trial_ends_at, account_type')
         .eq('id', firstOwnedId)
         .single()
     : { data: null }
@@ -72,7 +72,15 @@ export async function createWorkspace(
 
   const { data: workspace, error: wsError } = await serviceClient
     .from('workspaces')
-    .insert({ name: parsed.data.name, slug })
+    .insert({
+      name: parsed.data.name,
+      slug,
+      plan: quotaRow?.plan ?? 'trial',
+      trial_started_at: quotaRow?.trial_started_at ?? null,
+      trial_ends_at: quotaRow?.trial_ends_at ?? null,
+      account_type: quotaRow?.account_type ?? (user.user_metadata?.account_type as 'solo' | 'team' | undefined) ?? 'solo',
+      workspace_quota: quotaRow?.workspace_quota ?? 1,
+    })
     .select('id, slug')
     .single()
 
