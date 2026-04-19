@@ -13,7 +13,6 @@ import type { BillingPeriod } from '@/lib/billing/pricing'
 interface UpgradeClientProps {
   plan: PlanType
   accountType: 'solo' | 'team'
-  daysRemaining: number
   defaultWorkspaceSlug: string | null
   success: boolean
   cancelled: boolean
@@ -185,7 +184,7 @@ export function UpgradeClient({
       </div>
 
       {cancelled && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-[13px] text-amber-700 dark:text-amber-400">
+        <div className="rounded-lg border border-warning/30 bg-warning-muted px-4 py-3 text-[13px] text-foreground-light">
           Payment was cancelled. You can try again below.
         </div>
       )}
@@ -203,7 +202,7 @@ export function UpgradeClient({
           className={`relative h-6 w-11 overflow-hidden rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${period === 'annual' ? 'bg-brand' : 'bg-border-strong'}`}
           aria-label="Toggle billing period"
         >
-          <span className={`absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${period === 'annual' ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+          <span className={`absolute left-0 top-0.5 h-5 w-5 rounded-full bg-background shadow transition-transform ${period === 'annual' ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
         </button>
         <button
           onClick={() => setPeriod('annual')}

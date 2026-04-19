@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { computeDaysRemaining } from '@/lib/billing/trial-state'
 import { UpgradeClient } from './upgrade-client'
 import type { PlanType } from '@/lib/utils/plan'
 
@@ -47,13 +46,11 @@ export default async function AccountUpgradePage({ searchParams }: PageProps) {
 
   const plan = (firstWorkspace?.plan ?? 'trial') as PlanType
   const accountType = (firstWorkspace?.account_type ?? 'solo') as 'solo' | 'team'
-  const daysRemaining = computeDaysRemaining(firstWorkspace?.trial_ends_at ?? null)
 
   return (
     <UpgradeClient
       plan={plan}
       accountType={accountType}
-      daysRemaining={daysRemaining}
       defaultWorkspaceSlug={firstWorkspace?.slug ?? null}
       success={isSuccess}
       cancelled={sp.cancelled === 'true'}
