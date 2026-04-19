@@ -10,12 +10,11 @@ interface UpgradeGateProps {
   plan: PlanType
   feature: PlanFeature
   children: React.ReactNode
-  workspaceSlug: string
   /** Optional: minimum height for the locked placeholder. Default: none. */
   minHeight?: string
 }
 
-export function UpgradeGate({ plan, feature, children, workspaceSlug, minHeight }: UpgradeGateProps) {
+export function UpgradeGate({ plan, feature, children, minHeight }: UpgradeGateProps) {
   if (canUseFeature(plan, feature)) return <>{children}</>
 
   return (
@@ -33,7 +32,7 @@ export function UpgradeGate({ plan, feature, children, workspaceSlug, minHeight 
         </p>
       </div>
       <Link
-        href={`/${workspaceSlug}/upgrade`}
+        href="/account/upgrade"
         className="mt-1 inline-flex h-8 items-center rounded-lg bg-brand px-4 text-[12px] font-semibold text-white hover:bg-brand/90 transition-colors"
       >
         View upgrade options

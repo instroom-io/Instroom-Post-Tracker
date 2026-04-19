@@ -12,7 +12,7 @@ interface TrialBannerProps {
   plan: PlanType
   /** Pre-computed on the server via computeDaysRemaining() — never call Date.now() here. */
   daysRemaining: number
-  /** Full href for the upgrade/compare-plans link (e.g. /${workspaceSlug}/upgrade or /agency/${slug}/settings) */
+  /** Full href for the upgrade/compare-plans link (e.g. /account/upgrade) */
   upgradeHref: string
   role: WorkspaceRole
 }
