@@ -377,7 +377,8 @@ async function main() {
 
   console.log(`[posts-worker] loaded ${rows.length} influencer row(s) to process`)
 
-  let totalScraped = 0
+  let totalFetched = 0
+  let totalCandidates = 0
   let totalNewPosts = 0
   const errors: string[] = []
 
@@ -432,16 +433,7 @@ async function main() {
         }
 
         const { posts: rawPosts, resolvedId } = result
-        totalScraped += rawPosts.length
-
-        // DEBUG: log raw posts for diagnosis
-        if (handle.toLowerCase().includes('kamcia')) {
-          console.log(`[DEBUG] @${handle} raw posts (${rawPosts.length}):`)
-          for (const p of rawPosts) {
-            console.log(`  posted_at=${p.posted_at} caption=${p.caption?.slice(0, 120) ?? 'NULL'}`)
-          }
-          console.log(`[DEBUG] effectiveStartMs=${new Date(effectiveStartMs).toISOString()} lastSeenMs=${lastSeenMs > 0 ? new Date(lastSeenMs).toISOString() : '0'}`)
-        }
+        totalFetched += rawPosts.length
 
         if (resolvedId && platform !== 'tiktok') {
           const idField = platform === 'instagram' ? 'instagram_user_id' : 'youtube_channel_id'
@@ -486,19 +478,17 @@ async function main() {
           const postedMs = new Date(p.posted_at).getTime()
           return postedMs >= effectiveStartMs && (lastSeenMs === 0 || postedMs > lastSeenMs)
         })
+        totalCandidates += unseenPosts.length
 
         const config = campaign.campaign_tracking_configs?.find((c) => c.platform === platform)
         const hashtags = config?.hashtags ?? []
         const mentions = config?.mentions ?? []
 
-        const filtered = unseenPosts.filter((post) => {
-          const inWindow = isWithinCampaignWindow(post.posted_at, campaign.start_date, campaign.end_date)
-          const matches = matchesTrackingConfig(post.caption, hashtags, mentions)
-          if (handle.toLowerCase().includes('kamcia')) {
-            console.log(`[DEBUG] @${handle} post ${post.posted_at} inWindow=${inWindow} matches=${matches} caption=${post.caption?.slice(0, 80) ?? 'NULL'}`)
-          }
-          return inWindow && matches
-        })
+        const filtered = unseenPosts.filter((post) =>
+          isWithinCampaignWindow(post.posted_at, campaign.start_date, campaign.end_date) &&
+          matchesTrackingConfig(post.caption, hashtags, mentions)
+        )
+        console.log(`[posts-worker] @${handle} [${platform}] fetched=${rawPosts.length} candidates=${unseenPosts.length} matched=${filtered.length}`)
 
         if (filtered.length === 0) continue
 
@@ -635,7 +625,8 @@ async function main() {
   }
 
   console.log(JSON.stringify({
-    scraped: totalScraped,
+    fetched: totalFetched,
+    candidates: totalCandidates,
     newPosts: totalNewPosts,
     ...(errors.length > 0 && { errors }),
   }))
