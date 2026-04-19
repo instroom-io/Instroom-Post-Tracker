@@ -74,7 +74,6 @@ export default async function TrialExpiredPage({ params }: PageProps) {
         <div className="w-full">
           <SubscriptionCheckout
             accountType={(workspace.account_type as 'solo' | 'team') ?? 'solo'}
-            workspaceSlug={workspaceSlug}
           />
         </div>
       ) : (

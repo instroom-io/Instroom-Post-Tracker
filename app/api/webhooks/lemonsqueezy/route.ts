@@ -13,7 +13,6 @@ import { revalidatePath } from 'next/cache'
 
 interface LSCustomData {
   user_id: string
-  workspace_slug: string
   plan_type: string
   billing_period: string
   extra_workspaces: string

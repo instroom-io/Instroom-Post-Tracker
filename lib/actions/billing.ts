@@ -1,9 +1,5 @@
 'use server'
 
-// lib/actions/billing.ts
-// Server Actions for billing. Checkout creation only — no optimistic activation.
-// All subscription state changes are driven by the LS webhook handler.
-
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import {
@@ -14,7 +10,6 @@ import { calcTeamTotal, getSoloPrice, calcAnnualTotal } from '@/lib/billing/pric
 import type { BillingPeriod } from '@/lib/billing/pricing'
 
 export async function createCheckoutSession(
-  workspaceSlug: string,
   planType: 'solo' | 'team',
   billingPeriod: BillingPeriod,
   extraWorkspaces: number = 0
@@ -30,15 +25,12 @@ export async function createCheckoutSession(
     return { error: 'Billing not configured. Contact support.' }
   }
 
-  // Compute display total for the success-screen query param.
-  // For annual plans: send the full annual charge (e.g. $180 for Solo annual).
-  // For monthly plans: send the monthly rate (e.g. $19 for Solo monthly).
   const displayTotal = billingPeriod === 'annual'
     ? calcAnnualTotal(planType, extraWorkspaces)
     : planType === 'solo' ? getSoloPrice('monthly') : calcTeamTotal(extraWorkspaces, 'monthly')
 
   const redirectUrl =
-    `${process.env.NEXT_PUBLIC_APP_URL}/${workspaceSlug}/upgrade` +
+    `${process.env.NEXT_PUBLIC_APP_URL}/account/upgrade` +
     `?success=true&type=${planType}&period=${billingPeriod}&total=${displayTotal}`
 
   try {
@@ -49,7 +41,6 @@ export async function createCheckoutSession(
       extraWorkspaces,
       userId: user.id,
       userEmail: user.email!,
-      workspaceSlug,
       redirectUrl,
     })
     return { url }

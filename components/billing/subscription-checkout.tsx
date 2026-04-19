@@ -1,14 +1,9 @@
 'use client'
 
-// components/billing/subscription-checkout.tsx
-// Lemon Squeezy overlay checkout button.
-// Calls createCheckoutSession server action → gets checkout URL → opens LS overlay.
-
 import { useState } from 'react'
 import { createCheckoutSession } from '@/lib/actions/billing'
 import type { BillingPeriod } from '@/lib/billing/pricing'
 
-// Lemon.js window globals (loaded via Script tag in billing layout)
 declare global {
   interface Window {
     createLemonSqueezy?: () => void
@@ -22,14 +17,12 @@ declare global {
 interface SubscriptionCheckoutProps {
   accountType: 'solo' | 'team'
   extraWorkspaces?: number
-  workspaceSlug: string
   billingPeriod?: BillingPeriod
 }
 
 export function SubscriptionCheckout({
   accountType,
   extraWorkspaces = 0,
-  workspaceSlug,
   billingPeriod = 'monthly',
 }: SubscriptionCheckoutProps) {
   const [loading, setLoading] = useState(false)
@@ -40,7 +33,6 @@ export function SubscriptionCheckout({
     setLoading(true)
 
     const result = await createCheckoutSession(
-      workspaceSlug,
       accountType,
       billingPeriod,
       extraWorkspaces
@@ -53,7 +45,6 @@ export function SubscriptionCheckout({
       return
     }
 
-    // Initialise Lemon.js overlay (idempotent — safe to call multiple times)
     if (typeof window !== 'undefined') {
       window.createLemonSqueezy?.()
       window.LemonSqueezy?.Url.Open(result.url)

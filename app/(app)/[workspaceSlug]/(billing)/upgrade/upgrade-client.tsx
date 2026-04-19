@@ -298,7 +298,6 @@ export function UpgradeClient({
       <SubscriptionCheckout
         accountType={selected}
         extraWorkspaces={extra}
-        workspaceSlug={workspaceSlug}
         billingPeriod={period}
       />
 

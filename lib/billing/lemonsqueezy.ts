@@ -44,7 +44,6 @@ export interface CreateCheckoutOptions {
   extraWorkspaces: number
   userId: string
   userEmail: string
-  workspaceSlug: string
   redirectUrl: string
 }
 
@@ -61,7 +60,6 @@ export async function createLemonSqueezyCheckout(
     extraWorkspaces,
     userId,
     userEmail,
-    workspaceSlug,
     redirectUrl,
   } = opts
 
@@ -86,7 +84,6 @@ export async function createLemonSqueezyCheckout(
           email: userEmail,
           custom: {
             user_id: userId,
-            workspace_slug: workspaceSlug,
             plan_type: planType,
             billing_period: billingPeriod,
             extra_workspaces: String(extraWorkspaces),
