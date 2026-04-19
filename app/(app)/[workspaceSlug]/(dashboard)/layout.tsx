@@ -45,7 +45,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
 
   if (!membership) redirect('/app')
 
-  // 4. Hard-gate: if trial expired past grace period, send to /trial-expired
+  // 4. Hard-gate: if trial expired past grace period, send to /account/upgrade
   const plan = workspace.plan ?? 'free'
   const trialEndsAt = workspace.trial_ends_at ?? null
   const daysRemaining = computeDaysRemaining(trialEndsAt)
