@@ -312,6 +312,12 @@ export async function POST(request: Request) {
     .insert({ id: idempotencyKey, provider: 'lemonsqueezy', event_type: eventName })
 
   if (dupError?.code === '23505') {
+    // Already processed — idempotent no-op
+    return new Response('OK', { status: 200 })
+  }
+  if (dupError) {
+    // Transient DB error — bail out; return 200 to avoid LS retry storm
+    console.error('[LS Webhook] Failed to record idempotency key:', dupError.message)
     return new Response('OK', { status: 200 })
   }
 
