@@ -57,9 +57,13 @@ function trialEndedHtml(accountName: string, upgradeUrl: string): string {
   })
 }
 
+const UPGRADE_URL = `${process.env.NEXT_PUBLIC_APP_URL}/account/upgrade`
+
 async function processWorkspaces(
   supabase: ReturnType<typeof createServiceClient>
 ) {
+  // Include plan='free' rows with unsent trial-ended notifications — pg_cron flips plan to
+  // 'free' at 00:30 UTC before this worker runs, so we must catch recently-expired rows too.
   const { data: rows, error } = await supabase
     .from('workspaces')
     .select(`
@@ -72,7 +76,8 @@ async function processWorkspaces(
       trial_reminder_12_sent_at,
       trial_ended_notified_at
     `)
-    .eq('plan', 'trial')
+    .or('plan.eq.trial,and(plan.eq.free,trial_ended_notified_at.is.null)')
+    .not('trial_ends_at', 'is', null)
 
   if (error) {
     console.error('[trial-worker] Failed to load workspaces:', error)
@@ -87,6 +92,7 @@ async function processWorkspaces(
   for (const row of rows) {
     try {
       const days = trialDaysRemaining(row.trial_ends_at as string | null)
+      const isActiveTrial = (row.plan as string) === 'trial'
 
       // Fetch owner email
       const { data: member } = await supabase
@@ -103,14 +109,13 @@ async function processWorkspaces(
       }
 
       const name = escapeHtml(row.name as string)
-      const upgradeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${row.slug}/upgrade`
 
-      // Day 7 reminder
-      if (days <= 7 && !row.trial_reminder_7_sent_at) {
+      // Day 7 reminder — only while still on trial
+      if (isActiveTrial && days <= 7 && !row.trial_reminder_7_sent_at) {
         await sendEmail({
           to: ownerEmail,
           subject: 'Your Instroom trial ends in 7 days',
-          html: trialReminder7Html(name, upgradeUrl),
+          html: trialReminder7Html(name, UPGRADE_URL),
         })
         await supabase
           .from('workspaces')
@@ -120,12 +125,12 @@ async function processWorkspaces(
         console.log(`[trial-worker] Day-7 reminder sent to ${ownerEmail} (workspace ${row.id})`)
       }
 
-      // Day 2 reminder
-      if (days <= 2 && !row.trial_reminder_12_sent_at) {
+      // Day 2 reminder — only while still on trial
+      if (isActiveTrial && days <= 2 && !row.trial_reminder_12_sent_at) {
         await sendEmail({
           to: ownerEmail,
           subject: '2 days left in your Instroom trial',
-          html: trialReminder2Html(name, upgradeUrl),
+          html: trialReminder2Html(name, UPGRADE_URL),
         })
         await supabase
           .from('workspaces')
@@ -135,12 +140,12 @@ async function processWorkspaces(
         console.log(`[trial-worker] Day-2 reminder sent to ${ownerEmail} (workspace ${row.id})`)
       }
 
-      // Trial ended notification
+      // Trial ended — fires for both plan='trial' (days=0) and plan='free' (already expired)
       if (days === 0 && row.trial_ends_at && !row.trial_ended_notified_at) {
         await sendEmail({
           to: ownerEmail,
           subject: 'Your Instroom trial has ended',
-          html: trialEndedHtml(name, upgradeUrl),
+          html: trialEndedHtml(name, UPGRADE_URL),
         })
         await supabase
           .from('workspaces')
@@ -158,17 +163,126 @@ async function processWorkspaces(
   return { processed: rows.length, emailsSent, errors }
 }
 
+async function processAgencies(
+  supabase: ReturnType<typeof createServiceClient>
+) {
+  const { data: rows, error } = await supabase
+    .from('agencies')
+    .select(`
+      id,
+      name,
+      slug,
+      plan,
+      trial_ends_at,
+      trial_reminder_7_sent_at,
+      trial_reminder_2_sent_at,
+      trial_ended_notified_at,
+      owner_id
+    `)
+    .or('plan.eq.trial,and(plan.eq.free,trial_ended_notified_at.is.null)')
+    .not('trial_ends_at', 'is', null)
+
+  if (error) {
+    console.error('[trial-worker] Failed to load agencies:', error)
+    return { processed: 0, emailsSent: 0, errors: [error.message] }
+  }
+
+  if (!rows || rows.length === 0) return { processed: 0, emailsSent: 0, errors: [] }
+
+  let emailsSent = 0
+  const errors: string[] = []
+
+  for (const row of rows) {
+    try {
+      const days = trialDaysRemaining(row.trial_ends_at as string | null)
+      const isActiveTrial = (row.plan as string) === 'trial'
+
+      // Fetch owner email directly via owner_id
+      const { data: ownerData } = await supabase
+        .from('users')
+        .select('email')
+        .eq('id', row.owner_id as string)
+        .single()
+      const ownerEmail = ownerData?.email ?? null
+
+      if (!ownerEmail) {
+        errors.push(`[agency ${row.id}] No owner email found`)
+        continue
+      }
+
+      const name = escapeHtml(row.name as string)
+
+      // Day 7 reminder
+      if (isActiveTrial && days <= 7 && !row.trial_reminder_7_sent_at) {
+        await sendEmail({
+          to: ownerEmail,
+          subject: 'Your Instroom trial ends in 7 days',
+          html: trialReminder7Html(name, UPGRADE_URL),
+        })
+        await supabase
+          .from('agencies')
+          .update({ trial_reminder_7_sent_at: new Date().toISOString() })
+          .eq('id', row.id)
+        emailsSent++
+        console.log(`[trial-worker] Day-7 reminder sent to ${ownerEmail} (agency ${row.id})`)
+      }
+
+      // Day 2 reminder
+      if (isActiveTrial && days <= 2 && !row.trial_reminder_2_sent_at) {
+        await sendEmail({
+          to: ownerEmail,
+          subject: '2 days left in your Instroom trial',
+          html: trialReminder2Html(name, UPGRADE_URL),
+        })
+        await supabase
+          .from('agencies')
+          .update({ trial_reminder_2_sent_at: new Date().toISOString() })
+          .eq('id', row.id)
+        emailsSent++
+        console.log(`[trial-worker] Day-2 reminder sent to ${ownerEmail} (agency ${row.id})`)
+      }
+
+      // Trial ended
+      if (days === 0 && row.trial_ends_at && !row.trial_ended_notified_at) {
+        await sendEmail({
+          to: ownerEmail,
+          subject: 'Your Instroom trial has ended',
+          html: trialEndedHtml(name, UPGRADE_URL),
+        })
+        await supabase
+          .from('agencies')
+          .update({ trial_ended_notified_at: new Date().toISOString() })
+          .eq('id', row.id)
+        emailsSent++
+        console.log(`[trial-worker] Trial-ended email sent to ${ownerEmail} (agency ${row.id})`)
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      errors.push(`[agency ${row.id}] ${msg}`)
+    }
+  }
+
+  return { processed: rows.length, emailsSent, errors }
+}
+
 async function main() {
   const supabase = createServiceClient()
-  const result = await processWorkspaces(supabase)
+  const [workspaceResult, agencyResult] = await Promise.all([
+    processWorkspaces(supabase),
+    processAgencies(supabase),
+  ])
+
+  const processed = workspaceResult.processed + agencyResult.processed
+  const emailsSent = workspaceResult.emailsSent + agencyResult.emailsSent
+  const errors = [...workspaceResult.errors, ...agencyResult.errors]
 
   console.log(JSON.stringify({
-    processed: result.processed,
-    emailsSent: result.emailsSent,
-    ...(result.errors.length > 0 && { errors: result.errors }),
+    processed,
+    emailsSent,
+    ...(errors.length > 0 && { errors }),
   }))
 
-  process.exit(result.errors.length > 0 && result.processed === 0 ? 1 : 0)
+  process.exit(errors.length > 0 ? 1 : 0)
 }
 
 main().catch((err) => {

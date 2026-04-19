@@ -40,6 +40,10 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
   const agencyPlan = agency.plan ?? 'free'
   const daysRemaining = computeDaysRemaining(agency.trial_ends_at ?? null)
 
+  if (agencyPlan === 'free' && daysRemaining < -3) {
+    redirect('/account/upgrade')
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <TrialBanner
