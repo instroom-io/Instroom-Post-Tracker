@@ -1,23 +1,19 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ThemeToggle } from '@/components/layout/theme-toggle'
+import Script from 'next/script'
 
-export default async function AccountLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
+export default function AccountLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex h-14 items-center justify-between border-b border-border px-6">
-        <Link href="/app" className="opacity-100 transition-opacity hover:opacity-75">
-          <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={140} height={32} priority />
+    <div className="min-h-screen bg-background">
+      <div className="border-b border-border px-6 py-4">
+        <Link href="/app">
+          <Image src="/POST_TRACKER.svg" alt="Instroom Post Tracker" width={130} height={30} priority />
         </Link>
-        <ThemeToggle />
       </div>
-      <main className="flex-1 p-6 max-w-4xl mx-auto w-full">{children}</main>
+      <div className="mx-auto max-w-lg px-6 py-16">
+        {children}
+      </div>
+      <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="afterInteractive" />
     </div>
   )
 }
