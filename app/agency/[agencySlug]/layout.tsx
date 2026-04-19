@@ -45,7 +45,7 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
       <TrialBanner
         plan={agencyPlan}
         daysRemaining={daysRemaining}
-        upgradeHref={`/agency/${agencySlug}/settings`}
+        upgradeHref="/account/upgrade"
         role={'owner' as WorkspaceRole}
       />
       <div className="flex h-14 items-center justify-between border-b border-border px-6">
