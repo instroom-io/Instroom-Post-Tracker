@@ -131,7 +131,7 @@ export function BillingStatusCard({
       {/* CTA */}
       {!state.isSubscribed && (
         <Link
-          href={`/${workspaceSlug}/upgrade`}
+          href="/account/upgrade"
           className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-[13px] font-semibold text-white shadow-xs transition-colors hover:bg-brand/90 active:bg-brand/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
         >
           {state.isExpired || state.isGracePeriod ? 'Reactivate' : 'Upgrade Now'}

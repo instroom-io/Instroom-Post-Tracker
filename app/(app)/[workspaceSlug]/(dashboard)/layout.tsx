@@ -50,7 +50,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
   const trialEndsAt = workspace.trial_ends_at ?? null
   const daysRemaining = computeDaysRemaining(trialEndsAt)
   if (plan === 'free' && daysRemaining < -3) {
-    redirect(`/${workspaceSlug}/trial-expired`)
+    redirect(`/account/upgrade`)
   }
 
   // 5. Fetch all user memberships for workspace switcher + agency back-link (parallel)

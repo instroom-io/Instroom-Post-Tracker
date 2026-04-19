@@ -168,7 +168,7 @@ export function AppShell({
         <TrialBanner
           plan={plan}
           daysRemaining={daysRemaining}
-          upgradeHref={`/${workspaceSlug}/upgrade`}
+          upgradeHref="/account/upgrade"
           role={currentRole}
         />
       )}
