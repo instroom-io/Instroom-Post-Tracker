@@ -1,8 +1,5 @@
 'use client'
 
-// components/layout/trial-banner.tsx
-// Compact pill-style trial banner (Option D) — minimal footprint, non-disruptive.
-
 import Link from 'next/link'
 import { getTrialState } from '@/lib/billing/trial-state'
 import type { PlanType } from '@/lib/utils/plan'
@@ -12,61 +9,107 @@ interface TrialBannerProps {
   plan: PlanType
   /** Pre-computed on the server via computeDaysRemaining() — never call Date.now() here. */
   daysRemaining: number
-  /** Full href for the upgrade/compare-plans link (e.g. /account/upgrade) */
+  /** Full href for the upgrade link — passed as /account/upgrade from AppShell. */
   upgradeHref: string
   role: WorkspaceRole
 }
 
 export function TrialBanner({ plan, daysRemaining, upgradeHref, role }: TrialBannerProps) {
-  // Only show to workspace owners during trial
+  // Only owners see the trial banner
   if (role !== 'owner') return null
 
   const state = getTrialState(plan, daysRemaining)
 
-  // Hide when subscribed or hard-expired (paywall takes over)
+  // Hide when already subscribed or hard-expired (paywall redirect handles that)
   if (state.isSubscribed || state.isExpired) return null
 
-  // Hide if no trial info at all
+  // Hide if there is no active trial state to show
   if (!state.isTrialing && !state.isGracePeriod && !state.isCritical) return null
 
-  // Pill color — escalates from soft amber → deep amber → red
-  let pillCls: string
-  if (state.isCritical || state.isGracePeriod) {
-    pillCls = 'bg-destructive-muted text-destructive border-destructive/30'
-  } else if (state.isWarning) {
-    pillCls = 'bg-amber-200 text-amber-900 border-amber-400'
+  // Option C: days 0–3 (isCritical) and grace period days -1 to -3 (isGracePeriod && < 0)
+  const isUrgent = state.isCritical || state.isGracePeriod
+
+  // ── Badge label ──────────────────────────────────────────────────────────
+  let badgeLabel: string
+  if (state.isGracePeriod && state.daysRemaining < 0) {
+    badgeLabel = '⚠ TRIAL ENDED'
+  } else if (state.isCritical) {
+    badgeLabel = '⚠ EXPIRING SOON'
   } else {
-    pillCls = 'bg-amber-50 text-amber-700 border-amber-300'
+    badgeLabel = 'FREE TRIAL'
   }
 
-  // Pill label
+  // ── Body copy ─────────────────────────────────────────────────────────────
   const abs = Math.abs(state.daysRemaining)
-  const dayWord = abs !== 1 ? 'days' : 'day'
-  let pillLabel: string
-  if (state.isGracePeriod) {
-    pillLabel = `Trial ended ${abs} ${dayWord} ago`
-  } else if (state.daysRemaining === 0) {
-    pillLabel = 'Trial expires today'
+  const absWord = abs === 1 ? 'day' : 'days'
+  const dWord = state.daysRemaining === 1 ? 'day' : 'days'
+
+  let body: React.ReactNode
+  if (state.isGracePeriod && state.daysRemaining < 0) {
+    body = (
+      <>Your trial ended <strong>{abs} {absWord} ago</strong>. Upgrade to keep your data and campaigns.</>
+    )
+  } else if (state.isCritical && state.daysRemaining === 0) {
+    body = <>Your free trial <strong>ends today</strong>. Upgrade to keep your data and campaigns.</>
+  } else if (state.isCritical) {
+    body = (
+      <>Your free trial ends in <strong>{state.daysRemaining} {dWord}</strong>. Upgrade to keep your data and campaigns.</>
+    )
   } else {
-    pillLabel = `Trial: ${state.daysRemaining} ${state.daysRemaining !== 1 ? 'days' : 'day'} left`
+    // isTrialing (days 4+) — Option B reassurance copy
+    body = (
+      <>You have <strong>{state.daysRemaining} {dWord}</strong> left — no credit card needed to continue exploring.</>
+    )
   }
 
+  const btnLabel = isUrgent ? 'Upgrade Now →' : 'Upgrade →'
+
+  // ── Option C — red urgency (days 0–3 and grace period) ───────────────────
+  if (isUrgent) {
+    return (
+      <div
+        data-testid="trial-banner"
+        className="flex items-center justify-between gap-4 border-b border-destructive/20 bg-destructive-muted px-5 py-2.5"
+      >
+        <div className="flex items-center gap-3">
+          <span className="inline-flex shrink-0 items-center rounded-full bg-destructive px-2.5 py-0.5 text-[11px] font-semibold text-white">
+            {badgeLabel}
+          </span>
+          <span className="hidden text-[13px] text-foreground-light sm:block">
+            {body}
+          </span>
+        </div>
+        <Link
+          href={upgradeHref}
+          data-testid="trial-banner-upgrade-link"
+          className="shrink-0 rounded-md bg-destructive px-3.5 py-1.5 text-[12px] font-medium text-white transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50"
+        >
+          {btnLabel}
+        </Link>
+      </div>
+    )
+  }
+
+  // ── Option B — brand green (days 4–14) ────────────────────────────────────
   return (
-    <div data-testid="trial-banner" className="flex items-center justify-between gap-4 bg-background px-5 py-2 border-b border-border">
+    <div
+      data-testid="trial-banner"
+      className="flex items-center justify-between gap-4 border-b border-brand/20 bg-brand-muted px-5 py-2.5"
+    >
       <div className="flex items-center gap-3">
-        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${pillCls}`}>
-          {pillLabel}
+        <span className="inline-flex shrink-0 items-center rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-semibold text-white">
+          {badgeLabel}
         </span>
-        <span className="hidden text-[12px] text-foreground-lighter sm:block">
-          Instroom Post Tracker · {plan === 'pro' ? 'Pro plan' : 'Trial plan'}
+        <span className="hidden text-[13px] text-foreground-light sm:block">
+          {body}
         </span>
       </div>
       <Link
         href={upgradeHref}
         data-testid="trial-banner-upgrade-link"
-        className="shrink-0 text-[12px] font-medium text-brand transition-colors hover:text-brand/80"
+        className="shrink-0 rounded-md bg-brand px-3.5 py-1.5 text-[12px] font-medium text-white transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
       >
-        Compare plans ↗
+        {btnLabel}
       </Link>
     </div>
   )
