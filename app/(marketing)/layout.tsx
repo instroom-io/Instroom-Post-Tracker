@@ -25,13 +25,13 @@ export default function MarketingLayout({
 
             {/* Links — center column on desktop, centered on mobile */}
             <div className="flex flex-wrap justify-center gap-6">
-              <a href="#" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
+              <a href="/privacy" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
                 Privacy policy
               </a>
-              <a href="#" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
+              <a href="/terms" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
                 Terms of service
               </a>
-              <a href="#" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
+              <a href="mailto:support@instroom.co" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
                 Support
               </a>
             </div>
