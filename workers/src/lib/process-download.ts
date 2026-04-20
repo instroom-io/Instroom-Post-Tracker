@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { uploadToDrive } from './drive/upload'
-import { getAgencyFreshAccessToken } from './google/tokens'
+import { getAgencyFreshAccessToken, getFreshAccessToken } from './google/tokens'
 
 const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
 const ENSEMBLE_API_KEY = process.env.ENSEMBLE_API_KEY!
@@ -122,21 +122,44 @@ export async function processPostDownload(
   const folderPath = `${workspace?.name}/${campaign?.name}/${handle}/${post.platform}`
 
   const agency = workspace?.agency ?? null
-  // Only use the agency's OAuth token when a drive_folder_id is configured.
-  // Without a folder, the upload would target GOOGLE_DRIVE_ROOT_FOLDER_ID (Instroom's
-  // default Shared Drive), which the agency's Google account cannot access.
-  const accessToken = (agency?.id && agency?.drive_folder_id)
-    ? await getAgencyFreshAccessToken(agency.id, supabase)
-    : null
+
+  let accessToken: string | null = null
+  let rootFolderId: string | undefined = undefined
+
+  if (agency?.id && agency?.drive_folder_id) {
+    // Agency workspace: upload to agency's Shared Drive via agency OAuth
+    accessToken = await getAgencyFreshAccessToken(agency.id, supabase)
+    rootFolderId = agency.drive_folder_id
+  } else {
+    // Solo/non-agency workspace: upload to workspace owner's configured Google Drive
+    const { data: ownerMember } = await supabase
+      .from('workspace_members')
+      .select('user_id')
+      .eq('workspace_id', post.workspace_id as string)
+      .eq('role', 'owner')
+      .single()
+
+    if (ownerMember?.user_id) {
+      const { data: ownerProfile } = await supabase
+        .from('users')
+        .select('personal_drive_folder_id')
+        .eq('id', ownerMember.user_id)
+        .single()
+
+      accessToken = await getFreshAccessToken(ownerMember.user_id, supabase)
+      rootFolderId = (ownerProfile as { personal_drive_folder_id: string | null } | null)
+        ?.personal_drive_folder_id ?? undefined
+    }
+    // If owner has no Google OAuth connected → accessToken stays null
+    // → uploadToDrive falls back to service account (GOOGLE_DRIVE_ROOT_FOLDER_ID)
+  }
 
   const { fileId, folderPath: savedFolderPath } = await uploadToDrive({
     fileBuffer,
     fileName: `post-${post.id}.${ext}`,
     folderPath,
-    rootFolderId: agency?.drive_folder_id ?? undefined,
+    rootFolderId,
     accessToken: accessToken ?? undefined,
-    // If agency has drive_folder_id + OAuth token → upload to agency Shared Drive via OAuth
-    // Otherwise → upload to GOOGLE_DRIVE_ROOT_FOLDER_ID via service account
   })
 
   await supabase
