@@ -25,7 +25,7 @@ const SOLO_FEATURES = [
 
 const TEAM_FEATURES = [
   '3 workspaces included',
-  '+$12/month per additional workspace',
+  '+$10/month per additional workspace',
   'Unlimited users across all workspaces',
   'Multi-workspace admin dashboard',
   'All Solo features included',

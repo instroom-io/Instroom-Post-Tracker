@@ -7,10 +7,10 @@ export const PRICING = {
     annual: 15,   // per month, billed annually
   },
   team: {
-    monthly: 49,
-    annual: 39,   // per month, billed annually
+    monthly: 39,
+    annual: 29,   // per month, billed annually
     includedWorkspaces: 3,
-    extraMonthly: 12,
+    extraMonthly: 10,
     extraAnnual: 10,
   },
 } as const

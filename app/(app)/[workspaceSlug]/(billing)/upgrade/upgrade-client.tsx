@@ -30,7 +30,7 @@ const SOLO_FEATURES = [
 
 const TEAM_FEATURES = [
   '3 workspaces included',
-  '+$12/month per additional workspace',
+  '+$10/month per additional workspace',
   'Unlimited users across all workspaces',
   'Multi-workspace admin dashboard',
   'All Solo features included',
@@ -208,7 +208,9 @@ export function UpgradeClient({
           className={`flex items-center gap-1.5 text-[13px] font-medium transition-colors ${period === 'annual' ? 'text-foreground' : 'text-foreground-muted hover:text-foreground'}`}
         >
           Annual
-          <span className="rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">Save ~21%</span>
+          <span className="rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+                Save ~{Math.round((1 - (selected === 'solo' ? PRICING.solo.annual / PRICING.solo.monthly : PRICING.team.annual / PRICING.team.monthly)) * 100)}%
+              </span>
         </button>
       </div>
 
