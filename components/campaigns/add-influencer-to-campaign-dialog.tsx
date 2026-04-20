@@ -590,11 +590,11 @@ export function AddInfluencerToCampaignDialog({
               <DialogBody className="space-y-3">
                 {/* Results table */}
                 <div className="overflow-hidden rounded-lg border border-border">
-                  <div className="grid grid-cols-[16px_auto_1fr_auto_auto] gap-3 border-b border-border bg-background-muted px-3 py-2">
+                  <div className="grid grid-cols-[16px_24px_1fr_60px_88px] items-center gap-3 border-b border-border bg-background-muted px-3 py-2">
                     <span />
                     <span />
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Handle</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Platform</span>
+                    <span className="text-center text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Platform</span>
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Status</span>
                   </div>
                   <div className="max-h-56 overflow-y-auto divide-y divide-border">
@@ -608,7 +608,7 @@ export function AddInfluencerToCampaignDialog({
                           onClick={() => !isNotFound && toggleHandle(r.handle)}
                           disabled={isNotFound}
                           className={cn(
-                            'grid w-full grid-cols-[16px_auto_1fr_auto_auto] gap-3 px-3 py-2.5 text-left transition-colors',
+                            'grid w-full grid-cols-[16px_24px_1fr_60px_88px] items-center gap-3 px-3 py-2.5 text-left transition-colors',
                             isNotFound
                               ? 'cursor-default opacity-50'
                               : 'hover:bg-background-muted cursor-pointer',
@@ -618,7 +618,7 @@ export function AddInfluencerToCampaignDialog({
                         >
                           {/* Checkbox */}
                           <div className={cn(
-                            'mt-0.5 flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded border',
+                            'flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded border',
                             isChecked && r.status === 'valid' && 'border-brand bg-brand',
                             isChecked && r.status === 'private' && 'border-warning bg-warning',
                             !isChecked && 'border-border bg-transparent',
@@ -635,8 +635,10 @@ export function AddInfluencerToCampaignDialog({
                           <span className="font-mono text-[12px] text-foreground">
                             <span className="text-foreground-muted">@</span>{r.handle}
                           </span>
-                          {/* Platform */}
-                          <PlatformIcon platform={r.platform} size={13} />
+                          {/* Platform — centered under header */}
+                          <div className="flex justify-center">
+                            <PlatformIcon platform={r.platform} size={13} />
+                          </div>
                           {/* Status badge */}
                           {r.status === 'valid' && (
                             <span className="flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium text-brand">
