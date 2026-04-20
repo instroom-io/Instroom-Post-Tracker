@@ -11,6 +11,7 @@ import { SectionErrorBoundary } from '@/components/ui/section-error-boundary'
 import { MembersSkeleton } from '@/components/dashboard/members-skeleton'
 import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
 import { computeDaysRemaining } from '@/lib/billing/trial-state'
+import { canUseFeature } from '@/lib/utils/plan'
 import type { WorkspaceRole, Workspace, PlanType, WorkspaceJoinRequest } from '@/lib/types'
 
 interface PageProps {
@@ -25,12 +26,14 @@ async function MembersSection({
   currentRole,
   canEdit,
   userId,
+  plan,
 }: {
   workspaceId: string
   workspaceSlug: string
   currentRole: WorkspaceRole
   canEdit: boolean
   userId: string
+  plan: PlanType
 }) {
   const supabase = await createClient()
   const isOwner = currentRole === 'owner'
@@ -76,7 +79,18 @@ async function MembersSection({
             )}
           </p>
         </div>
-        {canEdit && <InviteMemberDialog workspaceId={workspaceId} />}
+        {canEdit && canUseFeature(plan, 'team_members') && (
+          <InviteMemberDialog workspaceId={workspaceId} />
+        )}
+        {canEdit && !canUseFeature(plan, 'team_members') && (
+          <a
+            href="/account/upgrade"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background-muted px-3 py-1.5 text-[12px] font-medium text-foreground-muted hover:text-foreground transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-3 w-3 shrink-0 fill-current" aria-hidden="true"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM100,56a28,28,0,0,1,56,0V80H100ZM208,208H48V96H208V208Zm-80-48a12,12,0,1,1,12-12A12,12,0,0,1,128,160Z"/></svg>
+            Invite members · Upgrade
+          </a>
+        )}
       </div>
       <MemberTable
         members={membersData}
@@ -218,6 +232,7 @@ export default async function SettingsPage({ params }: PageProps) {
               currentRole={currentRole}
               canEdit={canEdit}
               userId={user.id}
+              plan={((workspace as unknown as { plan: PlanType }).plan) ?? 'trial'}
             />
           </Suspense>
         </SectionErrorBoundary>

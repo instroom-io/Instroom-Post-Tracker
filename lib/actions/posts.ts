@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getFreshAccessToken } from '@/lib/google/tokens'
 import { checkActionLimit, limiters } from '@/lib/rate-limit'
+import { canUseFeature } from '@/lib/utils/plan'
+import type { PlanType } from '@/lib/utils/plan'
 
 export async function retryDownload(
   _postId: string
@@ -22,6 +24,16 @@ export async function savePostToUserDrive(
 
   const limited = await checkActionLimit(`savetodrv:user:${user.id}`, limiters.saveToUserDrive)
   if (limited) return limited
+
+  // Plan gate — drive_download requires trial or pro
+  const { data: ws } = await supabase
+    .from('workspaces')
+    .select('plan')
+    .eq('id', workspaceId)
+    .single()
+  if (!canUseFeature((ws?.plan ?? 'free') as PlanType, 'drive_download')) {
+    return { error: 'Drive download is not available on your current plan. Upgrade to unlock.' }
+  }
 
   const accessToken = await getFreshAccessToken(user.id)
   if (!accessToken) return { error: 'connect_required' }

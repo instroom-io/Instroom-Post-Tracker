@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { ArrowSquareOut, ImageBroken, Lock, CloudArrowUp, ArrowClockwise, Play } from '@phosphor-icons/react'
 import { savePostToUserDrive } from '@/lib/actions/posts'
+import { canUseFeature } from '@/lib/utils/plan'
+import type { PlanType } from '@/lib/utils/plan'
 import {
   Dialog,
   DialogContent,
@@ -45,6 +48,7 @@ interface PostDetailModalProps {
   trackingConfigs: CampaignTrackingConfig[]
   workspaceId?: string
   memberDriveUrl?: string
+  plan?: PlanType
 }
 
 const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
@@ -105,12 +109,25 @@ function ModalDownloadButton({ post, memberDriveUrl }: { post: PostRow; workspac
   return null
 }
 
-function ModalSaveToDriveButton({ postId, workspaceId, driveFileId }: {
+function ModalSaveToDriveButton({ postId, workspaceId, driveFileId, plan }: {
   postId: string
   workspaceId: string
   driveFileId: string | null
+  plan?: PlanType
 }) {
   const [isPending, setIsPending] = useState(false)
+
+  if (!canUseFeature(plan ?? 'free', 'drive_download')) {
+    return (
+      <Link
+        href="/account/upgrade"
+        className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background-muted px-3 py-1.5 text-[12px] font-medium text-foreground-muted hover:text-foreground transition-colors"
+      >
+        <Lock size={12} weight="fill" />
+        Save to Drive · Upgrade
+      </Link>
+    )
+  }
 
   async function handleClick() {
     if (isPending) return
@@ -251,7 +268,7 @@ function ModalThumbnail({ post }: { post: PostRow }) {
   )
 }
 
-export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, memberDriveUrl }: PostDetailModalProps) {
+export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, memberDriveUrl, plan }: PostDetailModalProps) {
   // Detect which tracking hashtags/mentions appear in the caption
   const caption = post?.caption?.toLowerCase() ?? ''
   const matchedHashtags = post && caption
@@ -290,6 +307,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                         postId={post.id}
                         workspaceId={workspaceId}
                         driveFileId={post.drive_file_id}
+                        plan={plan}
                       />
                     )}
                     {post.post_url && (

@@ -9,6 +9,7 @@ import { TrackingConfigPanel } from './tracking-config-panel'
 import { AddInfluencerToCampaignDialog } from './add-influencer-to-campaign-dialog'
 import { formatNumber, formatEMV, cn } from '@/lib/utils'
 import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/types'
+import type { PlanType } from '@/lib/utils/plan'
 
 interface PostRow {
   id: string
@@ -73,6 +74,7 @@ interface CampaignTabsProps {
   postCountsByInfluencerId: Record<string, number>
   memberDriveUrl?: string
   defaultTab?: Tab
+  plan?: PlanType
 }
 
 type Tab = 'overview' | 'influencers' | 'posts' | 'downloads'
@@ -91,6 +93,7 @@ export function CampaignTabs({
   postCountsByInfluencerId,
   memberDriveUrl,
   defaultTab,
+  plan,
 }: CampaignTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab ?? 'overview')
 
@@ -256,7 +259,7 @@ export function CampaignTabs({
               <h2 className="font-display text-[15px] font-bold text-foreground">Posts</h2>
               <p className="text-[11px] text-foreground-lighter">{posts.length} detected</p>
             </div>
-            <CampaignPostsGallery posts={posts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />
+            <CampaignPostsGallery posts={posts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} plan={plan} />
           </div>
         )}
 
@@ -284,7 +287,7 @@ export function CampaignTabs({
                 </div>
               </div>
             ) : (
-              <CampaignPostsTable posts={downloadedPosts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} />
+              <CampaignPostsTable posts={downloadedPosts} trackingConfigs={trackingConfigs} workspaceId={workspaceId} memberDriveUrl={memberDriveUrl} plan={plan} />
             )}
           </div>
         )}

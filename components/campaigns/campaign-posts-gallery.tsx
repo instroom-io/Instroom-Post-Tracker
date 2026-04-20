@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, cn, getInfluencerLabel } from '@/lib/utils'
 import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/types'
+import type { PlanType } from '@/lib/utils/plan'
 
 interface PostRow {
   id: string
@@ -35,6 +36,7 @@ interface CampaignPostsGalleryProps {
   trackingConfigs?: CampaignTrackingConfig[]
   workspaceId: string
   memberDriveUrl?: string
+  plan?: PlanType
 }
 
 function getThumbnailSrc(post: PostRow): string | null {
@@ -222,6 +224,7 @@ export function CampaignPostsGallery({
   trackingConfigs = [],
   workspaceId,
   memberDriveUrl,
+  plan,
 }: CampaignPostsGalleryProps) {
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null)
 
@@ -310,6 +313,7 @@ export function CampaignPostsGallery({
         trackingConfigs={trackingConfigs}
         workspaceId={workspaceId}
         memberDriveUrl={memberDriveUrl}
+        plan={plan}
       />
     </>
   )

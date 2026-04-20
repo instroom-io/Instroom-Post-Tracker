@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { PostDetailModal } from './post-detail-modal'
 import { formatRelativeDate, formatNumber, formatEMV, formatPercent, getInfluencerLabel } from '@/lib/utils'
 import type { Platform, DownloadStatus, CampaignTrackingConfig } from '@/lib/types'
+import type { PlanType } from '@/lib/utils/plan'
 
 interface PostRow {
   id: string
@@ -37,6 +38,7 @@ interface CampaignPostsTableProps {
   campaignName?: string
   workspaceId?: string
   memberDriveUrl?: string
+  plan?: PlanType
 }
 
 const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
@@ -66,7 +68,7 @@ function PostThumbnail({ post }: { post: PostRow }) {
   )
 }
 
-export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, memberDriveUrl }: CampaignPostsTableProps) {
+export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, memberDriveUrl, plan }: CampaignPostsTableProps) {
   const [selectedPost, setSelectedPost] = useState<PostRow | null>(null)
 
   if (posts.length === 0) {
@@ -195,6 +197,7 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
         trackingConfigs={trackingConfigs}
         workspaceId={workspaceId}
         memberDriveUrl={memberDriveUrl}
+        plan={plan}
       />
     </>
   )

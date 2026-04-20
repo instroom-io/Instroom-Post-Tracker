@@ -13,6 +13,7 @@ import { AutoRefresh } from '@/components/ui/auto-refresh'
 import { formatDateRange } from '@/lib/utils'
 import { updateCampaign } from '@/lib/actions/campaigns'
 import type { WorkspaceRole, CampaignStatus, Platform, DownloadStatus } from '@/lib/types'
+import type { PlanType } from '@/lib/utils/plan'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string; campaignId: string }>
@@ -42,10 +43,12 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
 
   const { data: workspace } = await supabase
     .from('workspaces')
-    .select('id')
+    .select('id, plan')
     .eq('slug', workspaceSlug)
     .single()
   if (!workspace) redirect('/app')
+
+  const workspacePlan = ((workspace as unknown as { plan: PlanType | null }).plan ?? 'trial') as PlanType
 
   const { data: member } = await supabase
     .from('workspace_members')
@@ -281,6 +284,7 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
           postCountsByInfluencerId={postCountsByInfluencerId}
           memberDriveUrl={memberDriveUrl}
           defaultTab={defaultTab}
+          plan={workspacePlan}
         />
       </div>
     </div>
