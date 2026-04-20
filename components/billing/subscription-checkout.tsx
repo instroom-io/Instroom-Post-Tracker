@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createCheckoutSession } from '@/lib/actions/billing'
+import { getSoloPrice, calcTeamTotal, calcAnnualTotal } from '@/lib/billing/pricing'
 import type { BillingPeriod } from '@/lib/billing/pricing'
 
 declare global {
@@ -46,7 +47,25 @@ export function SubscriptionCheckout({
     }
 
     if (typeof window !== 'undefined') {
+      const displayTotal =
+        billingPeriod === 'annual'
+          ? calcAnnualTotal(accountType, extraWorkspaces)
+          : accountType === 'solo'
+            ? getSoloPrice('monthly')
+            : calcTeamTotal(extraWorkspaces, 'monthly')
+      const successUrl =
+        `${window.location.origin}/account/upgrade` +
+        `?success=true&type=${accountType}&period=${billingPeriod}&total=${displayTotal}`
+
       window.createLemonSqueezy?.()
+      window.LemonSqueezy?.Setup({
+        eventHandler: (e: unknown) => {
+          if ((e as { event?: string }).event === 'Checkout.Success') {
+            window.LemonSqueezy?.Url.Close()
+            window.location.href = successUrl
+          }
+        },
+      })
       window.LemonSqueezy?.Url.Open(result.url)
     }
   }
