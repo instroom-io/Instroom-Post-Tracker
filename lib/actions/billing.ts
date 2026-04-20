@@ -19,6 +19,7 @@ export async function createCheckoutSession(
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  if (!user.email) return { error: 'Your account has no email address. Please update your profile.' }
 
   const variantId = getVariantId(planType, billingPeriod)
   if (!variantId) {

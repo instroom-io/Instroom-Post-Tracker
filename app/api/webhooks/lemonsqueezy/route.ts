@@ -176,14 +176,9 @@ async function handleSubscriptionCancelled(
   event: LSWebhookEvent
 ) {
   const lsSubId = event.data.id
-  const { data: sub } = await serviceClient
-    .from('subscriptions')
-    .select('user_id')
-    .eq('provider', 'lemonsqueezy')
-    .eq('provider_subscription_id', lsSubId)
-    .single()
-  if (!sub) return
 
+  // Mark cancelled but keep workspace at 'pro' — the subscription continues until ends_at.
+  // Access is revoked by subscription_expired, not subscription_cancelled.
   await serviceClient
     .from('subscriptions')
     .update({
@@ -191,10 +186,8 @@ async function handleSubscriptionCancelled(
       cancelled_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
+    .eq('provider', 'lemonsqueezy')
     .eq('provider_subscription_id', lsSubId)
-
-  await updateWorkspacePlan(serviceClient, sub.user_id, 'free')
-  revalidatePath('/[workspaceSlug]', 'layout')
 }
 
 async function handleSubscriptionExpired(

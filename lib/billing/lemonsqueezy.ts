@@ -90,9 +90,13 @@ export async function createLemonSqueezyCheckout(
           },
         },
         product_options: {
-          redirect_url: redirectUrl,
+          // LS API rejects non-HTTPS URLs (e.g. http://localhost).
+          // These are optional — the Checkout.Success event handler handles client-side redirect.
+          ...(redirectUrl.startsWith('https://') && {
+            redirect_url: redirectUrl,
+            receipt_link_url: redirectUrl,
+          }),
           receipt_button_text: 'Go to Dashboard',
-          receipt_link_url: redirectUrl,
         },
         checkout_options: {
           embed: true,
