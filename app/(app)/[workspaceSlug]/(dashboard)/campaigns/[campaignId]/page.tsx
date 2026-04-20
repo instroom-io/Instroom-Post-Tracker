@@ -50,16 +50,29 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
 
   const workspacePlan = ((workspace as unknown as { plan: PlanType | null }).plan ?? 'trial') as PlanType
 
-  const { data: member } = await supabase
-    .from('workspace_members')
-    .select('role, drive_folder_id')
-    .eq('workspace_id', workspace.id)
-    .eq('user_id', user.id)
-    .single()
+  const [{ data: member }, { data: userProfile }] = await Promise.all([
+    supabase
+      .from('workspace_members')
+      .select('role, drive_folder_id')
+      .eq('workspace_id', workspace.id)
+      .eq('user_id', user.id)
+      .single(),
+    supabase
+      .from('users')
+      .select('personal_drive_folder_id')
+      .eq('id', user.id)
+      .single(),
+  ])
 
   const role = (member?.role ?? 'viewer') as WorkspaceRole
-  const memberDriveUrl = member?.drive_folder_id
-    ? `https://drive.google.com/drive/folders/${member.drive_folder_id}`
+  // Agency members get their per-member subfolder; solo users fall back to their
+  // personal Drive folder configured in Account Settings → Integrations.
+  const driveFolderId =
+    member?.drive_folder_id ??
+    (userProfile as { personal_drive_folder_id: string | null } | null)?.personal_drive_folder_id ??
+    null
+  const memberDriveUrl = driveFolderId
+    ? `https://drive.google.com/drive/folders/${driveFolderId}`
     : undefined
   const canEdit = ['owner', 'admin', 'editor'].includes(role)
 

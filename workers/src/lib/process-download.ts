@@ -125,13 +125,15 @@ export async function processPostDownload(
 
   let accessToken: string | null = null
   let rootFolderId: string | undefined = undefined
+  let sharedDriveId: string | undefined = undefined
 
   if (agency?.id && agency?.drive_folder_id) {
-    // Agency workspace: upload to agency's Shared Drive via agency OAuth
+    // Agency workspace: Shared Drive — rootFolderId IS the Shared Drive ID
     accessToken = await getAgencyFreshAccessToken(agency.id, supabase)
     rootFolderId = agency.drive_folder_id
+    sharedDriveId = agency.drive_folder_id
   } else {
-    // Solo/non-agency workspace: upload to workspace owner's configured Google Drive
+    // Solo/non-agency workspace: upload to workspace owner's personal Google Drive
     const { data: ownerMember } = await supabase
       .from('workspace_members')
       .select('user_id')
@@ -147,10 +149,14 @@ export async function processPostDownload(
         .single()
 
       accessToken = await getFreshAccessToken(ownerMember.user_id, supabase)
-      rootFolderId = (ownerProfile as { personal_drive_folder_id: string | null } | null)
-        ?.personal_drive_folder_id ?? undefined
+      const configuredFolder = (ownerProfile as { personal_drive_folder_id: string | null } | null)
+        ?.personal_drive_folder_id ?? null
+      // Personal Drive folder — never a Shared Drive ID, so sharedDriveId stays undefined.
+      // Fall back to 'root' (user's My Drive root) if no folder is configured, so the
+      // file lands in the owner's personal Drive instead of Instroom's service account drive.
+      rootFolderId = configuredFolder ?? 'root'
     }
-    // If owner has no Google OAuth connected → accessToken stays null
+    // If owner has no Google OAuth → accessToken stays null
     // → uploadToDrive falls back to service account (GOOGLE_DRIVE_ROOT_FOLDER_ID)
   }
 
@@ -159,6 +165,7 @@ export async function processPostDownload(
     fileName: `post-${post.id}.${ext}`,
     folderPath,
     rootFolderId,
+    sharedDriveId,
     accessToken: accessToken ?? undefined,
   })
 

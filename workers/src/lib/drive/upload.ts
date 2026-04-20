@@ -114,19 +114,23 @@ export async function uploadToDrive({
   fileName,
   folderPath,
   rootFolderId,
+  sharedDriveId,
   accessToken,
 }: {
   fileBuffer: ArrayBuffer
   fileName: string
   folderPath: string
   rootFolderId?: string
+  // Only set for actual Google Shared Drives. Personal Drive folder IDs must NOT
+  // be passed here — they are not valid Shared Drive IDs and cause API errors.
+  sharedDriveId?: string
   accessToken?: string
 }): Promise<{ fileId: string; webViewLink: string; folderPath: string }> {
   const auth = accessToken ? getOAuthClient(accessToken) : getServiceAuth()
   const drive = google.drive({ version: 'v3', auth })
 
   const pathSegments = folderPath.split('/').filter(Boolean)
-  const folderId = await getFolderIdOrCreate(pathSegments, rootFolderId, auth, rootFolderId)
+  const folderId = await getFolderIdOrCreate(pathSegments, rootFolderId, auth, sharedDriveId)
 
   const mimeType = getMimeType(fileName)
   const stream = Readable.from(Buffer.from(fileBuffer))
@@ -142,7 +146,7 @@ export async function uploadToDrive({
     },
     fields: 'id, webViewLink',
     supportsAllDrives: true,
-    ...(rootFolderId && { driveId: rootFolderId }),
+    ...(sharedDriveId && { driveId: sharedDriveId }),
   })
 
   return {
