@@ -443,32 +443,13 @@ async function main() {
           }
         }
 
-        // Update watermark: store the newest post timestamp seen per platform so future
-        // runs skip already-checked posts without re-processing them.
-        if (platform === 'tiktok' && rawPosts.length > 0) {
-          const newest = rawPosts.reduce(
-            (max, p) => p.posted_at > max ? p.posted_at : max,
-            rawPosts[0].posted_at
-          )
-          await supabase
-            .from('campaign_influencers')
-            .update({ tiktok_last_post_at: newest })
-            .eq('id', row.id)
-          console.log(`[posts-worker] TT @${handle} watermark → ${newest}`)
-        }
-        if (platform === 'instagram' && rawPosts.length > 0) {
-          const newest = rawPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, rawPosts[0].posted_at)
-          await supabase.from('campaign_influencers').update({ ig_last_post_at: newest }).eq('id', row.id)
-          console.log(`[posts-worker] IG @${handle} cursor updated to ${newest}`)
-        }
-        if (platform === 'youtube' && rawPosts.length > 0) {
-          const newest = rawPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, rawPosts[0].posted_at)
-          await supabase.from('campaign_influencers').update({ yt_last_post_at: newest }).eq('id', row.id)
-          console.log(`[posts-worker] YT ${handle} cursor updated to ${newest}`)
-        }
-
         // Filter: only posts on/after effectiveStart (delivery date ?? added date)
         // AND newer than the last-seen watermark (skips already-processed posts).
+        // IMPORTANT: compute unseenPosts BEFORE updating the watermark so that the
+        // watermark advances only from posts that actually passed the effectiveStart
+        // filter. If the watermark were computed from rawPosts (all scraped), pre-
+        // effectiveStart posts would permanently block themselves — even after the user
+        // later sets product_sent_at to a date before those posts.
         const lastSeenMs =
           platform === 'instagram' && igLastPostAt ? new Date(igLastPostAt).getTime() :
           platform === 'tiktok' && tiktokLastPostAt ? new Date(tiktokLastPostAt).getTime() :
@@ -478,6 +459,30 @@ async function main() {
           const postedMs = new Date(p.posted_at).getTime()
           return postedMs >= effectiveStartMs && (lastSeenMs === 0 || postedMs > lastSeenMs)
         })
+
+        // Update watermark: advance only from posts that passed the effectiveStart
+        // filter so pre-effectiveStart posts never permanently block future captures.
+        if (platform === 'tiktok' && unseenPosts.length > 0) {
+          const newest = unseenPosts.reduce(
+            (max, p) => p.posted_at > max ? p.posted_at : max,
+            unseenPosts[0].posted_at
+          )
+          await supabase
+            .from('campaign_influencers')
+            .update({ tiktok_last_post_at: newest })
+            .eq('id', row.id)
+          console.log(`[posts-worker] TT @${handle} watermark → ${newest}`)
+        }
+        if (platform === 'instagram' && unseenPosts.length > 0) {
+          const newest = unseenPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, unseenPosts[0].posted_at)
+          await supabase.from('campaign_influencers').update({ ig_last_post_at: newest }).eq('id', row.id)
+          console.log(`[posts-worker] IG @${handle} cursor updated to ${newest}`)
+        }
+        if (platform === 'youtube' && unseenPosts.length > 0) {
+          const newest = unseenPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, unseenPosts[0].posted_at)
+          await supabase.from('campaign_influencers').update({ yt_last_post_at: newest }).eq('id', row.id)
+          console.log(`[posts-worker] YT ${handle} cursor updated to ${newest}`)
+        }
         totalCandidates += unseenPosts.length
 
         const config = campaign.campaign_tracking_configs?.find((c) => c.platform === platform)
