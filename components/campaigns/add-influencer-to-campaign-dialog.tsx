@@ -138,6 +138,15 @@ function parseHandles(text: string): string[] {
     .filter(Boolean)
 }
 
+function getProductSentHint(platform: BatchPlatform): string {
+  const suffix = 'Defaults to the date the influencer is added if left blank.'
+  if (platform === 'tiktok')
+    return `When products were delivered — limits how far back TikTok is scraped. ${suffix}`
+  if (platform === 'instagram')
+    return `When products were delivered — sets the monitoring start date for Instagram. ${suffix}`
+  return `When products were delivered — sets the monitoring start date for YouTube. ${suffix}`
+}
+
 export function AddInfluencerToCampaignDialog({
   workspaceId,
   campaignId,
@@ -421,7 +430,9 @@ export function AddInfluencerToCampaignDialog({
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <p className="text-[11px] text-foreground-subtle">
-                    When products were delivered{campaignPlatforms.includes('tiktok') ? ' — limits how far back TikTok is scraped' : ''}.
+                    {campaignPlatforms.includes('tiktok')
+                      ? 'When products were delivered — limits how far back TikTok is scraped. Defaults to the date the influencer is added if left blank.'
+                      : 'When products were delivered — sets the monitoring start date. Defaults to the date the influencer is added if left blank.'}
                   </p>
                 </div>
               </DialogBody>
@@ -486,7 +497,7 @@ export function AddInfluencerToCampaignDialog({
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <p className="text-[11px] text-foreground-subtle">
-                    When products were delivered{campaignPlatforms.includes('tiktok') ? ' — limits how far back TikTok is scraped' : ''}.
+                    {getProductSentHint(batchPlatform)}
                   </p>
                 </div>
 
