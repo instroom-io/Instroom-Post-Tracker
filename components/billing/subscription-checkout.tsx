@@ -66,7 +66,12 @@ export function SubscriptionCheckout({
           }
         },
       })
-      window.LemonSqueezy?.Url.Open(result.url)
+
+      if (window.LemonSqueezy) {
+        window.LemonSqueezy.Url.Open(result.url)
+      } else {
+        window.location.href = result.url
+      }
     }
   }
 

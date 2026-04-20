@@ -6,7 +6,6 @@ import {
   createLemonSqueezyCheckout,
   getVariantId,
 } from '@/lib/billing/lemonsqueezy'
-import { calcTeamTotal, getSoloPrice, calcAnnualTotal } from '@/lib/billing/pricing'
 import type { BillingPeriod } from '@/lib/billing/pricing'
 
 export async function createCheckoutSession(
@@ -26,14 +25,6 @@ export async function createCheckoutSession(
     return { error: 'Billing not configured. Contact support.' }
   }
 
-  const displayTotal = billingPeriod === 'annual'
-    ? calcAnnualTotal(planType, extraWorkspaces)
-    : planType === 'solo' ? getSoloPrice('monthly') : calcTeamTotal(extraWorkspaces, 'monthly')
-
-  const redirectUrl =
-    `${process.env.NEXT_PUBLIC_APP_URL}/account/upgrade` +
-    `?success=true&type=${planType}&period=${billingPeriod}&total=${displayTotal}`
-
   try {
     const url = await createLemonSqueezyCheckout({
       variantId,
@@ -41,8 +32,7 @@ export async function createCheckoutSession(
       billingPeriod,
       extraWorkspaces,
       userId: user.id,
-      userEmail: user.email!,
-      redirectUrl,
+      userEmail: user.email,
     })
     return { url }
   } catch (err) {

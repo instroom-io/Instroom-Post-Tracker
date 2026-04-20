@@ -44,7 +44,6 @@ export interface CreateCheckoutOptions {
   extraWorkspaces: number
   userId: string
   userEmail: string
-  redirectUrl: string
 }
 
 // Creates a hosted checkout session via the LS API and returns the checkout URL.
@@ -60,7 +59,6 @@ export async function createLemonSqueezyCheckout(
     extraWorkspaces,
     userId,
     userEmail,
-    redirectUrl,
   } = opts
 
   const apiKey = process.env.LEMONSQUEEZY_API_KEY?.trim()
@@ -90,12 +88,6 @@ export async function createLemonSqueezyCheckout(
           },
         },
         product_options: {
-          // LS API rejects non-HTTPS URLs (e.g. http://localhost).
-          // These are optional — the Checkout.Success event handler handles client-side redirect.
-          ...(redirectUrl.startsWith('https://') && {
-            redirect_url: redirectUrl,
-            receipt_link_url: redirectUrl,
-          }),
           receipt_button_text: 'Go to Dashboard',
         },
         checkout_options: {
