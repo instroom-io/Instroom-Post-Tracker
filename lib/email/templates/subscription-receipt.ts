@@ -5,8 +5,8 @@ interface SubscriptionReceiptOptions {
   planLabel: string
   billingLabel: string
   totalFormatted: string
-  orderNumber: number
-  receiptUrl: string
+  subscriptionRef: string
+  billingSettingsUrl: string
 }
 
 export function subscriptionReceiptEmail({
@@ -14,16 +14,16 @@ export function subscriptionReceiptEmail({
   planLabel,
   billingLabel,
   totalFormatted,
-  orderNumber,
-  receiptUrl,
+  subscriptionRef,
+  billingSettingsUrl,
 }: SubscriptionReceiptOptions): string {
   const name = escapeHtml(userName)
   const plan = escapeHtml(planLabel)
   const billing = escapeHtml(billingLabel)
   const total = escapeHtml(totalFormatted)
-  const receipt = escapeHtml(receiptUrl)
+  const billingUrl = escapeHtml(billingSettingsUrl)
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-  const preheader = `Your ${plan} subscription is now active. Receipt #${orderNumber} — ${total}.`
+  const preheader = `Your ${plan} subscription is now active — ${total}.`
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -120,10 +120,10 @@ export function subscriptionReceiptEmail({
                       <tr><td style="border-top:0.5px solid #E2E2E2;font-size:0;line-height:0;">&nbsp;</td></tr>
                     </table>
 
-                    <!-- Order number + date -->
+                    <!-- Ref + date -->
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td style="font-size:11px;color:#888;">Order #${orderNumber}</td>
+                        <td style="font-size:11px;color:#888;">Ref: ${subscriptionRef}</td>
                         <td style="font-size:11px;color:#888;text-align:right;">${today}</td>
                       </tr>
                     </table>
@@ -135,7 +135,7 @@ export function subscriptionReceiptEmail({
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;">
                 <tr>
                   <td>
-                    <a href="${receipt}" target="_blank" style="display:block;background-color:#1FAE5B;color:#fff;text-align:center;border-radius:7px;padding:13px 20px;font-size:13px;font-weight:500;text-decoration:none;">View receipt &rarr;</a>
+                    <a href="${billingUrl}" target="_blank" style="display:block;background-color:#1FAE5B;color:#fff;text-align:center;border-radius:7px;padding:13px 20px;font-size:13px;font-weight:500;text-decoration:none;">View billing settings &rarr;</a>
                   </td>
                 </tr>
               </table>
@@ -144,7 +144,7 @@ export function subscriptionReceiptEmail({
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
                 <tr>
                   <td style="text-align:center;">
-                    <p style="margin:0;font-size:11px;color:#aaa;line-height:1.6;">Your subscription renews automatically. You can manage or cancel from your account billing settings.</p>
+                    <p style="margin:0;font-size:11px;color:#aaa;line-height:1.6;">Your subscription renews automatically. You can manage, view invoices, or cancel from your billing settings.</p>
                   </td>
                 </tr>
               </table>

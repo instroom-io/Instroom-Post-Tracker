@@ -9,6 +9,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { toSlug, deduplicateSlug } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 import { sendEmail } from '@/lib/email'
+import { getSoloPrice, calcTeamTotal } from '@/lib/billing/pricing'
 import {
   subscriptionReceiptEmail,
   subscriptionRenewalEmail,
@@ -39,14 +40,6 @@ interface LSInvoiceAttributes {
   billing_reason?: 'initial' | 'renewal'
 }
 
-interface LSOrderAttributes {
-  order_number: number
-  user_name: string
-  user_email: string
-  status: string
-  total_formatted: string
-  receipt_url: string
-}
 
 interface LSWebhookEvent {
   meta: {
@@ -193,6 +186,37 @@ async function handleSubscriptionCreated(
   }
 
   await updateAgencyPlan(serviceClient, userId, 'pro')
+
+  // Send subscription confirmation email
+  const { data: userRow } = await serviceClient
+    .from('users')
+    .select('email, full_name')
+    .eq('id', userId)
+    .single()
+
+  if (userRow?.email) {
+    const billingPeriod = (customData.billing_period ?? 'monthly') as 'monthly' | 'annual'
+    const monthlyPrice = planType === 'solo'
+      ? getSoloPrice(billingPeriod)
+      : calcTeamTotal(extraWorkspaces, billingPeriod)
+    const totalFormatted = billingPeriod === 'annual'
+      ? `$${monthlyPrice * 12}/year`
+      : `$${monthlyPrice}/month`
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+
+    await sendEmail({
+      to: userRow.email,
+      subject: 'Your Instroom subscription is active',
+      html: subscriptionReceiptEmail({
+        userName: userRow.full_name || userRow.email,
+        planLabel: planType === 'team' ? 'Team Plan' : 'Solo Plan',
+        billingLabel: billingPeriod === 'annual' ? 'Annual' : 'Monthly',
+        totalFormatted,
+        subscriptionRef: lsSubId,
+        billingSettingsUrl: `${appUrl}/account/billing`,
+      }),
+    })
+  }
 
   revalidatePath('/[workspaceSlug]', 'layout')
   revalidatePath('/agency/[agencySlug]', 'layout')
@@ -343,35 +367,6 @@ async function handlePaymentFailed(
   }
 }
 
-async function handleOrderCreated(
-  serviceClient: ServiceClient,
-  event: LSWebhookEvent
-) {
-  const attrs = event.data.attributes as unknown as LSOrderAttributes
-  if (attrs.status !== 'paid') return
-  if (!attrs.user_email) return
-
-  const customData = event.meta.custom_data
-  const planType = (customData?.plan_type ?? 'solo') as 'solo' | 'team'
-  const billingPeriod = customData?.billing_period ?? 'monthly'
-
-  const planLabel = planType === 'team' ? 'Team Plan' : 'Solo Plan'
-  const billingLabel = billingPeriod === 'annual' ? 'Annual' : 'Monthly'
-
-  await sendEmail({
-    to: attrs.user_email,
-    subject: `Your Instroom receipt — Order #${attrs.order_number}`,
-    html: subscriptionReceiptEmail({
-      userName: attrs.user_name || attrs.user_email,
-      planLabel,
-      billingLabel,
-      totalFormatted: attrs.total_formatted,
-      orderNumber: attrs.order_number,
-      receiptUrl: attrs.receipt_url,
-    }),
-  })
-}
-
 async function handlePaymentRecovered(
   serviceClient: ServiceClient,
   event: LSWebhookEvent
@@ -439,9 +434,6 @@ export async function POST(request: Request) {
   // 4. Route to handler
   try {
     switch (eventName) {
-      case 'order_created':
-        await handleOrderCreated(serviceClient, event)
-        break
       case 'subscription_created':
         await handleSubscriptionCreated(serviceClient, event)
         break
