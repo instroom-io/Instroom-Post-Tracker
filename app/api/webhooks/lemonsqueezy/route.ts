@@ -8,6 +8,12 @@ import crypto from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { toSlug, deduplicateSlug } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
+import { sendEmail } from '@/lib/email'
+import {
+  subscriptionReceiptEmail,
+  subscriptionRenewalEmail,
+  subscriptionPaymentFailedEmail,
+} from '@/lib/email/templates/subscription-receipt'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -30,6 +36,15 @@ interface LSInvoiceAttributes {
   subscription_id: number
   status: string
   renewed_at: string | null
+}
+
+interface LSOrderAttributes {
+  order_number: number
+  user_name: string
+  user_email: string
+  status: string
+  total_formatted: string
+  receipt_url: string
 }
 
 interface LSWebhookEvent {
@@ -241,6 +256,39 @@ async function handlePaymentSuccess(
     })
     .eq('provider', 'lemonsqueezy')
     .eq('provider_subscription_id', lsSubId)
+
+  // Send renewal notification email
+  const { data: sub } = await serviceClient
+    .from('subscriptions')
+    .select('user_id, plan_type')
+    .eq('provider', 'lemonsqueezy')
+    .eq('provider_subscription_id', lsSubId)
+    .single()
+
+  if (sub) {
+    const { data: userRow } = await serviceClient
+      .from('users')
+      .select('email, full_name')
+      .eq('id', sub.user_id)
+      .single()
+
+    if (userRow?.email) {
+      const nextDate = renewedAt
+        ? new Date(renewedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'your next billing date'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+      await sendEmail({
+        to: userRow.email,
+        subject: 'Your Instroom subscription has been renewed',
+        html: subscriptionRenewalEmail({
+          userName: userRow.full_name || userRow.email,
+          planLabel: sub.plan_type === 'team' ? 'Team Plan' : 'Solo Plan',
+          nextBillingDate: nextDate,
+          billingSettingsUrl: `${appUrl}/account/billing`,
+        }),
+      })
+    }
+  }
 }
 
 async function handlePaymentFailed(
@@ -250,7 +298,7 @@ async function handlePaymentFailed(
   const lsSubId = String(event.data.attributes.subscription_id)
   const { data: sub } = await serviceClient
     .from('subscriptions')
-    .select('user_id')
+    .select('user_id, plan_type')
     .eq('provider', 'lemonsqueezy')
     .eq('provider_subscription_id', lsSubId)
     .single()
@@ -265,6 +313,55 @@ async function handlePaymentFailed(
   await updateAgencyPlan(serviceClient, sub.user_id, 'free')
   revalidatePath('/[workspaceSlug]', 'layout')
   revalidatePath('/agency/[agencySlug]', 'layout')
+
+  // Send payment failed alert
+  const { data: userRow } = await serviceClient
+    .from('users')
+    .select('email, full_name')
+    .eq('id', sub.user_id)
+    .single()
+
+  if (userRow?.email) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+    await sendEmail({
+      to: userRow.email,
+      subject: 'Action required: your Instroom payment failed',
+      html: subscriptionPaymentFailedEmail({
+        userName: userRow.full_name || userRow.email,
+        planLabel: sub.plan_type === 'team' ? 'Team Plan' : 'Solo Plan',
+        updatePaymentUrl: `${appUrl}/account/billing`,
+      }),
+    })
+  }
+}
+
+async function handleOrderCreated(
+  serviceClient: ServiceClient,
+  event: LSWebhookEvent
+) {
+  const attrs = event.data.attributes as unknown as LSOrderAttributes
+  if (attrs.status !== 'paid') return
+  if (!attrs.user_email) return
+
+  const customData = event.meta.custom_data
+  const planType = (customData?.plan_type ?? 'solo') as 'solo' | 'team'
+  const billingPeriod = customData?.billing_period ?? 'monthly'
+
+  const planLabel = planType === 'team' ? 'Team Plan' : 'Solo Plan'
+  const billingLabel = billingPeriod === 'annual' ? 'Annual' : 'Monthly'
+
+  await sendEmail({
+    to: attrs.user_email,
+    subject: `Your Instroom receipt — Order #${attrs.order_number}`,
+    html: subscriptionReceiptEmail({
+      userName: attrs.user_name || attrs.user_email,
+      planLabel,
+      billingLabel,
+      totalFormatted: attrs.total_formatted,
+      orderNumber: attrs.order_number,
+      receiptUrl: attrs.receipt_url,
+    }),
+  })
 }
 
 async function handlePaymentRecovered(
@@ -334,6 +431,9 @@ export async function POST(request: Request) {
   // 4. Route to handler
   try {
     switch (eventName) {
+      case 'order_created':
+        await handleOrderCreated(serviceClient, event)
+        break
       case 'subscription_created':
         await handleSubscriptionCreated(serviceClient, event)
         break
