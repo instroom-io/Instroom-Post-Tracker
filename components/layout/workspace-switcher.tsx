@@ -87,6 +87,9 @@ export function WorkspaceSwitcher({
     if (agency) router.push(`/agency/${agency.slug}/dashboard?invite=1`)
   }
 
+  const ownedMemberships = memberships.filter(m => m.role === 'owner')
+  const sharedMemberships = memberships.filter(m => m.role !== 'owner')
+
   return (
     <div ref={containerRef} data-tour="ws-user-menu" className="relative">
 
@@ -194,7 +197,7 @@ export function WorkspaceSwitcher({
               Workspaces
             </p>
 
-            {memberships.map(({ workspaces: ws, role }) => (
+            {ownedMemberships.map(({ workspaces: ws, role }) => (
               <button
                 key={ws.id}
                 role="option"
@@ -243,6 +246,49 @@ export function WorkspaceSwitcher({
                   <span className="text-[12px] font-medium text-brand">Add Workspace</span>
                 </button>
               </div>
+            )}
+
+            {/* ── Shared Workspaces ── */}
+            {sharedMemberships.length > 0 && (
+              <>
+                <div className="mx-1.5 my-1 h-px bg-border" />
+                <p className="px-3 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
+                  Shared Workspaces
+                </p>
+                {sharedMemberships.map(({ workspaces: ws, role }) => (
+                  <button
+                    key={ws.id}
+                    role="option"
+                    aria-selected={ws.id === currentWorkspace.id}
+                    onClick={() => {
+                      router.push(`/${ws.slug}/overview`)
+                      close()
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                  >
+                    {ws.logo_url ? (
+                      <WorkspaceLogo
+                        name={ws.name}
+                        logoUrl={ws.logo_url}
+                        className="h-5 w-5 flex-shrink-0 rounded-md object-contain"
+                        fallbackClassName="h-5 w-5 rounded-md bg-background-muted border border-border text-foreground-lighter"
+                        textClassName="text-[8px]"
+                      />
+                    ) : (
+                      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-background-muted border border-border text-[8px] font-bold text-foreground-lighter">
+                        {getInitials(ws.name)}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12px] font-medium text-foreground">{ws.name}</p>
+                      <p className="text-[10px] text-foreground-muted">{ROLE_LABELS[role]}</p>
+                    </div>
+                    {ws.id === currentWorkspace.id && (
+                      <Check size={12} className="flex-shrink-0 text-brand" />
+                    )}
+                  </button>
+                ))}
+              </>
             )}
 
             {/* ── Divider ── */}
