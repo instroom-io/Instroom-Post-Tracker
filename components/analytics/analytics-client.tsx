@@ -80,7 +80,7 @@ export function AnalyticsClient({
     // and are never stale due to server-side RSC caching.
     const to = new Date()
     const from = new Date()
-    from.setDate(from.getDate() - 30)
+    from.setDate(from.getDate() - 29)
     // en-CA locale gives YYYY-MM-DD in local timezone (not UTC like toISOString does)
     return {
       from: from.toLocaleDateString('en-CA'),
