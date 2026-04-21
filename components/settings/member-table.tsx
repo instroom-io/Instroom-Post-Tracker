@@ -10,10 +10,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { removeMember, approveJoinRequest, denyJoinRequest } from '@/lib/actions/workspace'
+import { removeMember, approveJoinRequest, denyJoinRequest, revokeInvitation } from '@/lib/actions/workspace'
 import { getInitials } from '@/lib/utils'
-import { DotsThree, Link as LinkIcon, Check, Clock, UserPlus } from '@phosphor-icons/react'
-import type { WorkspaceRole, WorkspaceJoinRequest } from '@/lib/types'
+import { DotsThree, Link as LinkIcon, Check, Clock, UserPlus, EnvelopeSimple } from '@phosphor-icons/react'
+import type { WorkspaceRole, WorkspaceJoinRequest, Invitation } from '@/lib/types'
 
 interface Member {
   id: string
@@ -33,6 +33,7 @@ interface MemberTableProps {
   workspaceId: string
   workspaceSlug?: string
   joinRequests?: WorkspaceJoinRequest[]
+  invitations?: Invitation[]
 }
 
 const roleVariant: Record<WorkspaceRole, 'success' | 'info' | 'muted' | 'active'> = {
@@ -197,6 +198,100 @@ function PendingRequestsSection({
   )
 }
 
+function InvitedMembersSection({
+  invitations,
+  workspaceId,
+}: {
+  invitations: Invitation[]
+  workspaceId: string
+}) {
+  const [transitionPending, startTransition] = useTransition()
+  const [revokedIds, setRevokedIds] = useState<Set<string>>(new Set())
+  const now = new Date()
+
+  const visible = invitations.filter((inv) => !revokedIds.has(inv.id))
+  if (visible.length === 0) return null
+
+  function handleRevoke(invitationId: string) {
+    startTransition(async () => {
+      const result = await revokeInvitation(invitationId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        setRevokedIds((prev) => new Set([...prev, invitationId]))
+        toast.success('Invitation revoked.')
+      }
+    })
+  }
+
+  return (
+    <div className="border-b border-border">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-background-subtle">
+        <EnvelopeSimple size={13} className="text-foreground-lighter shrink-0" />
+        <span className="text-[11px] font-semibold text-foreground-lighter uppercase tracking-wider">
+          Invitations ({visible.length})
+        </span>
+      </div>
+      {visible.map((inv) => {
+        const isAccepted = !!inv.accepted_at
+        const isPendingInv = !inv.accepted_at && new Date(inv.expires_at) > now
+        const isExpired = !inv.accepted_at && new Date(inv.expires_at) <= now
+        const dateLabel = isAccepted
+          ? `Accepted ${new Date(inv.accepted_at!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+          : isPendingInv
+          ? `Expires ${new Date(inv.expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+          : `Expired ${new Date(inv.expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+
+        return (
+          <div
+            key={inv.id}
+            className="flex items-center gap-3 border-b border-border/50 px-4 py-3 last:border-0"
+          >
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background-muted border border-border text-[11px] font-bold text-foreground-lighter shrink-0">
+              {inv.email.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-medium text-foreground truncate">{inv.email}</p>
+              <p className="text-[11px] text-foreground-lighter">
+                <span className="capitalize">{inv.role}</span>
+                {' · '}
+                {dateLabel}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {isAccepted && (
+                <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                  Accepted
+                </span>
+              )}
+              {isExpired && (
+                <span className="inline-flex items-center rounded-full bg-background-muted px-2 py-0.5 text-[10px] font-semibold text-foreground-muted">
+                  Expired
+                </span>
+              )}
+              {isPendingInv && (
+                <>
+                  <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                    Awaiting
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRevoke(inv.id)}
+                    disabled={transitionPending}
+                    className="flex h-7 items-center rounded-md border border-border bg-background-surface px-2.5 text-[11px] font-medium text-foreground-light transition-colors hover:bg-destructive/5 hover:text-destructive hover:border-destructive/20 disabled:opacity-50"
+                  >
+                    Revoke
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function MemberTable({
   members,
   currentUserId,
@@ -204,6 +299,7 @@ export function MemberTable({
   workspaceId,
   workspaceSlug,
   joinRequests = [],
+  invitations = [],
 }: MemberTableProps) {
   const [isPending, startTransition] = useTransition()
 
@@ -229,6 +325,11 @@ export function MemberTable({
       {/* Pending requests — owner only */}
       {isOwner && joinRequests.length > 0 && (
         <PendingRequestsSection joinRequests={joinRequests} workspaceId={workspaceId} />
+      )}
+
+      {/* Invitations — owner only */}
+      {isOwner && invitations.length > 0 && (
+        <InvitedMembersSection invitations={invitations} workspaceId={workspaceId} />
       )}
 
       {/* Members table */}

@@ -12,7 +12,7 @@ import { MembersSkeleton } from '@/components/dashboard/members-skeleton'
 import { EmvSectionSkeleton } from '@/components/dashboard/emv-section-skeleton'
 import { computeDaysRemaining } from '@/lib/billing/trial-state'
 import { canUseFeature } from '@/lib/utils/plan'
-import type { WorkspaceRole, Workspace, PlanType, WorkspaceJoinRequest } from '@/lib/types'
+import type { WorkspaceRole, Workspace, PlanType, WorkspaceJoinRequest, Invitation } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
@@ -38,7 +38,7 @@ async function MembersSection({
   const supabase = await createClient()
   const isOwner = currentRole === 'owner'
 
-  const [membersResult, joinRequestsResult] = await Promise.all([
+  const [membersResult, joinRequestsResult, invitationsResult] = await Promise.all([
     supabase
       .from('workspace_members')
       .select('id, user_id, role, user:users!workspace_members_user_id_fkey(full_name, email, avatar_url)')
@@ -52,6 +52,13 @@ async function MembersSection({
           .eq('status', 'pending')
           .order('requested_at', { ascending: true })
       : Promise.resolve({ data: [] as WorkspaceJoinRequest[] }),
+    isOwner
+      ? supabase
+          .from('invitations')
+          .select('id, email, role, expires_at, accepted_at, created_at')
+          .eq('workspace_id', workspaceId)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] as Invitation[] }),
   ])
 
   const membersData = (membersResult.data ?? []).map((m) => ({
@@ -68,6 +75,11 @@ async function MembersSection({
       }))
     : []) as WorkspaceJoinRequest[]
 
+  const invitationsData = (invitationsResult.data ?? []) as Invitation[]
+  const pendingInvitationCount = invitationsData.filter(
+    (inv) => !inv.accepted_at && new Date(inv.expires_at) > new Date()
+  ).length
+
   return (
     <div className="rounded-xl border border-border bg-background-surface shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-y-2 border-b border-border px-5 py-4">
@@ -78,6 +90,11 @@ async function MembersSection({
             {joinRequests.length > 0 && (
               <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
                 {joinRequests.length} pending
+              </span>
+            )}
+            {isOwner && pendingInvitationCount > 0 && (
+              <span className="ml-2 inline-flex items-center rounded-full bg-background-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground-muted">
+                {pendingInvitationCount} invited
               </span>
             )}
           </p>
@@ -102,6 +119,7 @@ async function MembersSection({
         workspaceId={workspaceId}
         workspaceSlug={workspaceSlug}
         joinRequests={joinRequests}
+        invitations={invitationsData}
       />
     </div>
   )

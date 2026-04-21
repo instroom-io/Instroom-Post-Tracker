@@ -763,3 +763,39 @@ export async function denyJoinRequest(
 
   revalidatePath('/', 'layout')
 }
+
+export async function revokeInvitation(
+  invitationId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: invitation } = await supabase
+    .from('invitations')
+    .select('workspace_id, accepted_at')
+    .eq('id', invitationId)
+    .single()
+
+  if (!invitation) return { error: 'Invitation not found.' }
+  if (invitation.accepted_at) return { error: 'Cannot revoke an accepted invitation.' }
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', invitation.workspace_id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!member || !['owner', 'admin'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
+  const { error } = await supabase
+    .from('invitations')
+    .delete()
+    .eq('id', invitationId)
+
+  if (error) return { error: 'Failed to revoke invitation.' }
+  revalidatePath('/', 'layout')
+}
