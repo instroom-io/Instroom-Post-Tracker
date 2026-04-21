@@ -20,6 +20,24 @@ export async function createCheckoutSession(
   if (!user) redirect('/login')
   if (!user.email) return { error: 'Your account has no email address. Please update your profile.' }
 
+  // Block re-subscription or plan-type switching while an active subscription exists
+  const { data: existingSub } = await supabase
+    .from('subscriptions')
+    .select('id, status, plan_type')
+    .eq('user_id', user.id)
+    .neq('status', 'expired')
+    .maybeSingle()
+
+  if (existingSub) {
+    if (existingSub.status === 'suspended') {
+      return { error: 'Your subscription payment failed. Please update your payment method from billing settings.' }
+    }
+    if (existingSub.plan_type !== planType) {
+      return { error: `You already have an active ${existingSub.plan_type === 'solo' ? 'Solo' : 'Team'} subscription. To switch plans, manage your billing from settings.` }
+    }
+    return { error: 'You already have an active subscription. To manage it, go to your billing settings.' }
+  }
+
   const variantId = getVariantId(planType, billingPeriod)
   if (!variantId) {
     return { error: 'Billing not configured. Contact support.' }
