@@ -62,7 +62,10 @@ async function MembersSection({
   }))
 
   const joinRequests = (!('error' in joinRequestsResult) || !joinRequestsResult.error
-    ? (joinRequestsResult.data ?? [])
+    ? (joinRequestsResult.data ?? []).map((r) => ({
+        ...r,
+        requester: Array.isArray(r.requester) ? (r.requester[0] ?? null) : r.requester,
+      }))
     : []) as WorkspaceJoinRequest[]
 
   return (
