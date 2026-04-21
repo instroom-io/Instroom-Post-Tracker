@@ -254,6 +254,11 @@ export async function inviteMember(
     user.email?.split('@')[0] ||
     'Someone'
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!appUrl) {
+    console.error('[inviteMember] NEXT_PUBLIC_APP_URL is not set — invite link will be broken')
+  }
+
   let emailSent = true
   try {
     await sendEmail({
@@ -262,7 +267,7 @@ export async function inviteMember(
       html: teamInviteEmail({
         workspaceName: workspace?.name ?? 'a workspace',
         role: parsed.data.role,
-        inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`,
+        inviteUrl: `${appUrl ?? ''}/invite/${invitation.token}`,
         inviterName,
       }),
     })
@@ -798,4 +803,61 @@ export async function revokeInvitation(
 
   if (error) return { error: 'Failed to revoke invitation.' }
   revalidatePath('/', 'layout')
+}
+
+export async function resendInvitation(
+  invitationId: string
+): Promise<{ error: string } | { warning: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: invitation } = await supabase
+    .from('invitations')
+    .select('workspace_id, email, role, token, accepted_at, expires_at')
+    .eq('id', invitationId)
+    .single()
+
+  if (!invitation) return { error: 'Invitation not found.' }
+  if (invitation.accepted_at) return { error: 'This invitation has already been accepted.' }
+  if (new Date(invitation.expires_at) < new Date()) return { error: 'This invitation has expired. Please revoke it and send a new one.' }
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', invitation.workspace_id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!member || !['owner', 'admin'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
+  const [{ data: workspace }, { data: inviterProfile }] = await Promise.all([
+    supabase.from('workspaces').select('name').eq('id', invitation.workspace_id).single(),
+    supabase.from('users').select('full_name').eq('id', user.id).single(),
+  ])
+
+  const inviterName = inviterProfile?.full_name?.trim() || user.email?.split('@')[0] || 'Someone'
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!appUrl) {
+    console.error('[resendInvitation] NEXT_PUBLIC_APP_URL is not set — invite link will be broken')
+  }
+
+  try {
+    await sendEmail({
+      to: invitation.email,
+      subject: `You've been invited to ${escapeHtml(workspace?.name ?? 'a workspace')} on Instroom`,
+      html: teamInviteEmail({
+        workspaceName: workspace?.name ?? 'a workspace',
+        role: invitation.role,
+        inviteUrl: `${appUrl ?? ''}/invite/${invitation.token}`,
+        inviterName,
+      }),
+    })
+  } catch (err) {
+    console.error('[email] Failed to resend team member invite email:', err)
+    return { warning: 'Failed to resend the invitation email. Check SendGrid configuration.' }
+  }
 }

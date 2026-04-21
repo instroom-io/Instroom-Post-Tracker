@@ -10,7 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { removeMember, approveJoinRequest, denyJoinRequest, revokeInvitation } from '@/lib/actions/workspace'
+import { removeMember, approveJoinRequest, denyJoinRequest, revokeInvitation, resendInvitation } from '@/lib/actions/workspace'
 import { getInitials } from '@/lib/utils'
 import { DotsThree, Link as LinkIcon, Check, Clock, UserPlus, EnvelopeSimple } from '@phosphor-icons/react'
 import type { WorkspaceRole, WorkspaceJoinRequest, Invitation } from '@/lib/types'
@@ -207,6 +207,7 @@ function InvitedMembersSection({
 }) {
   const [transitionPending, startTransition] = useTransition()
   const [revokedIds, setRevokedIds] = useState<Set<string>>(new Set())
+  const [resentIds, setResentIds] = useState<Set<string>>(new Set())
   const now = new Date()
 
   const visible = invitations.filter((inv) => !revokedIds.has(inv.id))
@@ -220,6 +221,20 @@ function InvitedMembersSection({
       } else {
         setRevokedIds((prev) => new Set([...prev, invitationId]))
         toast.success('Invitation revoked.')
+      }
+    })
+  }
+
+  function handleResend(invitationId: string) {
+    startTransition(async () => {
+      const result = await resendInvitation(invitationId)
+      if (result && 'error' in result) {
+        toast.error(result.error)
+      } else if (result && 'warning' in result) {
+        toast.warning(result.warning)
+      } else {
+        setResentIds((prev) => new Set([...prev, invitationId]))
+        toast.success('Invitation email resent.')
       }
     })
   }
@@ -274,6 +289,14 @@ function InvitedMembersSection({
                   <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
                     Awaiting
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => handleResend(inv.id)}
+                    disabled={transitionPending || resentIds.has(inv.id)}
+                    className="flex h-7 items-center rounded-md border border-border bg-background-surface px-2.5 text-[11px] font-medium text-foreground-light transition-colors hover:bg-background-muted hover:text-foreground disabled:opacity-50"
+                  >
+                    {resentIds.has(inv.id) ? 'Resent' : 'Resend'}
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleRevoke(inv.id)}
