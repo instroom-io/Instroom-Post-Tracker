@@ -135,6 +135,22 @@ async function handlePostAuth(
 
   // 6. No agency/workspace yet — new user signup flow
 
+  // Invite fallback: if returnTo was lost (e.g. NEXT_PUBLIC_APP_URL was unset when signUp ran,
+  // causing a broken emailRedirectTo), check for a pending invitation for this email and route
+  // there directly. This prevents an invited member from accidentally creating their own workspace.
+  const { data: pendingInviteRows } = await serviceClient
+    .from('invitations')
+    .select('token')
+    .eq('email', user.email!)
+    .is('accepted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  if (pendingInviteRows?.[0]) {
+    return makeRedirect(request, `/invite/${pendingInviteRows[0].token}`)
+  }
+
   const { account_name: metaAccountName, website_url } = user.user_metadata ?? {}
 
   // For Google OAuth: account_name and account_type arrive as URL params, not user_metadata.
