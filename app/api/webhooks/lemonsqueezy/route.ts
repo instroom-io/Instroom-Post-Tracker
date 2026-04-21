@@ -74,6 +74,14 @@ async function updateWorkspacePlan(
   await serviceClient.from('workspaces').update({ plan }).in('id', ids)
 }
 
+async function updateAgencyPlan(
+  serviceClient: ServiceClient,
+  userId: string,
+  plan: 'pro' | 'free'
+) {
+  await serviceClient.from('agencies').update({ plan }).eq('owner_id', userId)
+}
+
 async function ensureAgencyForTeamPlan(
   serviceClient: ServiceClient,
   userId: string,
@@ -168,7 +176,10 @@ async function handleSubscriptionCreated(
       .in('id', workspaceIds)
   }
 
+  await updateAgencyPlan(serviceClient, userId, 'pro')
+
   revalidatePath('/[workspaceSlug]', 'layout')
+  revalidatePath('/agency/[agencySlug]', 'layout')
 }
 
 async function handleSubscriptionCancelled(
@@ -209,7 +220,9 @@ async function handleSubscriptionExpired(
     .eq('provider_subscription_id', lsSubId)
 
   await updateWorkspacePlan(serviceClient, sub.user_id, 'free')
+  await updateAgencyPlan(serviceClient, sub.user_id, 'free')
   revalidatePath('/[workspaceSlug]', 'layout')
+  revalidatePath('/agency/[agencySlug]', 'layout')
 }
 
 async function handlePaymentSuccess(
@@ -249,7 +262,9 @@ async function handlePaymentFailed(
     .eq('provider_subscription_id', lsSubId)
 
   await updateWorkspacePlan(serviceClient, sub.user_id, 'free')
+  await updateAgencyPlan(serviceClient, sub.user_id, 'free')
   revalidatePath('/[workspaceSlug]', 'layout')
+  revalidatePath('/agency/[agencySlug]', 'layout')
 }
 
 async function handlePaymentRecovered(
@@ -271,7 +286,9 @@ async function handlePaymentRecovered(
     .eq('provider_subscription_id', lsSubId)
 
   await updateWorkspacePlan(serviceClient, sub.user_id, 'pro')
+  await updateAgencyPlan(serviceClient, sub.user_id, 'pro')
   revalidatePath('/[workspaceSlug]', 'layout')
+  revalidatePath('/agency/[agencySlug]', 'layout')
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
