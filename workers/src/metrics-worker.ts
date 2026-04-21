@@ -120,8 +120,27 @@ async function fetchMetrics(
       const views = (data.view_count as number | undefined) ?? 0
       const likes = (data.like_count as number | undefined) ?? 0
       const comments = (data.comment_count as number | undefined) ?? 0
+
+      // Subscriber count: try primary response first, then secondary channel lookup
+      let followerCount = (data.subscriber_count ?? data.channel_subscriber_count) as number | undefined ?? 0
+      if (followerCount === 0) {
+        const channelId = (data.channel_id ?? data.uploader_id) as string | undefined
+        if (channelId) {
+          try {
+            const channelRes = await fetch(
+              `${ENSEMBLE_API_URL}/yt/channel/subscriber-count?channel_id=${encodeURIComponent(channelId)}&token=${ENSEMBLE_API_KEY}`
+            )
+            if (channelRes.ok) {
+              const channelJson = await channelRes.json() as { data?: Record<string, unknown> }
+              const fc = (channelJson.data?.subscriber_count ?? channelJson.data?.subscriberCount) as number | undefined
+              if (typeof fc === 'number' && fc > 0) followerCount = fc
+            }
+          } catch { /* fall back to 0 */ }
+        }
+      }
+
       const engagementRate = views > 0 ? ((likes + comments) / views) * 100 : 0
-      return { views, likes, comments, shares: 0, saves: 0, follower_count: 0, engagement_rate: Math.round(engagementRate * 10000) / 10000 }
+      return { views, likes, comments, shares: 0, saves: 0, follower_count: followerCount, engagement_rate: Math.round(engagementRate * 10000) / 10000 }
     }
 
     return null
