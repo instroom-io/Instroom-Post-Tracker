@@ -212,7 +212,7 @@ export async function saveOnboardingName(
     })
 
     if (agencyInsertError) return { error: 'Failed to create team account. Please try again.' }
-    return { redirectTo: `/agency/${slug}/dashboard` }
+    return { redirectTo: '/onboarding/welcome' }
   }
 
   // Solo account → create workspace (idempotent — handles re-submission)
@@ -260,5 +260,5 @@ export async function saveOnboardingName(
     role: 'owner',
   })
 
-  return { redirectTo: `/${slug}/overview` }
+  return { redirectTo: '/onboarding/welcome' }
 }

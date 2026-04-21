@@ -64,15 +64,19 @@ type Answers = {
   main_challenge?: string
 }
 
-export function OnboardingWelcome() {
+export function OnboardingWelcome({ accountType }: { accountType: 'team' | 'solo' }) {
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Answers>({})
   const [isPending, startTransition] = useTransition()
   const [direction, setDirection] = useState(1)
 
-  const currentStep = STEPS[step]
-  const isLastStep = step === STEPS.length - 1
+  const activeSteps = accountType === 'solo'
+    ? STEPS.filter((s) => s.field !== 'agency_size')
+    : [...STEPS]
+
+  const currentStep = activeSteps[step]
+  const isLastStep = step === activeSteps.length - 1
 
   function selectSingle(field: string, value: string) {
     setAnswers((prev) => ({ ...prev, [field]: value }))
@@ -134,7 +138,7 @@ export function OnboardingWelcome() {
 
         {/* Progress dots */}
         <div className="mb-6 flex items-center justify-center gap-2">
-          {STEPS.map((_, i) => (
+          {activeSteps.map((_, i) => (
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -147,7 +151,7 @@ export function OnboardingWelcome() {
             />
           ))}
           <span className="ml-2 text-[11px] text-foreground-muted">
-            {step + 1} / {STEPS.length}
+            {step + 1} / {activeSteps.length}
           </span>
         </div>
 

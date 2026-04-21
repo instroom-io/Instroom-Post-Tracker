@@ -206,7 +206,7 @@ async function handlePostAuth(
     })
 
     if (agencyInsertError) return makeRedirect(request, '/onboarding/name?type=team')
-    return makeRedirect(request, `/agency/${agencySlug}/dashboard`)
+    return makeRedirect(request, '/onboarding/welcome')
   }
 
   // Solo account → create workspace
@@ -240,7 +240,7 @@ async function handlePostAuth(
     role: 'owner',
   })
 
-  return makeRedirect(request, `/${workspaceSlug}/overview`)
+  return makeRedirect(request, '/onboarding/welcome')
 }
 
 export async function GET(request: NextRequest) {

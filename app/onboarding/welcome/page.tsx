@@ -8,7 +8,6 @@ export default async function OnboardingWelcomePage() {
 
   if (!user) redirect('/login')
 
-  // Check if already completed onboarding
   const { data: profile } = await supabase
     .from('users')
     .select('onboarding_completed')
@@ -17,14 +16,26 @@ export default async function OnboardingWelcomePage() {
 
   if (profile?.onboarding_completed) redirect('/app')
 
-  // Only agency owners see this flow (DB check, works for all signup methods)
+  // Team owner → 4-question flow
   const { data: agency } = await supabase
     .from('agencies')
     .select('id')
     .eq('owner_id', user.id)
-    .eq('status', 'active')
     .maybeSingle()
-  if (!agency) redirect('/app')
 
-  return <OnboardingWelcome />
+  if (agency) return <OnboardingWelcome accountType="team" />
+
+  // Solo workspace owner → 3-question flow (no agency_size)
+  const { data: ownerRow } = await supabase
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', user.id)
+    .eq('role', 'owner')
+    .limit(1)
+    .maybeSingle()
+
+  if (ownerRow) return <OnboardingWelcome accountType="solo" />
+
+  // Invited member / unknown state — skip onboarding
+  redirect('/app')
 }
