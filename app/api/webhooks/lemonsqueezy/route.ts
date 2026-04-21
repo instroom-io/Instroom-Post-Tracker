@@ -36,6 +36,7 @@ interface LSInvoiceAttributes {
   subscription_id: number
   status: string
   renewed_at: string | null
+  billing_reason?: 'initial' | 'renewal'
 }
 
 interface LSOrderAttributes {
@@ -246,6 +247,7 @@ async function handlePaymentSuccess(
 ) {
   const lsSubId = String(event.data.attributes.subscription_id)
   const renewedAt = event.data.attributes.renewed_at
+  const billingReason = event.data.attributes.billing_reason
 
   await serviceClient
     .from('subscriptions')
@@ -256,6 +258,12 @@ async function handlePaymentSuccess(
     })
     .eq('provider', 'lemonsqueezy')
     .eq('provider_subscription_id', lsSubId)
+
+  // Only send renewal email for actual renewals — LS also fires this event for the
+  // initial payment. Use billing_reason when available; fall back to renewed_at being
+  // non-null (initial payments have renewed_at = null).
+  const isRenewal = billingReason ? billingReason === 'renewal' : renewedAt !== null
+  if (!isRenewal) return
 
   // Send renewal notification email
   const { data: sub } = await serviceClient
