@@ -83,7 +83,8 @@ async function fetchMetrics(
       const owner = data.owner as Record<string, unknown> | undefined
       let followerCount = (data.owner_follower_count ?? data.follower_count) as number | undefined ?? 0
       if (followerCount === 0) {
-        followerCount = (owner?.followed_by_count ?? owner?.follower_count) as number | undefined ?? 0
+        const ownerEdgeFollowedBy = owner?.edge_followed_by as Record<string, unknown> | undefined
+        followerCount = (owner?.followed_by_count ?? owner?.follower_count ?? ownerEdgeFollowedBy?.count) as number | undefined ?? 0
       }
       if (followerCount === 0) {
         const username = owner?.username as string | undefined
