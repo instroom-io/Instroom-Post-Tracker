@@ -146,7 +146,7 @@ async function handleSubscriptionCreated(
       current_period_end: attrs.renews_at,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: 'provider,provider_subscription_id' }
+    { onConflict: 'provider_subscription_id' }
   )
 
   const { data: memberships } = await serviceClient

@@ -44,6 +44,7 @@ export interface CreateCheckoutOptions {
   extraWorkspaces: number
   userId: string
   userEmail: string
+  userName?: string
 }
 
 // Creates a hosted checkout session via the LS API and returns the checkout URL.
@@ -59,6 +60,7 @@ export async function createLemonSqueezyCheckout(
     extraWorkspaces,
     userId,
     userEmail,
+    userName,
   } = opts
 
   const apiKey = process.env.LEMONSQUEEZY_API_KEY?.trim()
@@ -80,6 +82,7 @@ export async function createLemonSqueezyCheckout(
         ...(customPrice !== undefined && { custom_price: customPrice }),
         checkout_data: {
           email: userEmail,
+          ...(userName && { name: userName }),
           custom: {
             user_id: userId,
             plan_type: planType,

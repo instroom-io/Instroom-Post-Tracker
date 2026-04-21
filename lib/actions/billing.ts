@@ -20,12 +20,19 @@ export async function createCheckoutSession(
   if (!user) redirect('/login')
   if (!user.email) return { error: 'Your account has no email address. Please update your profile.' }
 
+  const { data: userRow } = await supabase
+    .from('users')
+    .select('full_name')
+    .eq('id', user.id)
+    .single()
+  const userName = userRow?.full_name ?? undefined
+
   // Block re-subscription or plan-type switching while an active subscription exists
   const { data: existingSub } = await supabase
     .from('subscriptions')
     .select('id, status, plan_type')
     .eq('user_id', user.id)
-    .neq('status', 'expired')
+    .in('status', ['active', 'suspended', 'pending'])
     .maybeSingle()
 
   if (existingSub) {
@@ -51,6 +58,7 @@ export async function createCheckoutSession(
       extraWorkspaces,
       userId: user.id,
       userEmail: user.email,
+      userName,
     })
     return { url }
   } catch (err) {
