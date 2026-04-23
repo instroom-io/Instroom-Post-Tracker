@@ -9,7 +9,7 @@ interface PageProps {
 export default async function SignupPage({ searchParams }: PageProps) {
   const { redirectTo } = await searchParams
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link href="/" className="mx-auto mb-4 flex justify-center opacity-100 transition-opacity hover:opacity-75">

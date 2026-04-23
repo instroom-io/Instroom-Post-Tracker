@@ -14,7 +14,7 @@ const itemVariants = {
 }
 
 const oldWayItems = [
-  'Manually searching Instagram, TikTok, and YouTube for influencer posts — and still missing half of them',
+  'Manually searching Instagram, TikTok, and YouTube for influencer posts. Still missing half of them.',
   'Downloading watermarked content through screen recording or third-party tools',
   'Building spreadsheets to track which posts went live and when',
   'No way to enforce usage rights before content gets repurposed',
@@ -22,10 +22,10 @@ const oldWayItems = [
 ]
 
 const newWayItems = [
-  'Every post automatically detected the moment it goes live — across all platforms',
+  'Every post detected the moment it goes live, across all three platforms',
   'Watermark-free content downloaded directly to your Google Drive',
   'Real-time campaign dashboard with every post logged and categorized',
-  'Usage rights gating — content only downloads when rights are confirmed',
+  'Usage rights gating: content only downloads when rights are confirmed',
   'Frozen 7-day metrics with automatic EMV calculation for every post',
 ]
 

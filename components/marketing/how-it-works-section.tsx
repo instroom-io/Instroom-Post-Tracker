@@ -23,7 +23,7 @@ const steps = [
     category: 'Setup',
     title: 'Add your campaign influencers',
     description:
-      'Import your influencer list from Instroom CRM or add them manually. Post Tracker knows exactly who it should be watching — no noise, no strangers.',
+      'Import your influencer list from Instroom CRM or add them manually. Post Tracker knows exactly who to watch. No noise, no strangers.',
   },
   {
     num: '02',
@@ -37,14 +37,14 @@ const steps = [
     category: 'Monitoring',
     title: 'Posts are captured automatically',
     description:
-      'When a tracked influencer posts using your hashtag or tags your brand, Post Tracker logs it instantly — no manual checking, no missed deliverables.',
+      'When a tracked influencer posts using your hashtag or tags your brand, Post Tracker logs it instantly. No manual checking. No missed deliverables.',
   },
   {
     num: '04',
     category: 'Content',
     title: 'Content downloads to your Drive',
     description:
-      "For influencers who've granted usage rights, content is automatically downloaded and organized in your Google Drive — clean, labeled, ready to use.",
+      "For influencers who've granted usage rights, content is automatically downloaded and organized in your Google Drive. Clean, labeled, ready to use.",
   },
   {
     num: '05',
@@ -77,7 +77,7 @@ export function HowItWorksSection() {
               It runs on its own.
             </h2>
             <p className="mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
-              Post Tracker connects to your campaign influencers — not random strangers who used
+              Post Tracker connects to your campaign influencers, not random strangers who used
               your hashtag. Only the people you worked with.
             </p>
           </motion.div>

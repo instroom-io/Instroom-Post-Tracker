@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   CaretRight,
@@ -9,18 +8,19 @@ import {
   Trash,
   MagnifyingGlass,
   Users,
-  ArrowSquareOut,
+
   CaretLeft,
   FolderPlus,
   X,
 } from '@phosphor-icons/react'
-import Link from 'next/link'
+
 import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import {
   Dialog,
@@ -36,6 +36,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { removeInfluencerFromWorkspace, removeInfluencerFromCampaign, addInfluencerToCampaign } from '@/lib/actions/influencers'
 import { getInfluencerLabel, getInitials, cn } from '@/lib/utils'
 import type { CampaignStatus, MonitoringStatus } from '@/lib/types'
+import { InfluencerProfileModal } from './influencer-profile-modal'
 
 export interface CampaignEntry {
   campaign_influencer_id: string
@@ -61,6 +62,7 @@ interface InfluencerListTableProps {
   canEdit: boolean
   workspaceSlug: string
   workspaceId: string
+  workspaceDriveFolderId: string | null
   page: number
   totalCount: number
   pageSize: number
@@ -103,96 +105,6 @@ function InfluencerAvatar({ picUrl, label }: { picUrl: string | null; label: str
   )
 }
 
-interface CampaignCardProps {
-  entry: CampaignEntry
-  workspaceSlug: string
-  canEdit: boolean
-  isRemoving: boolean
-  influencerLabel: string
-  onRequestRemove: (ciId: string, campaignName: string, influencerLabel: string) => void
-}
-
-function CampaignCard({ entry, workspaceSlug, canEdit, isRemoving, influencerLabel, onRequestRemove }: CampaignCardProps) {
-  return (
-    <div
-      className={cn(
-        'group flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-background-muted/50',
-        isRemoving && 'opacity-40'
-      )}
-    >
-      {/* Status dot */}
-      <div
-        className={cn('h-1.5 w-1.5 flex-shrink-0 rounded-full', STATUS_DOT[entry.monitoring_status])}
-        aria-hidden="true"
-      />
-      {/* Campaign name */}
-      <Link
-        href={`/${workspaceSlug}/campaigns/${entry.campaign_id}`}
-        className="flex min-w-0 flex-1 items-center gap-1 text-[12px] font-medium text-foreground-light transition-colors hover:text-foreground"
-      >
-        <span className="truncate">{entry.name}</span>
-        <ArrowSquareOut
-          size={9}
-          className="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-40"
-        />
-      </Link>
-      {/* Status label */}
-      <span className={cn('flex-shrink-0 text-[11px] font-medium capitalize', STATUS_LABEL[entry.monitoring_status])}>
-        {entry.monitoring_status}
-      </span>
-      {/* Remove icon — appears on hover */}
-      {canEdit && (
-        <Tooltip content={`Remove @${influencerLabel} from "${entry.name}"`} side="top">
-          <button
-            type="button"
-            onClick={() => onRequestRemove(entry.campaign_influencer_id, entry.name, influencerLabel)}
-            disabled={isRemoving}
-            aria-label={`Remove from ${entry.name}`}
-            className="ml-0.5 flex-shrink-0 rounded p-0.5 text-foreground-muted opacity-0 transition-all group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 disabled:cursor-not-allowed"
-          >
-            <X size={12} />
-          </button>
-        </Tooltip>
-      )}
-    </div>
-  )
-}
-
-interface CampaignExpansionPanelProps {
-  campaigns: CampaignEntry[]
-  workspaceSlug: string
-  canEdit: boolean
-  removingCiId: string | null
-  influencerLabel: string
-  onRequestRemove: (ciId: string, campaignName: string, influencerLabel: string) => void
-}
-
-function CampaignExpansionPanel({ campaigns, workspaceSlug, canEdit, removingCiId, influencerLabel, onRequestRemove }: CampaignExpansionPanelProps) {
-  const shouldReduceMotion = useReducedMotion()
-  return (
-    <motion.div
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: 'auto', opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-      className="overflow-hidden"
-    >
-      <div className="border-t border-border/40 py-2 pl-[52px] pr-3">
-        {campaigns.map((c) => (
-          <CampaignCard
-            key={c.campaign_influencer_id}
-            entry={c}
-            workspaceSlug={workspaceSlug}
-            canEdit={canEdit}
-            isRemoving={removingCiId === c.campaign_influencer_id}
-            influencerLabel={influencerLabel}
-            onRequestRemove={onRequestRemove}
-          />
-        ))}
-      </div>
-    </motion.div>
-  )
-}
 
 export function InfluencerListTable({
   influencers,
@@ -201,6 +113,7 @@ export function InfluencerListTable({
   canEdit,
   workspaceSlug,
   workspaceId,
+  workspaceDriveFolderId,
   page,
   totalCount,
   pageSize,
@@ -210,15 +123,16 @@ export function InfluencerListTable({
   const searchParams = useSearchParams()
 
   const [search, setSearch] = useState('')
-  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-  const [removingCiId, setRemovingCiId] = useState<string | null>(null)
 
   // Remove from workspace confirmation state
   const [removeConfirmInfluencer, setRemoveConfirmInfluencer] = useState<{ id: string; label: string; campaigns: CampaignEntry[] } | null>(null)
 
   // Remove from campaign confirmation state
   const [removeCampaignConfirm, setRemoveCampaignConfirm] = useState<{ ciId: string; campaignName: string; influencerLabel: string } | null>(null)
+
+  // Profile modal state
+  const [selectedInfluencer, setSelectedInfluencer] = useState<InfluencerWithCampaigns | null>(null)
 
   // Add to campaign dialog state
   const [addToCampaignInfluencer, setAddToCampaignInfluencer] = useState<InfluencerWithCampaigns | null>(null)
@@ -282,10 +196,8 @@ export function InfluencerListTable({
     if (!removeCampaignConfirm) return
     const { ciId, campaignName } = removeCampaignConfirm
     setRemoveCampaignConfirm(null)
-    setRemovingCiId(ciId)
     startTransition(async () => {
       const result = await removeInfluencerFromCampaign(ciId)
-      setRemovingCiId(null)
       if (result?.error) { toast.error(result.error); return }
       toast.success(`Removed from "${campaignName}"`)
     })
@@ -319,7 +231,7 @@ export function InfluencerListTable({
   return (
     <div>
       {/* ── Filter bar ─────────────────────────────────────────────────────── */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {/* Left group: search + campaign filter + active chip */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
@@ -331,7 +243,7 @@ export function InfluencerListTable({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name or handle…"
-                className="h-9 w-64 rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40"
+                className="h-9 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40 sm:w-64"
               />
             </div>
             {search && (
@@ -405,13 +317,15 @@ export function InfluencerListTable({
 
               {filtered.map((inf) => {
                 const label = getInfluencerLabel(inf)
-                const isExpanded = expandedId === inf.id
                 const activeCampaigns = inf.campaigns.filter(c => c.monitoring_status !== 'removed')
 
                 return (
                   <React.Fragment key={inf.id}>
                     {/* ── Main row ── */}
-                    <tr className="border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/30">
+                    <tr
+                      className="cursor-pointer border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/30"
+                      onClick={() => setSelectedInfluencer(inf)}
+                    >
                       {/* Influencer cell */}
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
@@ -450,31 +364,12 @@ export function InfluencerListTable({
                         </div>
                       </td>
 
-                      {/* Campaigns cell — clickable count badge */}
+                      {/* Campaigns cell — static count badge */}
                       <td className="px-5 py-3.5">
                         {activeCampaigns.length > 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => setExpandedId(isExpanded ? null : inf.id)}
-                            aria-expanded={isExpanded}
-                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} campaigns`}
-                            className={cn(
-                              'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5',
-                              'text-[11px] font-semibold transition-colors',
-                              'bg-accent/10 text-accent hover:bg-accent/20',
-                              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
-                              isExpanded && 'bg-accent/20 ring-1 ring-accent/30'
-                            )}
-                          >
-                            <motion.span
-                              animate={{ rotate: isExpanded ? 90 : 0 }}
-                              transition={{ duration: 0.2, ease: 'easeInOut' }}
-                              className="flex"
-                            >
-                              <CaretRight size={11} />
-                            </motion.span>
+                          <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-semibold text-accent">
                             {activeCampaigns.length}
-                          </button>
+                          </span>
                         ) : (
                           <span className="text-[12px] text-foreground-muted">—</span>
                         )}
@@ -487,6 +382,7 @@ export function InfluencerListTable({
                             <DropdownMenuTrigger>
                               <button
                                 type="button"
+                                onClick={(e) => e.stopPropagation()}
                                 className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               >
                                 <DotsThree size={16} weight="bold" />
@@ -503,6 +399,22 @@ export function InfluencerListTable({
                                 <FolderPlus size={13} />
                                 Add to campaign
                               </DropdownMenuItem>
+                              {activeCampaigns.length > 0 && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  {activeCampaigns.map((c) => (
+                                    <DropdownMenuItem
+                                      key={c.campaign_influencer_id}
+                                      variant="destructive"
+                                      onClick={() => setRemoveCampaignConfirm({ ciId: c.campaign_influencer_id, campaignName: c.name, influencerLabel: label })}
+                                    >
+                                      <X size={13} />
+                                      <span className="max-w-[160px] truncate">Remove from &ldquo;{c.name}&rdquo;</span>
+                                    </DropdownMenuItem>
+                                  ))}
+                                </>
+                              )}
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 variant="destructive"
                                 onClick={() => setRemoveConfirmInfluencer({ id: inf.id, label, campaigns: activeCampaigns })}
@@ -516,25 +428,6 @@ export function InfluencerListTable({
                       )}
                     </tr>
 
-                    {/* ── Expanded row ── */}
-                    <AnimatePresence initial={false}>
-                      {isExpanded && activeCampaigns.length > 0 && (
-                        <tr key={`${inf.id}-exp`}>
-                          <td colSpan={canEdit ? 4 : 3} className="border-b border-border/50 p-0">
-                            <CampaignExpansionPanel
-                              campaigns={activeCampaigns}
-                              workspaceSlug={workspaceSlug}
-                              canEdit={canEdit}
-                              removingCiId={removingCiId}
-                              influencerLabel={label}
-                              onRequestRemove={(ciId, campaignName, influencerLabel) =>
-                                setRemoveCampaignConfirm({ ciId, campaignName, influencerLabel })
-                              }
-                            />
-                          </td>
-                        </tr>
-                      )}
-                    </AnimatePresence>
                   </React.Fragment>
                 )
               })}
@@ -696,6 +589,14 @@ export function InfluencerListTable({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Influencer profile modal */}
+      <InfluencerProfileModal
+        influencer={selectedInfluencer}
+        workspaceId={workspaceId}
+        workspaceDriveFolderId={workspaceDriveFolderId}
+        onClose={() => setSelectedInfluencer(null)}
+      />
 
       {/* Add to campaign dialog */}
       {(() => {

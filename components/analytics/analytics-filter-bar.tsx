@@ -1,6 +1,7 @@
 'use client'
 
-import { CalendarDots } from '@phosphor-icons/react'
+import { useState, useRef, useEffect } from 'react'
+import { CalendarDots, Funnel, Check, CaretDown } from '@phosphor-icons/react'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
@@ -77,73 +78,140 @@ const PRESETS = [
   },
 ]
 
+function DateRangeFilter({
+  filters,
+  onFilterChange,
+}: {
+  filters: AnalyticsFilters
+  onFilterChange: (f: AnalyticsFilters) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Close on outside click or Escape — the panel is inside ref so date
+  // input interactions won't accidentally trigger this.
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    if (open) {
+      document.addEventListener('mousedown', onMouseDown)
+      document.addEventListener('keydown', onKeyDown)
+    }
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  const activePreset =
+    PRESETS.find((p) => {
+      const r = p.getValue()
+      return r.from === filters.from && r.to === filters.to
+    })?.label ?? 'Custom'
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          'inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-background-surface px-3 text-[12px] font-medium text-foreground transition-colors hover:bg-background-muted',
+          open && 'border-brand ring-2 ring-brand/20'
+        )}
+      >
+        <Funnel size={13} className="text-foreground-muted" />
+        <span>{activePreset}</span>
+        <CaretDown
+          size={10}
+          className={cn(
+            'text-foreground-muted transition-transform duration-150',
+            open && 'rotate-180'
+          )}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1.5 w-52 rounded-xl border border-border bg-background-surface shadow-md">
+          <div className="p-1">
+            <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+              Date range
+            </div>
+
+            {PRESETS.map((p) => {
+              const isActive = activePreset === p.label
+              return (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => {
+                    onFilterChange({ ...filters, ...p.getValue() })
+                    setOpen(false)
+                  }}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted"
+                >
+                  <span className="flex-1 text-left">{p.label}</span>
+                  {isActive && <Check size={12} weight="bold" className="text-brand" />}
+                </button>
+              )
+            })}
+
+            <div className="-mx-1 my-1 border-t border-border" />
+
+            <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+              Custom range
+            </div>
+            <div className="space-y-1.5 px-2 pb-2">
+              <div className="relative">
+                <CalendarDots
+                  size={12}
+                  className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted"
+                />
+                <input
+                  type="date"
+                  value={filters.from}
+                  onChange={(e) => onFilterChange({ ...filters, from: e.target.value })}
+                  aria-label="From date"
+                  className="h-8 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[11px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                />
+              </div>
+              <div className="relative">
+                <CalendarDots
+                  size={12}
+                  className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted"
+                />
+                <input
+                  type="date"
+                  value={filters.to}
+                  onChange={(e) => onFilterChange({ ...filters, to: e.target.value })}
+                  aria-label="To date"
+                  className="h-8 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[11px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function AnalyticsFilterBar({
   filters,
   onFilterChange,
   campaigns,
 }: AnalyticsFilterBarProps) {
-  function update<K extends keyof AnalyticsFilters>(
-    key: K,
-    value: AnalyticsFilters[K]
-  ) {
+  function update<K extends keyof AnalyticsFilters>(key: K, value: AnalyticsFilters[K]) {
     onFilterChange({ ...filters, [key]: value })
   }
 
-  const activePreset =
-    PRESETS.find((p) => {
-      const range = p.getValue()
-      return range.from === filters.from && range.to === filters.to
-    })?.label ?? null
-
   return (
     <div className="rounded-xl border border-border bg-background-surface p-4 shadow-xs">
-      {/* Preset shortcuts */}
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        {PRESETS.map((p) => {
-          const isActive = activePreset === p.label
-          return (
-            <button
-              key={p.label}
-              type="button"
-              onClick={() => onFilterChange({ ...filters, ...p.getValue() })}
-              className={cn(
-                'h-7 rounded-md px-2.5 text-[11px] font-medium transition-colors',
-                isActive
-                  ? 'bg-brand text-white'
-                  : 'border border-border bg-background-surface text-foreground-muted hover:bg-background-muted hover:text-foreground'
-              )}
-            >
-              {p.label}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Date inputs + dropdowns */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative w-full sm:w-auto">
-          <CalendarDots size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
-          <input
-            type="date"
-            value={filters.from}
-            onChange={(e) => update('from', e.target.value)}
-            aria-label="From date"
-            className="h-9 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-          />
-        </div>
-
-        <span className="hidden sm:inline text-[11px] text-foreground-muted">to</span>
-
-        <div className="relative w-full sm:w-auto">
-          <CalendarDots size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted" />
-          <input
-            type="date"
-            value={filters.to}
-            onChange={(e) => update('to', e.target.value)}
-            aria-label="To date"
-            className="h-9 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[12px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-          />
-        </div>
+        <DateRangeFilter filters={filters} onFilterChange={onFilterChange} />
 
         <div className="w-full sm:w-44">
           <Select

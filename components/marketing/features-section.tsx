@@ -31,7 +31,7 @@ const features: FeatureCard[] = [
     tag: 'Automation',
     title: 'Automatic content download',
     description:
-      'When usage rights are confirmed, content is automatically pulled from Instagram, TikTok, and YouTube — no watermarks, no manual saves, no chasing.',
+      'When usage rights are confirmed, content is automatically pulled from Instagram, TikTok, and YouTube. No watermarks, no manual saves.',
   },
   {
     tag: 'Organization',
@@ -49,13 +49,13 @@ const features: FeatureCard[] = [
     tag: 'Repurposing',
     title: 'Paid ads–ready UGC library',
     description:
-      'Every approved asset builds your creative library automatically. Hand it directly to your media buyer or ads team — no friction, no manual transfer, no delays.',
+      "Every approved asset builds your creative library automatically. Hand it straight to your media buyer or ads team. It's already organized and ready.",
   },
   {
     tag: 'Multi-client',
     title: 'Built for agencies and freelancers',
     description:
-      "Purchase your own plan or request access to a brand's existing account. Once approved, all your brands live under one login — no juggling separate accounts, no extra payment if the brand is already subscribed.",
+      "Purchase your own plan or request access to a brand's existing account. Once approved, all your brands live under one login. No account juggling. If the brand is already subscribed, you join at no extra cost.",
   },
 ]
 
@@ -85,7 +85,7 @@ export function FeaturesSection() {
             </p>
           </motion.div>
 
-          <div className="mt-12 grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-5">
+          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))]">
             {features.map((feature) => (
               <motion.div
                 key={feature.title}

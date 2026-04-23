@@ -11,7 +11,7 @@ export default function MarketingLayout({
 }) {
   return (
     <MarketingContactProvider>
-      <div className="min-h-screen overflow-x-hidden bg-background text-foreground" style={{ scrollBehavior: 'smooth' }}>
+      <div className="min-h-dvh overflow-x-hidden bg-background text-foreground" style={{ scrollBehavior: 'smooth' }}>
         <MarketingNav />
 
         <main className="relative z-10">{children}</main>

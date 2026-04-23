@@ -98,11 +98,14 @@ interface AccountSettingsFormProps {
 
 export function AccountSettingsForm({ preferredLanguage, timezone, displayName, avatarUrl, email, connectedEmail, personalDriveFolderId, googleLinked }: AccountSettingsFormProps) {
   const VALID_SECTIONS: Section[] = ['profile', 'preferences', 'security', 'integrations']
-  const [activeSection, setActiveSection] = useState<Section>(() => {
-    if (typeof window === 'undefined') return 'profile'
+  const [activeSection, setActiveSection] = useState<Section>('profile')
+
+  // Read ?section= from URL after hydration — must not run on the server to avoid mismatch
+  useEffect(() => {
     const s = new URLSearchParams(window.location.search).get('section') as Section | null
-    return s && VALID_SECTIONS.includes(s) ? s : 'profile'
-  })
+    if (s && VALID_SECTIONS.includes(s)) setActiveSection(s)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Profile state
   const [name, setName] = useState(displayName)
@@ -199,10 +202,10 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
               <button
                 onClick={() => setActiveSection(item.id)}
                 className={cn(
-                  'whitespace-nowrap rounded-lg px-3 py-2 text-left text-[13px] transition-colors sm:w-full',
+                  'relative whitespace-nowrap rounded-lg px-3 py-2 text-left text-[13px] transition-colors sm:w-full',
                   activeSection === item.id
-                    ? 'bg-background-muted font-medium text-foreground'
-                    : 'text-foreground-lighter hover:bg-background-muted hover:text-foreground'
+                    ? 'bg-background-muted font-medium text-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-r-full before:bg-brand'
+                    : 'text-foreground-lighter hover:bg-brand-muted hover:text-brand'
                 )}
               >
                 {item.label}
@@ -213,7 +216,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
       </nav>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col gap-6 max-w-lg">
+      <div className="flex-1 flex flex-col gap-6">
 
         {activeSection === 'profile' && (
           <>

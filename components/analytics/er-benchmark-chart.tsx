@@ -62,7 +62,7 @@ export function ErBenchmarkChart({ data }: ErBenchmarkChartProps) {
           const pct = Math.min((item.er / scale) * 100, 96)
           return (
             <div key={item.handle} className="flex items-center gap-3">
-              <span className="w-[88px] shrink-0 truncate text-[12px] text-foreground">
+              <span className="w-[70px] shrink-0 truncate text-[11px] text-foreground sm:w-[88px] sm:text-[12px]">
                 {item.handle}
               </span>
               <div className="relative flex-1">

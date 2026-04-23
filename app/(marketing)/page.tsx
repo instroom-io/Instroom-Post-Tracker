@@ -5,6 +5,7 @@ import { HowItWorksSection } from '@/components/marketing/how-it-works-section'
 import { FeaturesSection } from '@/components/marketing/features-section'
 import { ComparisonSection } from '@/components/marketing/comparison-section'
 import { WhoSection } from '@/components/marketing/who-section'
+import { TestimonialsSection } from '@/components/marketing/testimonials-section'
 import { PricingSection } from '@/components/marketing/pricing-section'
 import { FaqSection } from '@/components/marketing/faq-section'
 import { CtaSection } from '@/components/marketing/cta-section'
@@ -33,7 +34,7 @@ const faqSchema = {
       name: 'Does it track random people who use my hashtag?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "No — and that's the entire point. Post Tracker only monitors influencers you've added to your campaign. You get signal, not noise.",
+        text: "No. That's the entire point. Post Tracker only monitors influencers you've added to your campaign. You get signal, not noise.",
       },
     },
     {
@@ -41,7 +42,7 @@ const faqSchema = {
       name: 'How does automatic content download work?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "When an influencer has been marked as having granted usage rights, Post Tracker automatically downloads their posts and saves them to your designated Google Drive folder — no manual steps required.",
+        text: "When an influencer has been marked as having granted usage rights, Post Tracker automatically downloads their posts and saves them to your designated Google Drive folder. Nothing manual.",
       },
     },
     {
@@ -49,7 +50,7 @@ const faqSchema = {
       name: 'Is this a separate product from Instroom CRM?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Yes. Post Tracker is a standalone SaaS — you don't pay for features you don't use. It can also be bundled into your Instroom CRM plan at a discounted rate if you want both.",
+        text: "Yes. Post Tracker is a standalone SaaS. You only pay for what you use. It can also be bundled into your Instroom CRM plan at a discounted rate if you want both.",
       },
     },
     {
@@ -65,7 +66,7 @@ const faqSchema = {
       name: "Can agencies manage client brands without a separate subscription?",
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Yes. If a brand already has a Post Tracker subscription, they can approve your access request. You manage their account from your own login — no separate payment, no switching accounts, no friction.",
+        text: "Yes. If a brand already has a Post Tracker subscription, they can approve your access request. You manage their account from your own login. No separate payment, no account switching.",
       },
     },
     {
@@ -123,6 +124,7 @@ export default function MarketingPage() {
       <FeaturesSection />
       <ComparisonSection />
       <WhoSection />
+      <TestimonialsSection />
       <PricingSection />
       <FaqSection />
       <CtaSection />

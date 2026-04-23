@@ -18,7 +18,7 @@ const itemVariants = {
 
 const SOLO_FEATURES = [
   '1 workspace',
-  'Unlimited users — Admin, Manager, Viewer all free',
+  'Unlimited users: Admin, Manager, Viewer all included',
   'Post tracking, Drive sync, analytics, usage rights',
   '14-day free trial, no credit card required',
 ]
@@ -57,7 +57,7 @@ export function PricingSection() {
               All users included free.
             </h2>
             <p className="mx-auto mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
-              You pay for the workspaces you own — not per seat. Add as many
+              You pay for the workspaces you own. Not per seat. Add as many
               Admins, Managers, and Viewers as you need at no extra cost.
             </p>
 
@@ -86,7 +86,7 @@ export function PricingSection() {
             </div>
           </motion.div>
 
-          <div className="mx-auto mt-12 max-w-[720px] grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
+          <div className="mx-auto mt-12 grid w-full max-w-[720px] grid-cols-1 gap-5 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
             {/* Solo card */}
             <motion.div
               variants={itemVariants}
@@ -172,7 +172,7 @@ export function PricingSection() {
             variants={itemVariants}
             className="mt-8 text-center text-[0.82rem] text-foreground-lighter"
           >
-            Shared workspaces: if a brand invites you to their workspace, you join as a Manager at no cost — it doesn&apos;t count against your quota.
+            Shared workspaces: if a brand invites you to their workspace, you join as a Manager at no cost. It doesn&apos;t count against your quota.
             <br className="hidden sm:block" />
             <span className="mt-1 block sm:inline sm:mt-0">
               {' '}All plans include a 14-day free trial. No credit card required.

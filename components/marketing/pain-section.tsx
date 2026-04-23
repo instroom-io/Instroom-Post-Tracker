@@ -22,39 +22,39 @@ const itemVariants = {
 const painPoints = [
   {
     icon: MagnifyingGlass,
-    title: 'Manual post hunting',
+    title: "You're checking profiles manually",
     description:
-      'Checking tagged posts, scrolling through hashtags, monitoring notifications — every single day, for every single influencer in your campaign.',
+      'Every day, someone on your team opens Instagram or TikTok to check if an influencer posted. That time adds up. Posts still get missed.',
   },
   {
     icon: FilmSlate,
-    title: 'Watermarked content, useless for ads',
+    title: 'Content comes back watermarked',
     description:
-      "You download the video straight from the platform and it comes stamped with a TikTok or Instagram watermark. You can't run that in paid ads — so you're back to chasing the influencer for the original file.",
+      "TikTok watermarks are burned in. Without a proper download pipeline, the UGC you paid for isn't usable in paid ads.",
   },
   {
     icon: FileText,
-    title: 'Chasing influencers for files',
+    title: 'Chasing influencers for deliverables',
     description:
-      'Following up for raw files and post links. Days of back-and-forth for content you already paid for — and sometimes you never get it.',
+      'Day 10, still no post. No system to know when to follow up, who to contact, or how late they actually are.',
   },
   {
     icon: UploadSimple,
-    title: 'The Drive upload grind',
+    title: 'Manually uploading to Drive',
     description:
-      'Download. Rename. Create the folder. Upload. Repeat for every influencer, every post, every campaign. Hours of admin nobody planned for.',
+      'Someone downloads the video, renames it, drags it into the right folder. Every. Single. Post.',
   },
   {
     icon: Warning,
-    title: 'Posts you missed entirely',
+    title: 'Posts fall through the cracks',
     description:
-      "An influencer posted. You didn't catch it. The campaign window closed. That content — and its potential as a paid ad creative — is now gone.",
+      "One influencer posts at 2am. Nobody sees it. It doesn't get logged. You find out weeks later when the client asks.",
   },
   {
     icon: ShieldWarning,
-    title: 'Usage rights left in limbo',
+    title: 'Usage rights tracked in a spreadsheet',
     description:
-      "You got verbal permission to repurpose content. But where's the record? No system, no proof, no organized library — just scattered DMs.",
+      'Granting usage rights should unlock downloads automatically. Instead, it\'s a note in a Google Sheet that someone might check.',
   },
 ]
 
@@ -83,7 +83,7 @@ export function PainSection() {
             </p>
           </motion.div>
 
-          <div className="mt-12 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-5">
+          <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
             {painPoints.map((point) => (
               <motion.div
                 key={point.title}

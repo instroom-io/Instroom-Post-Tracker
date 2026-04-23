@@ -132,13 +132,14 @@ export function ComparisonSection() {
             </h2>
             <p className="mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
               Most tools track everyone who used a hashtag. Post Tracker tracks
-              only the influencers you hired — and does the work after the post
-              goes live.
+              only the influencers you hired. And it does the work after the
+              post goes live.
             </p>
           </motion.div>
 
           <motion.div variants={itemVariants} className="mt-10 overflow-hidden rounded-[14px] border border-border">
-            <table className="w-full border-collapse bg-background-surface">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] border-collapse bg-background-surface">
               <thead>
                 <tr>
                   <th className="bg-background-muted px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
@@ -171,6 +172,7 @@ export function ComparisonSection() {
                 ))}
               </tbody>
             </table>
+            </div>
           </motion.div>
         </motion.div>
       </div>

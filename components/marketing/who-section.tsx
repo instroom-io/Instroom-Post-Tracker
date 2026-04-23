@@ -14,11 +14,23 @@ const itemVariants = {
 
 const personas = [
   {
+    icon: Buildings,
+    label: 'Agencies',
+    title: 'The influencer marketing agency',
+    description:
+      'Manage every client brand from one login. Post Tracker handles the monitoring, downloading, and reporting. Your team stays focused on strategy, not admin.',
+    bullets: [
+      'All client brands in one login. No account switching.',
+      'Deliver organized Drive libraries and post logs per brand',
+      'Automated follow-ups when influencers miss their delivery window',
+    ],
+  },
+  {
     icon: Storefront,
     label: 'Brands & eCommerce',
     title: 'The scaling eCommerce brand',
     description:
-      "You're running influencer campaigns to grow your DTC brand. You can't afford to miss posts, and you need content you can turn into high-performing paid ads — fast.",
+      "You're running influencer campaigns to grow your DTC brand. You can't afford to miss posts. And you need content you can actually run in paid ads.",
     bullets: [
       'Capture every influencer post automatically',
       'Build a UGC content library without the legwork',
@@ -26,25 +38,13 @@ const personas = [
     ],
   },
   {
-    icon: Buildings,
-    label: 'Agencies',
-    title: 'The influencer marketing agency',
-    description:
-      "You're managing multiple client campaigns simultaneously. Manual tracking doesn't scale — and clients expect full visibility, organized deliverables, and proof of completion.",
-    bullets: [
-      "Purchase your own plan or request access to a brand's existing account",
-      'Manage all client brands from one login — no switching accounts',
-      'Deliver organized content libraries and post logs per brand',
-    ],
-  },
-  {
     icon: Briefcase,
     label: 'Freelancers',
     title: 'The ambitious freelancer',
     description:
-      'You manage influencer campaigns for 2–5 clients and need to operate like an agency without the overhead. If your clients already have Post Tracker, just request access — no extra subscription needed.',
+      'You manage influencer campaigns for 2–5 clients and need to operate like an agency without the overhead. If your clients already have Post Tracker, request access. No extra subscription.',
     bullets: [
-      'Request access to clients\u2019 existing accounts in one click',
+      "Request access to clients' existing accounts in one click",
       'All brands accessible from your single login',
       'Impress clients with organized, professional deliverables',
     ],
@@ -72,11 +72,11 @@ export function WhoSection() {
             </h2>
             <p className="mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
               Whether you&apos;re running one brand or twenty, Post Tracker
-              adjusts to how you work — not the other way around.
+              works the way you do. Not the other way around.
             </p>
           </motion.div>
 
-          <div className="mt-12 grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
+          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
             {personas.map((persona) => (
               <motion.div
                 key={persona.title}

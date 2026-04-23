@@ -165,7 +165,7 @@ export function WorkspaceSwitcher({
             role="listbox"
             aria-label="Workspaces"
             className={cn(
-              'absolute top-full z-20 mt-1 w-60 overflow-hidden rounded-xl border border-border bg-background-surface shadow-lg',
+              'absolute top-full z-20 mt-1 w-[calc(100vw-16px)] overflow-hidden rounded-xl border border-border bg-background-surface shadow-lg sm:w-60',
               align === 'right' ? 'right-0' : 'left-0'
             )}
           >
@@ -297,7 +297,7 @@ export function WorkspaceSwitcher({
             {/* ── User profile row ── */}
             <div className="px-1.5">
               <Link
-                href="/account/settings"
+                href={`/${currentWorkspace.slug}/account/settings`}
                 onClick={close}
                 className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
               >

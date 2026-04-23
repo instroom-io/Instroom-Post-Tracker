@@ -16,9 +16,10 @@ interface UserMenuProps {
   user: User
   compact?: boolean
   settingsHref?: string
+  workspaceSlug?: string
 }
 
-export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
+export function UserMenu({ user, compact, settingsHref, workspaceSlug }: UserMenuProps) {
   const [open, setOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -30,9 +31,6 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
   const displayName = (user.user_metadata?.full_name as string | undefined) ?? email.split('@')[0]
   const initials = getInitials(displayName)
   const avatarUrl = (user.user_metadata?.avatar_url as string | undefined) ?? null
-
-  // Extract workspaceSlug from current pathname (e.g. "/zippit/overview" → "zippit")
-  const workspaceSlug = pathname.split('/')[1] ?? ''
 
   const close = useCallback(() => {
     setOpen(false)
@@ -131,7 +129,7 @@ export function UserMenu({ user, compact, settingsHref }: UserMenuProps) {
             </a>
 
             <Link
-              href="/account/settings"
+              href={workspaceSlug ? `/${workspaceSlug}/account/settings` : '/account/settings'}
               role="menuitem"
               onClick={() => close()}
               className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"

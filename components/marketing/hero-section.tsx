@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { HeroVideo } from '@/components/marketing/hero-video'
 
 function smoothScroll(e: React.MouseEvent<HTMLAnchorElement>) {
   e.preventDefault()
@@ -11,61 +12,98 @@ function smoothScroll(e: React.MouseEvent<HTMLAnchorElement>) {
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden pt-28 pb-20" id="hero">
-      {/* Dark mode radial green glow */}
-      <div
-        className="pointer-events-none absolute inset-0 hidden dark:block"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(31,174,91,0.08) 0%, transparent 70%)',
-        }}
-      />
+    <section
+      className="relative overflow-hidden"
+      id="hero"
+      style={{ minHeight: '100svh' }}
+    >
+      {/* Full-bleed background video + overlays + glow border */}
+      <HeroVideo />
 
-      {/* Content */}
-      <div className="relative z-10 mx-auto max-w-[860px] px-6 text-center">
+      {/* Center-aligned content */}
+      <div
+        className="relative z-10 flex flex-col items-center justify-center px-5 pt-24 pb-12 text-center"
+        style={{ minHeight: '100svh' }}
+      >
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col items-center"
         >
-          {/* Badge */}
-          <div className="mb-7 inline-flex items-center gap-2 rounded-full bg-brand/10 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-brand-dark dark:text-brand">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+          {/* Eyebrow */}
+          <div
+            className="mb-6 text-[0.68rem] font-semibold uppercase tracking-widest"
+            style={{ color: '#1aff6e' }}
+          >
             Built by marketers, for marketers
           </div>
 
           {/* H1 */}
-          <h1 className="mb-5 font-display text-[clamp(2.4rem,5.5vw,3.75rem)] font-bold leading-[1.08] tracking-tight text-foreground">
+          <h1
+            className="mb-5 max-w-[860px] font-display text-[clamp(2.4rem,6vw,4.5rem)] font-bold leading-[1.06] tracking-tight text-white"
+            style={{ textShadow: '0 2px 28px rgba(0,0,0,0.55)' }}
+          >
             Stop hunting for influencer posts.{' '}
-            <span className="text-brand">Let the system do it.</span>
+            <span style={{ color: '#1aff6e' }}>
+              Let the system do it.
+            </span>
           </h1>
 
-          {/* Subheadline — SEO keyword injected */}
-          <p className="mx-auto mb-9 max-w-[580px] text-[1.1rem] leading-[1.7] text-foreground-lighter">
-            The influencer post tracking tool that monitors hashtags, downloads
-            content to Google Drive, and organizes your UGC library —
-            automatically.
+          {/* Subheadline */}
+          <p
+            className="mb-10 max-w-[600px] text-[1.05rem] leading-[1.75]"
+            style={{ color: 'rgba(255,255,255,0.68)' }}
+          >
+            Instroom Post Tracker tracks every hashtag, mention, and post from your campaign influencers. Content gets downloaded and filed in Google Drive automatically. You focus on strategy. It handles the rest.
           </p>
 
           {/* CTAs */}
-          <div className="mb-5 flex flex-wrap justify-center gap-3">
+          <div className="mb-6 flex flex-wrap justify-center gap-3">
             <Link
               href="/signup"
-              className="rounded-[9px] bg-brand px-8 py-3.5 text-[0.95rem] font-semibold text-white transition-all hover:bg-brand/90 dark:hover:shadow-[0_0_24px_rgba(31,174,91,0.4)]"
+              className="rounded-[9px] px-8 py-3.5 text-[0.95rem] font-semibold transition-all hover:opacity-90"
+              style={{
+                background: '#1aff6e',
+                color: '#07130b',
+                boxShadow: '0 0 0 rgba(26,255,110,0)',
+              }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLElement).style.boxShadow =
+                  '0 0 28px rgba(26,255,110,0.45)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLElement).style.boxShadow =
+                  '0 0 0 rgba(26,255,110,0)'
+              }}
             >
               Start tracking for free
             </Link>
             <a
               href="#how-it-works"
               onClick={smoothScroll}
-              className="rounded-[9px] border border-border px-8 py-3.5 text-[0.95rem] font-medium text-foreground transition-all hover:border-border-strong hover:bg-background-muted dark:border-white/15 dark:text-foreground-light dark:hover:bg-white/5"
+              className="rounded-[9px] border px-8 py-3.5 text-[0.95rem] font-medium text-white transition-all"
+              style={{ borderColor: 'rgba(255,255,255,0.28)' }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement
+                el.style.borderColor = 'rgba(255,255,255,0.55)'
+                el.style.background = 'rgba(255,255,255,0.08)'
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement
+                el.style.borderColor = 'rgba(255,255,255,0.28)'
+                el.style.background = ''
+              }}
             >
               See how it works →
             </a>
           </div>
 
           {/* Proof line */}
-          <p className="mb-6 text-[0.8rem] text-foreground-muted">
+          <p
+            className="mb-8 text-[0.78rem]"
+            style={{ color: 'rgba(255,255,255,0.42)' }}
+          >
             No credit card required · Cancel anytime · Setup in under 5 minutes
           </p>
 
@@ -74,7 +112,12 @@ export function HeroSection() {
             {['Instagram', 'TikTok', 'YouTube'].map((p) => (
               <span
                 key={p}
-                className="rounded-md border border-border bg-background-surface px-3 py-1 text-[0.78rem] font-medium text-foreground-lighter dark:border-white/10 dark:bg-white/5"
+                className="rounded-md px-3 py-1 text-[0.78rem] font-medium"
+                style={{
+                  border: '1px solid rgba(255,255,255,0.14)',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: 'rgba(255,255,255,0.58)',
+                }}
               >
                 {p}
               </span>

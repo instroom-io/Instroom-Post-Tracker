@@ -253,7 +253,7 @@ export function CampaignInfluencersList({
   return (
     <div>
       <div className="px-5 py-3 border-b border-border">
-        <div className="relative w-48">
+        <div className="relative w-full sm:w-48">
           <MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-muted pointer-events-none" />
           <Input
             type="text"

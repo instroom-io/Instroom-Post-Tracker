@@ -34,7 +34,7 @@ export function EmvChart({ data }: EmvChartProps) {
           <span className="w-4 shrink-0 text-right text-[11px] tabular-nums text-foreground-muted">
             {i + 1}
           </span>
-          <span className="w-20 shrink-0 truncate text-[12px] text-foreground">
+          <span className="w-16 shrink-0 truncate text-[11px] text-foreground sm:w-20 sm:text-[12px]">
             {item.handle}
           </span>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-background-muted">

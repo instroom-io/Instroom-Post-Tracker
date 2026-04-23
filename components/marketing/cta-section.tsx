@@ -31,6 +31,13 @@ export function CtaSection() {
           Get started today
         </motion.span>
 
+        <motion.p
+          variants={itemVariants}
+          className="mt-3 mb-1 text-[0.78rem] font-semibold uppercase tracking-widest text-brand"
+        >
+          Trusted by influencer marketing teams
+        </motion.p>
+
         <motion.h2
           variants={itemVariants}
           className="mt-2 font-display text-[clamp(2rem,4vw,3rem)] font-bold leading-[1.1] tracking-tight text-white"

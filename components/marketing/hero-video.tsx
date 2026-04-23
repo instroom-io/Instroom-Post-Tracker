@@ -1,12 +1,8 @@
 'use client'
 
-import { motion, useScroll, useTransform, useMotionValue, animate } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef, useEffect } from 'react'
 import { useTheme } from 'next-themes'
-
-const TAIL_DURATION = 0.3        // seconds before end to enter slow-motion drift
-const SEEK_THRESHOLD = 0.05      // seek back when this close to the true end
-const TAIL_PLAYBACK_RATE = 0.2   // 20% speed — slightly faster slow-mo
 
 export function HeroVideo() {
   const { resolvedTheme } = useTheme()
@@ -14,47 +10,13 @@ export function HeroVideo() {
 
   const ref = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const isInTailMode = useRef(false)
-  const wasVisible = useRef(true) // true = section was visible on mount; prevents instant replay trigger
-  const opacity = useMotionValue(isDark ? 0.7 : 0.9)
 
-  const { scrollYProgress } = useScroll({ target: ref })
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '20%'])
-
-  // Tail-loop effect: play once, then freeze-loop the last TAIL_DURATION seconds
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    function handleTimeUpdate() {
-      if (!video || !video.duration) return
-      const tailStart = video.duration - TAIL_DURATION
-
-      if (!isInTailMode.current && video.currentTime >= tailStart) {
-        isInTailMode.current = true
-        video.playbackRate = TAIL_PLAYBACK_RATE
-      }
-
-      if (isInTailMode.current && video.currentTime >= video.duration - SEEK_THRESHOLD) {
-        video.currentTime = tailStart
-      }
-    }
-
-    // Safety net if video somehow reaches ended state
-    function handleEnded() {
-      if (!video) return
-      video.playbackRate = TAIL_PLAYBACK_RATE
-      video.currentTime = video.duration - TAIL_DURATION
-      video.play().catch(() => {})
-    }
-
-    video.addEventListener('timeupdate', handleTimeUpdate)
-    video.addEventListener('ended', handleEnded)
-    return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate)
-      video.removeEventListener('ended', handleEnded)
-    }
-  }, [])
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start start', 'end start'],
+  })
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '15%'])
+  const opacity = useTransform(scrollYProgress, [0, 0.65], [1, 0])
 
   // Explicit play on mount — autoPlay alone is unreliable in React/Next.js hydration
   useEffect(() => {
@@ -63,91 +25,81 @@ export function HeroVideo() {
     video.play().catch(() => {})
   }, [])
 
-  // Replay from beginning when hero section re-enters viewport
-  useEffect(() => {
-    const video = videoRef.current
-    const el = ref.current
-    if (!video || !el) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            if (!wasVisible.current) {
-              // Section re-entered: restart the full animation
-              isInTailMode.current = false
-              video.playbackRate = 1.0
-              video.currentTime = 0
-              video.play().catch(() => {})
-              animate(opacity, isDark ? 0.7 : 0.9, { duration: 0.6 })
-            }
-            wasVisible.current = true
-          } else {
-            wasVisible.current = false
-          }
-        })
-      },
-      { threshold: 0.1 }
-    )
-
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [opacity, isDark])
-
   return (
-    <motion.div
-      ref={ref}
-      className="absolute inset-0 hidden lg:block pointer-events-none z-0"
-      style={{ y }}
-    >
-      {/* Video with organic radial dissolve on all edges */}
+    <>
+      <style>{`
+        @keyframes glow-sweep {
+          0%   { transform: translateX(-100%); }
+          100% { transform: translateX(400%); }
+        }
+        .hero-glow-sweep {
+          animation: glow-sweep 2.8s linear infinite;
+        }
+      `}</style>
+
       <motion.div
-        className="absolute inset-0"
-        suppressHydrationWarning
-        style={{
-          opacity,
-          filter: isDark ? 'saturate(1.1) brightness(0.75)' : 'saturate(1.05)',
-          WebkitMaskImage:
-            'radial-gradient(ellipse 70% 90% at 68% 50%, black 25%, transparent 72%)',
-          maskImage:
-            'radial-gradient(ellipse 70% 90% at 68% 50%, black 25%, transparent 72%)',
-        }}
+        ref={ref}
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{ y, opacity }}
       >
+        {/* Video — full-bleed, all viewports */}
         <video
           ref={videoRef}
           autoPlay
           muted
+          loop
           playsInline
-          className="w-full h-full object-contain"
-          style={{ objectPosition: 'right center' }}
+          className="absolute inset-0 h-full w-full object-cover"
         >
-          <source src="/marketing/Instroom_landing_video.mp4" type="video/mp4" />
+          <source src="/marketing/PostTrackerHero.mp4" type="video/mp4" />
         </video>
+
+        {/* Background tint — light: barely-there white wash; dark: deep black veil */}
+        <div
+          className="absolute inset-0"
+          suppressHydrationWarning
+          style={{
+            background: isDark ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.08)',
+          }}
+        />
+
+        {/* Bottom gradient — text readability */}
+        <div
+          className="absolute inset-0"
+          suppressHydrationWarning
+          style={{
+            background: isDark
+              ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.28) 35%, transparent 65%)'
+              : 'linear-gradient(to top, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.12) 35%, transparent 65%)',
+          }}
+        />
+
+        {/* Animated glow border — bottom edge */}
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] overflow-hidden">
+          {/* Static faint base line */}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'rgba(26,255,110,0.22)' }}
+          />
+          {/* Blurred glow layer — traveling pulse */}
+          <div
+            className="hero-glow-sweep absolute top-0 bottom-0 w-1/4"
+            style={{
+              background:
+                'linear-gradient(to right, transparent 0%, #1aff6e 50%, transparent 100%)',
+              filter: 'blur(3px)',
+            }}
+          />
+          {/* Sharp bright line over blur */}
+          <div
+            className="hero-glow-sweep absolute top-0 bottom-0 w-1/4"
+            style={{
+              background:
+                'linear-gradient(to right, transparent 0%, #1aff6e 50%, transparent 100%)',
+            }}
+          />
+        </div>
       </motion.div>
-
-      {/* Left-side vignette — keeps text area clean */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(to right, var(--marketing-vignette-start) 25%, transparent 40%)',
-        }}
-      />
-
-      {/* Right-side vignette — hides right video edge */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(to left, var(--marketing-vignette-start) 0%, transparent 30%)',
-        }}
-      />
-
-      {/* Top vignette — hides top video edge */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(to bottom, var(--marketing-vignette-start) 0%, transparent 25%)',
-        }}
-      />
-    </motion.div>
+    </>
   )
 }

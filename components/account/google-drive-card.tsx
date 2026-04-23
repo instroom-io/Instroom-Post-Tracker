@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { disconnectGoogleDrive } from '@/lib/actions/account'
@@ -13,6 +13,7 @@ interface GoogleDriveCardProps {
 
 export function GoogleDriveCard({ connectedEmail }: GoogleDriveCardProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
 
   function handleDisconnect() {
@@ -58,7 +59,7 @@ export function GoogleDriveCard({ connectedEmail }: GoogleDriveCardProps) {
         ) : (
           <div className="flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth redirect requires full page navigation */}
-            <a href="/api/auth/google-drive?returnTo=/account/settings&section=integrations">
+            <a href={`/api/auth/google-drive?returnTo=${pathname}&section=integrations`}>
               <Button variant="outline" size="sm">
                 Connect Google Drive
               </Button>

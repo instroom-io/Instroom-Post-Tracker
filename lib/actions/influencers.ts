@@ -4,6 +4,16 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { addInfluencerSchema, updateInfluencerSchema, updateProductSentAtSchema, type UpdateProductSentAtInput } from '@/lib/validations'
+import type {
+  InfluencerProfile,
+  InfluencerProfileCampaign,
+  InfluencerPlatformStats,
+  InfluencerProfilePost,
+  Platform,
+  CampaignStatus,
+  MonitoringStatus,
+  DownloadStatus,
+} from '@/lib/types'
 
 const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
 const ENSEMBLE_API_KEY = process.env.ENSEMBLE_API_KEY!
@@ -521,4 +531,90 @@ export async function toggleStopAfterPost(
   if (error) return { error: 'Failed to update.' }
 
   revalidatePath('/', 'layout')
+}
+
+export async function getInfluencerProfile(
+  workspaceId: string,
+  influencerId: string
+): Promise<InfluencerProfile | { error: string }> {
+  const supabase = await createClient()
+
+  const [membershipsResult, metricsResult, recentPostsResult] = await Promise.all([
+    supabase
+      .from('campaign_influencers')
+      .select('id, campaign_id, monitoring_status, usage_rights, added_at, campaigns(id, name, status, platforms)')
+      .eq('influencer_id', influencerId)
+      .neq('monitoring_status', 'removed'),
+
+    supabase
+      .from('posts')
+      .select('platform, post_metrics(views, emv, engagement_rate)')
+      .eq('influencer_id', influencerId)
+      .eq('workspace_id', workspaceId),
+
+    supabase
+      .from('posts')
+      .select('id, platform, thumbnail_url, post_url, posted_at, download_status, post_metrics(views, emv)')
+      .eq('influencer_id', influencerId)
+      .eq('workspace_id', workspaceId)
+      .order('posted_at', { ascending: false })
+      .limit(9),
+  ])
+
+  if (membershipsResult.error) return { error: 'Failed to load campaign memberships.' }
+  if (metricsResult.error) return { error: 'Failed to load metrics.' }
+  if (recentPostsResult.error) return { error: 'Failed to load recent posts.' }
+
+  // Aggregate platform stats client-side
+  const statsMap = new Map<string, { post_count: number; total_views: number; total_emv: number; er_sum: number; er_count: number }>()
+  for (const p of metricsResult.data ?? []) {
+    const m = Array.isArray(p.post_metrics) ? p.post_metrics[0] : p.post_metrics
+    const key = p.platform
+    const existing = statsMap.get(key) ?? { post_count: 0, total_views: 0, total_emv: 0, er_sum: 0, er_count: 0 }
+    existing.post_count += 1
+    if (m) {
+      existing.total_views += Number(m.views ?? 0)
+      existing.total_emv += Number(m.emv ?? 0)
+      existing.er_sum += Number(m.engagement_rate ?? 0)
+      existing.er_count += 1
+    }
+    statsMap.set(key, existing)
+  }
+  const platformStats: InfluencerPlatformStats[] = Array.from(statsMap.entries()).map(([platform, s]) => ({
+    platform: platform as Platform,
+    post_count: s.post_count,
+    total_views: s.total_views,
+    total_emv: s.total_emv,
+    avg_er: s.er_count > 0 ? s.er_sum / s.er_count : 0,
+  }))
+
+  const campaigns: InfluencerProfileCampaign[] = (membershipsResult.data ?? []).map((ci) => {
+    const c = Array.isArray(ci.campaigns) ? ci.campaigns[0] : ci.campaigns
+    return {
+      campaign_influencer_id: ci.id,
+      campaign_id: ci.campaign_id,
+      name: c?.name ?? '—',
+      status: (c?.status ?? 'draft') as CampaignStatus,
+      platforms: (c?.platforms ?? []) as Platform[],
+      monitoring_status: ci.monitoring_status as MonitoringStatus,
+      usage_rights: ci.usage_rights,
+      added_at: ci.added_at,
+    }
+  })
+
+  const recentPosts: InfluencerProfilePost[] = (recentPostsResult.data ?? []).map((p) => {
+    const m = Array.isArray(p.post_metrics) ? p.post_metrics[0] : p.post_metrics
+    return {
+      id: p.id,
+      platform: p.platform as Platform,
+      thumbnail_url: p.thumbnail_url,
+      post_url: p.post_url,
+      posted_at: p.posted_at,
+      download_status: p.download_status as DownloadStatus,
+      views: m ? Number(m.views) : null,
+      emv: m ? Number(m.emv) : null,
+    }
+  })
+
+  return { campaigns, platformStats, recentPosts }
 }

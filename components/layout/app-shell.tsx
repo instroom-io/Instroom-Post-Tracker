@@ -161,7 +161,7 @@ export function AppShell({
 
   return (
     <>
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
 
       {/* ── Trial banner — full-width above sidebar+content ──────────────────── */}
       {plan !== undefined && daysRemaining !== undefined && (

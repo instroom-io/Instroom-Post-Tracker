@@ -220,6 +220,44 @@ export interface PostWithDetails extends Post {
   metrics: PostMetrics | undefined
 }
 
+// ─── Influencer Profile Modal ─────────────────────────────────────────────────
+
+export interface InfluencerProfileCampaign {
+  campaign_influencer_id: string
+  campaign_id: string
+  name: string
+  status: CampaignStatus
+  platforms: Platform[]
+  monitoring_status: MonitoringStatus
+  usage_rights: boolean
+  added_at: string
+}
+
+export interface InfluencerPlatformStats {
+  platform: Platform
+  post_count: number
+  total_views: number
+  total_emv: number
+  avg_er: number
+}
+
+export interface InfluencerProfilePost {
+  id: string
+  platform: Platform
+  thumbnail_url: string | null
+  post_url: string | null
+  posted_at: string
+  download_status: DownloadStatus
+  views: number | null
+  emv: number | null
+}
+
+export interface InfluencerProfile {
+  campaigns: InfluencerProfileCampaign[]
+  platformStats: InfluencerPlatformStats[]
+  recentPosts: InfluencerProfilePost[]
+}
+
 export type WorkspaceJoinRequestStatus = 'pending' | 'approved' | 'denied'
 
 export interface WorkspaceJoinRequest {

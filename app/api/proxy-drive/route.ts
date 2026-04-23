@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
 import type { Readable } from 'stream'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { checkRouteLimit, limiters } from '@/lib/rate-limit'
+import { getFreshAccessToken, getAgencyFreshAccessToken } from '@/lib/google/tokens'
 
 type DriveStreamRes = {
   data: NodeJS.ReadableStream
@@ -10,12 +11,90 @@ type DriveStreamRes = {
   headers: Record<string, string>
 }
 
-function getAuth() {
+function getServiceAuth() {
   const json = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64!, 'base64').toString('utf-8')
   return new google.auth.GoogleAuth({
     credentials: JSON.parse(json) as object,
     scopes: ['https://www.googleapis.com/auth/drive.readonly'],
   })
+}
+
+function getOAuthAuth(accessToken: string) {
+  const auth = new google.auth.OAuth2()
+  auth.setCredentials({ access_token: accessToken })
+  return auth
+}
+
+type DriveAuth = ReturnType<typeof getServiceAuth> | ReturnType<typeof getOAuthAuth>
+
+async function buildAuthCandidates(workspaceId: string | null): Promise<DriveAuth[]> {
+  const candidates: DriveAuth[] = []
+
+  if (workspaceId) {
+    const svc = createServiceClient()
+
+    const { data: ws } = await svc
+      .from('workspaces')
+      .select('agency_id')
+      .eq('id', workspaceId)
+      .single()
+
+    const agencyId = (ws as unknown as { agency_id: string | null } | null)?.agency_id
+
+    if (agencyId) {
+      const agencyToken = await getAgencyFreshAccessToken(agencyId)
+      if (agencyToken) candidates.push(getOAuthAuth(agencyToken))
+    } else {
+      const { data: ownerMember } = await svc
+        .from('workspace_members')
+        .select('user_id')
+        .eq('workspace_id', workspaceId)
+        .eq('role', 'owner')
+        .single()
+
+      const ownerId = ownerMember?.user_id ?? null
+      if (ownerId) {
+        const ownerToken = await getFreshAccessToken(ownerId)
+        if (ownerToken) candidates.push(getOAuthAuth(ownerToken))
+      }
+    }
+  }
+
+  // Service account is always the last-resort fallback
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64) {
+    candidates.push(getServiceAuth())
+  }
+
+  return candidates
+}
+
+/**
+ * Probe each auth candidate against the file metadata endpoint.
+ * Returns the first auth that can successfully read the file, plus its metadata.
+ * This avoids starting a stream only to find out mid-way that the token is wrong.
+ */
+async function resolveWorkingAuth(
+  fileId: string,
+  candidates: DriveAuth[]
+): Promise<{ auth: DriveAuth; contentType: string; fileSize: number } | null> {
+  for (const auth of candidates) {
+    try {
+      const drive = google.drive({ version: 'v3', auth })
+      const meta = await drive.files.get({
+        fileId,
+        fields: 'mimeType,size',
+        supportsAllDrives: true,
+      })
+      return {
+        auth,
+        contentType: meta.data.mimeType ?? 'video/mp4',
+        fileSize: Number(meta.data.size ?? 0),
+      }
+    } catch {
+      // Token can't access this file — try the next candidate
+    }
+  }
+  return null
 }
 
 export async function GET(request: NextRequest) {
@@ -31,20 +110,23 @@ export async function GET(request: NextRequest) {
   const fileId = request.nextUrl.searchParams.get('id')
   if (!fileId) return new NextResponse('Missing id', { status: 400 })
 
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64) {
+  const workspaceId = request.nextUrl.searchParams.get('workspaceId')
+
+  const candidates = await buildAuthCandidates(workspaceId)
+  if (candidates.length === 0) {
     return new NextResponse('Drive not configured', { status: 503 })
   }
 
-  try {
-    const drive = google.drive({ version: 'v3', auth: getAuth() })
+  const resolved = await resolveWorkingAuth(fileId, candidates)
+  if (!resolved) {
+    console.error('[proxy-drive] No auth candidate could read file', fileId, 'workspace', workspaceId)
+    return new NextResponse('Failed', { status: 502 })
+  }
 
-    const meta = await drive.files.get({
-      fileId,
-      fields: 'mimeType,size',
-      supportsAllDrives: true,
-    })
-    const contentType = meta.data.mimeType ?? 'video/mp4'
-    const fileSize = Number(meta.data.size ?? 0)
+  const { auth, contentType, fileSize } = resolved
+
+  try {
+    const drive = google.drive({ version: 'v3', auth })
 
     // Forward the browser's Range header so Google returns a partial response,
     // enabling video seeking without buffering the whole file in memory.
@@ -77,7 +159,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (isPartial) {
-      // Forward Google's Content-Range and the chunk size back to the browser.
       const contentRange = res.headers['content-range']
       if (contentRange) responseHeaders['Content-Range'] = contentRange
       const chunkLength = res.headers['content-length']
@@ -88,7 +169,7 @@ export async function GET(request: NextRequest) {
 
     return new NextResponse(webStream, { status: isPartial ? 206 : 200, headers: responseHeaders })
   } catch (err) {
-    console.error('[proxy-drive]', err)
+    console.error('[proxy-drive] Stream failed for file', fileId, err)
     return new NextResponse('Failed', { status: 502 })
   }
 }

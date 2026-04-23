@@ -142,8 +142,6 @@ function ModalSaveToDriveButton({ postId, workspaceId, driveFileId, plan }: {
         })
       } else if (result.error === 'not_downloaded') {
         toast.error('This post has not been downloaded yet.')
-      } else if (result.error === 'no_shared_drive_access') {
-        toast.error('You need access to the agency Shared Drive first. Ask your agency admin to add your Google account as a Viewer on the Shared Drive.')
       } else {
         toast.error(result.error)
       }
@@ -177,16 +175,16 @@ function getYouTubeId(url: string | null): string | null {
   return m?.[1] ?? null
 }
 
-function ModalThumbnail({ post }: { post: PostRow }) {
+function ModalThumbnail({ post, workspaceId }: { post: PostRow; workspaceId?: string }) {
   const [playing, setPlaying] = useState(false)
   const [imgFailed, setImgFailed] = useState(false)
   const [videoSrcIdx, setVideoSrcIdx] = useState(0)
 
   // Build ordered fallback list: downloaded Drive file first, then raw CDN url.
-  const videoSources = [
-    post.drive_file_id ? `/api/proxy-drive?id=${post.drive_file_id}` : null,
-    post.media_url,
-  ].filter(Boolean) as string[]
+  const proxyUrl = post.drive_file_id
+    ? `/api/proxy-drive?id=${post.drive_file_id}${workspaceId ? `&workspaceId=${workspaceId}` : ''}`
+    : null
+  const videoSources = [proxyUrl, post.media_url].filter(Boolean) as string[]
 
   const videoSrc = videoSources[videoSrcIdx] ?? null
   const allSrcsFailed = playing && !videoSrc
@@ -205,7 +203,7 @@ function ModalThumbnail({ post }: { post: PostRow }) {
     : null
 
   return (
-    <div className="relative h-[180px] w-[180px] overflow-hidden rounded-xl bg-background-muted flex items-center justify-center">
+    <div className="relative h-[140px] w-[140px] shrink-0 overflow-hidden rounded-xl bg-background-muted flex items-center justify-center sm:h-[180px] sm:w-[180px]">
       {playing && youtubeId ? (
         // YouTube: always use iframe embed — <video> cannot play YouTube URLs
         <iframe
@@ -332,7 +330,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                 <div className="flex flex-col gap-0 sm:flex-row">
                   {/* Thumbnail */}
                   <div className="flex-shrink-0 p-5 sm:pb-5 sm:pr-0">
-                    <ModalThumbnail post={post} />
+                    <ModalThumbnail post={post} workspaceId={workspaceId} />
                   </div>
 
                   {/* Right side */}
@@ -386,7 +384,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                     Performance metrics
                   </p>
                   {m ? (
-                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                       <MetricCell label="Views" value={formatNumber(m.views)} />
                       <MetricCell label="Likes" value={formatNumber(m.likes)} />
                       <MetricCell label="Comments" value={formatNumber(m.comments)} />

@@ -1,4 +1,26 @@
+import { google } from 'googleapis'
 import { createServiceClient } from '@/lib/supabase/server'
+
+/**
+ * Returns a short-lived access token for the Google service account.
+ * Used to read files from the Shared Drive when re-saving to a user's personal Drive.
+ * Returns null if GOOGLE_SERVICE_ACCOUNT_JSON_B64 is not configured.
+ */
+export async function getServiceAccountAccessToken(): Promise<string | null> {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64) return null
+  try {
+    const json = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64, 'base64').toString('utf-8')
+    const auth = new google.auth.GoogleAuth({
+      credentials: JSON.parse(json) as object,
+      scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+    })
+    const client = await auth.getClient() as { getAccessToken(): Promise<{ token?: string | null }> }
+    const { token } = await client.getAccessToken()
+    return token ?? null
+  } catch {
+    return null
+  }
+}
 
 /**
  * Returns a valid Google access token for the given agency.

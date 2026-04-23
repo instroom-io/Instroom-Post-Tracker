@@ -8,6 +8,7 @@ import { CheckCircle, Cloud } from '@phosphor-icons/react'
 
 interface WorkspaceDriveCardProps {
   workspaceId: string
+  workspaceSlug: string
   workspaceName: string
   connectedEmail: string | null
   currentFolderId: string | null
@@ -15,6 +16,7 @@ interface WorkspaceDriveCardProps {
 
 export function WorkspaceDriveCard({
   workspaceId: _workspaceId,
+  workspaceSlug,
   workspaceName,
   connectedEmail,
   currentFolderId,
@@ -51,7 +53,7 @@ export function WorkspaceDriveCard({
               <Cloud size={20} className="flex-shrink-0 text-foreground-muted" />
               <p className="text-[12px] text-foreground-muted">
                 Connect your Google Drive in{' '}
-                <Link href="/account/settings" className="text-brand hover:underline">
+                <Link href={`/${workspaceSlug}/account/settings`} className="text-brand hover:underline">
                   Account Settings
                 </Link>{' '}
                 to enable personal Drive saves for this workspace.

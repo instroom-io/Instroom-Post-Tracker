@@ -89,10 +89,10 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
               <button
                 onClick={() => setActiveSection(item.id)}
                 className={cn(
-                  'whitespace-nowrap rounded-lg px-3 py-2 text-left text-[13px] transition-colors sm:w-full',
+                  'relative whitespace-nowrap rounded-lg px-3 py-2 text-left text-[13px] transition-colors sm:w-full',
                   activeSection === item.id
-                    ? 'bg-background-muted font-medium text-foreground'
-                    : 'text-foreground-lighter hover:bg-background-muted hover:text-foreground'
+                    ? 'bg-background-muted font-medium text-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-r-full before:bg-brand'
+                    : 'text-foreground-lighter hover:bg-brand-muted hover:text-brand'
                 )}
               >
                 {item.label}
@@ -103,7 +103,7 @@ export function AgencySettingsForm({ agency, connectedEmail }: AgencySettingsFor
       </nav>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col gap-6 max-w-lg">
+      <div className="flex-1 flex flex-col gap-6">
 
         {activeSection === 'general' && (
           <>

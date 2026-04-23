@@ -28,7 +28,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
 
   // ── Round 1: workspace + auth user (no mutual dependency) ────────────────
   const [{ data: workspace }, { data: { user } }] = await Promise.all([
-    supabase.from('workspaces').select('id, name').eq('slug', workspaceSlug).single(),
+    supabase.from('workspaces').select('id, name, drive_folder_id').eq('slug', workspaceSlug).single(),
     supabase.auth.getUser(),
   ])
 
@@ -91,6 +91,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
           canEdit={canEdit}
           workspaceSlug={workspaceSlug}
           workspaceId={workspace.id}
+          workspaceDriveFolderId={workspace.drive_folder_id ?? null}
           page={page}
           totalCount={0}
           pageSize={PAGE_SIZE}
@@ -191,6 +192,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
           canEdit={canEdit}
           workspaceSlug={workspaceSlug}
           workspaceId={workspace.id}
+          workspaceDriveFolderId={workspace.drive_folder_id ?? null}
           page={page}
           totalCount={totalCount}
           pageSize={PAGE_SIZE}
