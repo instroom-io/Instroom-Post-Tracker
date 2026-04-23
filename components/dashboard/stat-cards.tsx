@@ -87,6 +87,7 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       {stats.map((stat, i) => (
         <div
           key={stat.label}
+          {...(stat.label === 'Downloads' ? { 'data-tour': 'ws-usage-rights' } : {})}
           className={`animate-fade-up rounded-xl border border-border-strong bg-background-surface p-4 shadow-xs ${delayClasses[i] ?? ''}`}
         >
           <div className="flex items-start justify-between">
