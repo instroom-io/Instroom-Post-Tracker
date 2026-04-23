@@ -36,7 +36,7 @@ export const WORKSPACE_STEPS: TourStep[] = [
   {
     id: 'ws-overview',
     title: 'Overview',
-    description: 'Your campaign dashboard — stat cards, recent posts, and usage rights all at a glance.',
+    description: 'Your campaign dashboard — stat cards, recent campaigns, and recent posts all at a glance.',
     side: 'right',
   },
   {
@@ -59,8 +59,8 @@ export const WORKSPACE_STEPS: TourStep[] = [
   },
   {
     id: 'ws-usage-rights',
-    title: 'Usage Rights',
-    description: 'Toggle usage rights per influencer to unlock automatic post downloads to Google Drive. Without this enabled, posts are tracked but not downloaded.',
+    title: 'Usage Rights & Downloads',
+    description: 'This tracks how many posts have been saved to Google Drive. Downloads are unlocked per influencer — go to any campaign → Influencers tab and enable the Usage Rights toggle for each influencer you want downloaded.',
     side: 'right',
   },
   {
@@ -99,14 +99,8 @@ export const CAMPAIGN_STEPS: TourStep[] = [
   {
     id: 'campaign-tab-influencers',
     title: 'Influencers',
-    description: 'Add influencers to track in this campaign and set each product sent date to trigger the 7-day scan delay. Use the Usage Rights toggle per influencer — when on, detected posts are automatically downloaded to Google Drive; when off, posts are still tracked but never downloaded.',
+    description: 'Add influencers to this campaign and record when each product was sent. Use the Usage Rights toggle per influencer — when on, detected posts are automatically downloaded to Google Drive; when off, posts are still tracked but never downloaded.',
     side: 'bottom',
-  },
-  {
-    id: 'campaign-usage-rights',
-    title: 'Usage Rights',
-    description: 'Toggle this per influencer to enable automatic Drive downloads for their posts. When off, posts are still detected and tracked — they just won\'t be saved to Drive. You can change this at any time.',
-    side: 'right',
   },
   {
     id: 'campaign-tab-posts',
@@ -117,7 +111,7 @@ export const CAMPAIGN_STEPS: TourStep[] = [
   {
     id: 'campaign-tab-downloads',
     title: 'Downloads',
-    description: 'Posts that have been downloaded to Google Drive. Enable usage rights per influencer on the Overview tab to unlock downloads.',
+    description: 'Posts that have been downloaded to Google Drive. Enable usage rights per influencer on the Influencers tab to unlock downloads.',
     side: 'bottom',
   },
 ]
