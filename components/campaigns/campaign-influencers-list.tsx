@@ -283,7 +283,7 @@ export function CampaignInfluencersList({
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Status
               </th>
-              <th data-tour="campaign-usage-rights" className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
                 Usage rights
               </th>
               <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
