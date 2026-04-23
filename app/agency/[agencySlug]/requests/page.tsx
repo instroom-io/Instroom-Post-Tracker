@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { PageHeader } from '@/components/layout/page-header'
 import { InviteBrandDialog } from '@/components/agency/invite-brand-dialog'
 import { Check, Clock, X } from '@phosphor-icons/react/dist/ssr'
 import { cn } from '@/lib/utils'
@@ -41,10 +40,11 @@ export default async function AgencyRequestsPage({ params }: PageProps) {
   }
 
   return (
-    <div>
-      <PageHeader actions={<InviteBrandDialog agencyId={agency.id} />} />
-      <div className="p-5">
-        {(invites ?? []).length === 0 ? (
+    <div className="p-5">
+      <div className="flex justify-end mb-4">
+        <InviteBrandDialog agencyId={agency.id} />
+      </div>
+      {(invites ?? []).length === 0 ? (
           <div className="rounded-xl border border-border bg-background-surface p-12 text-center">
             <p className="text-sm text-foreground-muted">No invites sent yet.</p>
             <p className="mt-1 text-[12px] text-foreground-lighter">
@@ -91,7 +91,6 @@ export default async function AgencyRequestsPage({ params }: PageProps) {
             </table>
           </div>
         )}
-      </div>
     </div>
   )
 }
