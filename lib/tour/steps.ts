@@ -19,6 +19,12 @@ export const AGENCY_STEPS: TourStep[] = [
     side: 'bottom',
   },
   {
+    id: 'agency-requests',
+    title: 'Requests',
+    description: 'Track the status of every brand invite you\'ve sent — pending, accepted, or expired. Use the + Add button here to invite a new brand at any time.',
+    side: 'bottom',
+  },
+  {
     id: 'agency-invite-brand',
     title: 'Invite Brand',
     description: "Invite a new client brand. They fill in their details and a workspace is created automatically — no account needed on their end.",

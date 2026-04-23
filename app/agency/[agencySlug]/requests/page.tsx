@@ -42,10 +42,7 @@ export default async function AgencyRequestsPage({ params }: PageProps) {
 
   return (
     <div>
-      <PageHeader
-        title="Requests"
-        actions={<InviteBrandDialog agencyId={agency.id} />}
-      />
+      <PageHeader actions={<InviteBrandDialog agencyId={agency.id} />} />
       <div className="p-5">
         {(invites ?? []).length === 0 ? (
           <div className="rounded-xl border border-border bg-background-surface p-12 text-center">

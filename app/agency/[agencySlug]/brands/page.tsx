@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { PageHeader } from '@/components/layout/page-header'
 
 interface PageProps {
   params: Promise<{ agencySlug: string }>
@@ -30,9 +29,7 @@ export default async function AgencyBrandsPage({ params }: PageProps) {
     .order('created_at', { ascending: false })
 
   return (
-    <div>
-      <PageHeader title="Brands" />
-      <div className="p-5">
+    <div className="p-5">
         {(workspaces ?? []).length === 0 ? (
           <div className="rounded-xl border border-border bg-background-surface p-12 text-center">
             <p className="text-sm text-foreground-muted">No brands yet. Invite your first brand from the dashboard.</p>
@@ -73,7 +70,6 @@ export default async function AgencyBrandsPage({ params }: PageProps) {
             })}
           </div>
         )}
-      </div>
     </div>
   )
 }

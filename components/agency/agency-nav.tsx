@@ -14,7 +14,7 @@ export function AgencyNav({ agencySlug }: AgencyNavProps) {
   const links = [
     { label: 'Dashboard', href: `/agency/${agencySlug}/dashboard`, tourId: 'agency-dashboard' as string | null },
     { label: 'Brands',    href: `/agency/${agencySlug}/brands`,    tourId: 'agency-brands'    as string | null },
-    { label: 'Requests',  href: `/agency/${agencySlug}/requests`,  tourId: null },
+    { label: 'Requests',  href: `/agency/${agencySlug}/requests`,  tourId: 'agency-requests'  as string | null },
     { label: 'Settings',  href: `/agency/${agencySlug}/settings`,  tourId: 'agency-settings'  as string | null },
   ]
 
