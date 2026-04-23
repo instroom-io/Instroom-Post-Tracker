@@ -12,26 +12,27 @@ export function AgencyNav({ agencySlug }: AgencyNavProps) {
   const pathname = usePathname()
 
   const links = [
-    { label: 'Dashboard', href: `/agency/${agencySlug}/dashboard`, tourId: 'agency-dashboard' },
-    { label: 'Brands',    href: `/agency/${agencySlug}/brands`,    tourId: 'agency-brands'    },
-    { label: 'Settings',  href: `/agency/${agencySlug}/settings`,  tourId: 'agency-settings'  },
+    { label: 'Dashboard', href: `/agency/${agencySlug}/dashboard`, tourId: 'agency-dashboard' as string | null },
+    { label: 'Brands',    href: `/agency/${agencySlug}/brands`,    tourId: 'agency-brands'    as string | null },
+    { label: 'Requests',  href: `/agency/${agencySlug}/requests`,  tourId: null },
+    { label: 'Settings',  href: `/agency/${agencySlug}/settings`,  tourId: 'agency-settings'  as string | null },
   ]
 
   return (
-    <nav className="flex items-center gap-4">
+    <nav className="flex items-center gap-1 border-b border-border px-6">
       {links.map(({ label, href, tourId }) => {
         const isActive = pathname === href || pathname.startsWith(href + '/')
         return (
           <Link
             key={href}
             href={href}
-            data-tour={tourId}
+            {...(tourId ? { 'data-tour': tourId } : {})}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'text-[13px] transition-colors',
+              'inline-flex items-center border-b-2 px-3 py-2.5 text-[13px] font-medium transition-colors',
               isActive
-                ? 'font-semibold text-foreground border-b-2 border-brand pb-[1px]'
-                : 'font-medium text-foreground-lighter hover:text-foreground'
+                ? 'border-brand text-foreground'
+                : 'border-transparent text-foreground-muted hover:text-foreground'
             )}
           >
             {label}
