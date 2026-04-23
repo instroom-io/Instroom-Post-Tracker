@@ -195,12 +195,39 @@ export default async function SettingsPage({ params }: PageProps) {
   if (!workspace) notFound()
   if (!user) redirect('/login')
 
-  const { data: currentMember } = await supabase
-    .from('workspace_members')
-    .select('role')
-    .eq('workspace_id', workspace.id)
-    .eq('user_id', user.id)
-    .single()
+  // For Team workspaces the agency is the authoritative billing entity.
+  // Mirror the same conditional pattern used in the dashboard layout.
+  const accountType = (workspace as unknown as { account_type: string }).account_type
+
+  const [{ data: currentMember }, { data: agencyRaw }] = await Promise.all([
+    supabase
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspace.id)
+      .eq('user_id', user.id)
+      .single(),
+    workspace.agency_id
+      ? supabase
+          .from('agencies')
+          .select('id, plan, trial_ends_at')
+          .eq('id', workspace.agency_id)
+          .eq('owner_id', user.id)
+          .maybeSingle()
+      : accountType === 'team'
+        ? supabase
+            .from('agencies')
+            .select('id, plan, trial_ends_at')
+            .eq('owner_id', user.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+  ])
+
+  const agencyBilling = agencyRaw as (typeof agencyRaw & { plan?: PlanType; trial_ends_at?: string | null }) | null
+  const workspacePlan = ((workspace as unknown as { plan: PlanType }).plan) ?? 'free'
+  const effectivePlan: PlanType = agencyBilling?.plan ?? workspacePlan
+  const effectiveDaysRemaining = agencyBilling
+    ? computeDaysRemaining(agencyBilling.trial_ends_at ?? null)
+    : computeDaysRemaining((workspace as unknown as { trial_ends_at: string | null }).trial_ends_at ?? null)
 
   const currentRole = (currentMember?.role ?? 'viewer') as WorkspaceRole
   const canEdit = currentRole === 'owner' || currentRole === 'admin'
@@ -253,7 +280,7 @@ export default async function SettingsPage({ params }: PageProps) {
               currentRole={currentRole}
               canEdit={canEdit}
               userId={user.id}
-              plan={((workspace as unknown as { plan: PlanType }).plan) ?? 'trial'}
+              plan={effectivePlan}
             />
           </Suspense>
         </SectionErrorBoundary>
@@ -270,9 +297,9 @@ export default async function SettingsPage({ params }: PageProps) {
         {/* Billing — owner only */}
         {isOwner && (
           <BillingPanel
-            plan={((workspace as unknown as { plan: PlanType }).plan) ?? 'trial'}
-            daysRemaining={computeDaysRemaining((workspace as unknown as { trial_ends_at: string | null }).trial_ends_at ?? null)}
-            accountType={((workspace as unknown as { account_type: string }).account_type as 'solo' | 'team') ?? 'team'}
+            plan={effectivePlan}
+            daysRemaining={effectiveDaysRemaining}
+            accountType={(accountType as 'solo' | 'team') ?? 'team'}
             workspaceSlug={workspaceSlug}
             memberCounts={memberCounts}
             extraWorkspaces={extraWorkspaces}
