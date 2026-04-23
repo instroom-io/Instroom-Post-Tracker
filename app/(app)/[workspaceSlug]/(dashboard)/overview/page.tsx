@@ -118,6 +118,7 @@ async function OverviewBottom({
         </div>
         <div className="p-5">
           <RecentPostsGrid
+            workspaceId={workspaceId}
             posts={(recentPosts ?? []).map((p) => ({
               id: p.id,
               thumbnail_url: p.thumbnail_url,

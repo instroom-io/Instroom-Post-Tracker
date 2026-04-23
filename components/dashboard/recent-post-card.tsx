@@ -22,7 +22,7 @@ const platformVariant: Record<Platform, 'instagram' | 'tiktok' | 'youtube'> = {
   youtube: 'youtube',
 }
 
-export function RecentPostCard({ post }: { post: Post }) {
+export function RecentPostCard({ post, workspaceId }: { post: Post; workspaceId?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hovering, setHovering] = useState(false)
   const [imgFailed, setImgFailed] = useState(false)
@@ -33,7 +33,7 @@ export function RecentPostCard({ post }: { post: Post }) {
   const videoSrc = primarySrcFailed
     ? post.media_url
     : post.drive_file_id
-      ? `/api/proxy-drive?id=${post.drive_file_id}`
+      ? `/api/proxy-drive?id=${post.drive_file_id}${workspaceId ? `&workspaceId=${workspaceId}` : ''}`
       : post.media_url
 
   const isVideo = post.platform === 'tiktok' || post.platform === 'youtube' || (post.platform === 'instagram' && (!!post.media_url || !!post.drive_file_id))

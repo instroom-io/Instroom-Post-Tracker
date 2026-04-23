@@ -89,7 +89,7 @@ function groupByMonth(posts: PostRow[]): { label: string; posts: PostRow[] }[] {
   return Object.entries(map).map(([label, posts]) => ({ label, posts }))
 }
 
-function GalleryThumbnail({ post }: { post: PostRow }) {
+function GalleryThumbnail({ post, workspaceId }: { post: PostRow; workspaceId: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hovering, setHovering] = useState(false)
   const [imgFailed, setImgFailed] = useState(false)
@@ -102,7 +102,7 @@ function GalleryThumbnail({ post }: { post: PostRow }) {
   const videoSrc = primarySrcFailed
     ? post.media_url
     : post.drive_file_id
-      ? `/api/proxy-drive?id=${post.drive_file_id}`
+      ? `/api/proxy-drive?id=${post.drive_file_id}&workspaceId=${workspaceId}`
       : post.media_url
 
   const canPreview = !!videoSrc && post.platform !== 'youtube' && !previewDisabled
@@ -270,7 +270,7 @@ export function CampaignPostsGallery({
                   className="group rounded-xl overflow-hidden border border-border bg-background-surface shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-border-strong text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                 >
                   {/* Thumbnail + badges */}
-                  <GalleryThumbnail post={post} />
+                  <GalleryThumbnail post={post} workspaceId={workspaceId} />
 
                   {/* Info panel */}
                   <div className="p-3 flex flex-col gap-1">
