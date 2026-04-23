@@ -45,15 +45,9 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
 
   if (!membership) redirect('/app')
 
-  // 4. Hard-gate: if trial expired past grace period, send to /account/upgrade
-  const plan = workspace.plan ?? 'free'
-  const trialEndsAt = workspace.trial_ends_at ?? null
-  const daysRemaining = computeDaysRemaining(trialEndsAt)
-  if (plan === 'free' && daysRemaining < -3) {
-    redirect(`/account/upgrade`)
-  }
-
-  // 5. Fetch all user memberships for workspace switcher + agency back-link (parallel)
+  // 4. Fetch all user memberships for workspace switcher + agency back-link (parallel)
+  // Agency is fetched here (not after hard-gate) so billing can be sourced from the agency
+  // for Team workspaces — the agency is the true billing entity for those accounts.
   const accountType = workspace.account_type
   const [{ data: allMemberships }, { data: agency }] = await Promise.all([
     supabase
@@ -63,18 +57,31 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
     workspace.agency_id
       ? supabase
           .from('agencies')
-          .select('id, name, slug, logo_url')
+          .select('id, name, slug, logo_url, plan, trial_ends_at')
           .eq('id', workspace.agency_id)
           .eq('owner_id', user.id)
           .maybeSingle()
       : accountType === 'team'
         ? supabase
             .from('agencies')
-            .select('id, name, slug, logo_url')
+            .select('id, name, slug, logo_url, plan, trial_ends_at')
             .eq('owner_id', user.id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
   ])
+
+  // For Team workspaces: agency is the billing entity — use its plan/trial over the workspace's
+  const agencyBilling = agency as typeof agency & { plan?: PlanType; trial_ends_at?: string | null } | null
+  const workspacePlan = workspace.plan ?? 'free'
+  const effectivePlan: PlanType = agencyBilling?.plan ?? workspacePlan
+  const effectiveDaysRemaining = agencyBilling
+    ? computeDaysRemaining(agencyBilling.trial_ends_at ?? null)
+    : computeDaysRemaining(workspace.trial_ends_at ?? null)
+
+  // 5. Hard-gate: if trial expired past grace period, send to /account/upgrade
+  if (effectivePlan === 'free' && effectiveDaysRemaining < -3) {
+    redirect(`/account/upgrade`)
+  }
 
   return (
     <AppShell
@@ -84,8 +91,8 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
       allMemberships={(allMemberships ?? []) as unknown as Array<{ role: WorkspaceRole; workspaces: Workspace }>}
       workspaceSlug={workspace.slug}
       agency={agency ?? null}
-      plan={plan}
-      daysRemaining={daysRemaining}
+      plan={effectivePlan}
+      daysRemaining={effectiveDaysRemaining}
     >
       {children}
     </AppShell>
