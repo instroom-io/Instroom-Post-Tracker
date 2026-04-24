@@ -18,7 +18,7 @@ interface ScrapeResult {
   posts: NormalizedPost[]
   resolvedId: string | null
   nextCursor?: bigint | null
-  avatarUrl?: string | null
+  avatarUrl: string | null
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ async function fetchAvatarUrl(
       const data = json.data as Record<string, unknown> | undefined
       const user = (
         (data?.userInfo as Record<string, unknown> | undefined)?.user as Record<string, unknown> | undefined
-      ) ?? (data?.user as Record<string, unknown> | undefined) ?? data
+      ) ?? (data?.user as Record<string, unknown> | undefined)
       return extractAuthorAvatar(user)
     }
     if (platform === 'instagram') {
@@ -195,7 +195,7 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null, dep
     )
     if (!infoRes.ok) {
       console.error(`[posts-worker] IG user/info failed for @${handle}: ${infoRes.status}`)
-      return { posts: [], resolvedId: null }
+      return { posts: [], resolvedId: null, avatarUrl: null }
     }
     const infoJson = await infoRes.json() as { data?: Record<string, unknown> }
     const raw = infoJson.data?.id ?? infoJson.data?.pk ?? infoJson.data?.user_id
@@ -291,10 +291,10 @@ async function scrapeTikTok(handle: string): Promise<ScrapeResult> {
   const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) {
     console.error(`[posts-worker] TT user/posts failed for @${handle}: ${res.status}`)
-    return { posts: [], resolvedId: null }
+    return { posts: [], resolvedId: null, avatarUrl: null }
   }
   const json = await res.json() as { data?: unknown[]; nextCursor?: number | string | null }
-  if (!Array.isArray(json.data)) return { posts: [], resolvedId: null }
+  if (!Array.isArray(json.data)) return { posts: [], resolvedId: null, avatarUrl: null }
   const posts: NormalizedPost[] = []
   let avatarUrl: string | null = null
   for (const item of json.data) {
@@ -328,17 +328,17 @@ async function scrapeYouTube(channelHandle: string, cachedChannelId?: string | n
   }
   if (!channelId) {
     console.error(`[posts-worker] YT could not resolve channel_id for ${channelHandle}`)
-    return { posts: [], resolvedId: null }
+    return { posts: [], resolvedId: null, avatarUrl: null }
   }
   const res = await fetch(
     `${ENSEMBLE_API_URL}/youtube/channel/videos?channel_id=${encodeURIComponent(channelId)}&token=${ENSEMBLE_API_KEY}`
   )
   if (!res.ok) {
     console.error(`[posts-worker] YT channel/videos failed for ${channelHandle}: ${res.status}`)
-    return { posts: [], resolvedId: channelId }
+    return { posts: [], resolvedId: channelId, avatarUrl: null }
   }
   const json = await res.json() as { data?: unknown[] }
-  if (!Array.isArray(json.data)) return { posts: [], resolvedId: channelId }
+  if (!Array.isArray(json.data)) return { posts: [], resolvedId: channelId, avatarUrl: null }
   const posts: NormalizedPost[] = []
   for (const item of json.data) {
     const v = item as Record<string, unknown>
@@ -359,7 +359,7 @@ async function scrapeYouTube(channelHandle: string, cachedChannelId?: string | n
       posted_at: postedAt,
     })
   }
-  return { posts, resolvedId: channelId }
+  return { posts, resolvedId: channelId, avatarUrl: null }
 }
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
@@ -410,7 +410,8 @@ async function main() {
         instagram_user_id,
         tiktok_handle,
         youtube_handle,
-        youtube_channel_id
+        youtube_channel_id,
+        profile_pic_refreshed_at
       )
     `)
     .in('monitoring_status', ['pending', 'active'])
@@ -450,6 +451,7 @@ async function main() {
       tiktok_handle: string | null
       youtube_handle: string | null
       youtube_channel_id: string | null
+      profile_pic_refreshed_at: string | null
     }
     const tiktokLastPostAt: string | null = row.tiktok_last_post_at as string | null
     const igLastPostAt: string | null = row.ig_last_post_at as string | null
@@ -475,7 +477,7 @@ async function main() {
         influencer.youtube_handle!
 
       try {
-        let result: ScrapeResult = { posts: [], resolvedId: null }
+        let result: ScrapeResult = { posts: [], resolvedId: null, avatarUrl: null }
         if (platform === 'instagram') {
           result = await scrapeInstagram(handle, influencer.instagram_user_id, 1)
         } else if (platform === 'tiktok') {
