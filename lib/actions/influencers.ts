@@ -323,6 +323,16 @@ export async function addInfluencerToCampaign(
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
+
   // Check for an existing row (may be soft-deleted)
   const { data: existing } = await supabase
     .from('campaign_influencers')
@@ -367,6 +377,7 @@ export async function addInfluencerToCampaign(
 }
 
 export async function removeInfluencerFromCampaign(
+  workspaceId: string,
   campaignInfluencerId: string
 ): Promise<{ error: string } | void> {
   const supabase = await createClient()
@@ -374,6 +385,16 @@ export async function removeInfluencerFromCampaign(
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
 
   const { error } = await supabase
     .from('campaign_influencers')
@@ -429,6 +450,16 @@ export async function updateProductSentAt(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', user.id)
+    .single()
+  if (!member || !['owner', 'admin', 'editor', 'manager'].includes(member.role)) {
+    return { error: 'Insufficient permissions.' }
+  }
 
   const { error } = await supabase
     .from('campaign_influencers')

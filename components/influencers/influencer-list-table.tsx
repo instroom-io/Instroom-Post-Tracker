@@ -197,7 +197,7 @@ export function InfluencerListTable({
     const { ciId, campaignName } = removeCampaignConfirm
     setRemoveCampaignConfirm(null)
     startTransition(async () => {
-      const result = await removeInfluencerFromCampaign(ciId)
+      const result = await removeInfluencerFromCampaign(workspaceId, ciId)
       if (result?.error) { toast.error(result.error); return }
       toast.success(`Removed from "${campaignName}"`)
     })

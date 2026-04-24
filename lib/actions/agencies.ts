@@ -417,6 +417,10 @@ export async function listAgencySharedDrives(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const { data: agency } = await supabase
+    .from('agencies').select('owner_id').eq('id', agencyId).single()
+  if (!agency || agency.owner_id !== user.id) return { error: 'Unauthorized.' }
+
   const accessToken = await getAgencyFreshAccessToken(agencyId)
   if (!accessToken) return { error: 'not_connected' }
 
@@ -443,6 +447,10 @@ export async function listAgencySharedDriveFolders(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const { data: agency } = await supabase
+    .from('agencies').select('owner_id').eq('id', agencyId).single()
+  if (!agency || agency.owner_id !== user.id) return { error: 'Unauthorized.' }
 
   const accessToken = await getAgencyFreshAccessToken(agencyId)
   if (!accessToken) return { error: 'not_connected' }

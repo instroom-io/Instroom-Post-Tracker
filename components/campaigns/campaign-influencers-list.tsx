@@ -211,7 +211,7 @@ export function CampaignInfluencersList({
 
   function handleRemove(campaignInfluencerId: string, name: string) {
     startTransition(async () => {
-      const result = await removeInfluencerFromCampaign(campaignInfluencerId)
+      const result = await removeInfluencerFromCampaign(workspaceId, campaignInfluencerId)
       if (result?.error) {
         toast.error(result.error)
       } else {

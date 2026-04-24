@@ -191,10 +191,10 @@ export type UpdateInfluencerInput = z.infer<typeof updateInfluencerSchema>
 export type UpdateEmvConfigInput = z.infer<typeof updateEmvConfigSchema>
 
 export const contactInquirySchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  company: z.string().min(1, 'Company is required'),
+  name: z.string().min(1, 'Name is required').max(200, 'Name is too long'),
+  company: z.string().min(1, 'Company is required').max(200, 'Company name is too long'),
   email: z.string().email('Invalid email address'),
-  message: z.string().optional(),
+  message: z.string().max(3000, 'Message is too long').optional(),
 })
 export type ContactInquiryInput = z.infer<typeof contactInquirySchema>
 

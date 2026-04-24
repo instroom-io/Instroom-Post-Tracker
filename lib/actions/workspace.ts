@@ -393,6 +393,7 @@ export async function removeMember(
     .from('workspace_members')
     .select('role, user_id')
     .eq('id', memberId)
+    .eq('workspace_id', workspaceId)
     .single()
 
   if (!target) return { error: 'Member not found.' }
