@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 const LINKS = [
   { label: 'Overview', href: '/admin', exact: true },
-  { label: 'Agencies', href: '/admin/agencies', exact: false },
+  { label: 'Team Plans', href: '/admin/agencies', exact: false },
 ]
 
 export function AdminNav() {

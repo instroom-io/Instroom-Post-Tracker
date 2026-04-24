@@ -23,3 +23,9 @@ export function canUseFeature(plan: PlanType, feature: PlanFeature): boolean {
   return PLAN_FEATURES[feature].includes(plan)
 }
 
+/** Days remaining in trial. Returns 0 if already expired or no date set. */
+export function trialDaysRemaining(trialEndsAt: string | null): number {
+  if (!trialEndsAt) return 0
+  return Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
+}
+
