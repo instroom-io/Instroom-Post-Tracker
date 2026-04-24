@@ -18,6 +18,7 @@ interface ScrapeResult {
   posts: NormalizedPost[]
   resolvedId: string | null
   nextCursor?: bigint | null
+  avatarUrl?: string | null
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -104,6 +105,50 @@ function isWithinCampaignWindow(postedAt: string, startDate: string, endDate: st
   return posted >= start && posted <= end
 }
 
+function extractAuthorAvatar(author: Record<string, unknown> | undefined): string | null {
+  if (!author) return null
+  for (const key of ['avatarLarger', 'avatarMedium', 'avatarThumb', 'avatar_larger', 'avatar_thumb']) {
+    const raw = author[key]
+    if (typeof raw === 'string' && raw.startsWith('http')) return raw
+    if (raw && typeof raw === 'object') {
+      const list = (raw as Record<string, unknown>).url_list as string[] | undefined
+      if (list?.[0]) return list[0]
+    }
+  }
+  return null
+}
+
+async function fetchAvatarUrl(
+  platform: 'tiktok' | 'instagram',
+  handle: string
+): Promise<string | null> {
+  try {
+    if (platform === 'tiktok') {
+      const res = await fetch(
+        `${ENSEMBLE_API_URL}/tt/user/info?username=${encodeURIComponent(handle)}&token=${ENSEMBLE_API_KEY}`
+      )
+      if (!res.ok) return null
+      const json = await res.json() as { data?: unknown }
+      const data = json.data as Record<string, unknown> | undefined
+      const user = (
+        (data?.userInfo as Record<string, unknown> | undefined)?.user as Record<string, unknown> | undefined
+      ) ?? (data?.user as Record<string, unknown> | undefined) ?? data
+      return extractAuthorAvatar(user)
+    }
+    if (platform === 'instagram') {
+      const res = await fetch(
+        `${ENSEMBLE_API_URL}/instagram/user/info?username=${encodeURIComponent(handle)}&token=${ENSEMBLE_API_KEY}`
+      )
+      if (!res.ok) return null
+      const json = await res.json() as { data?: Record<string, unknown> }
+      return (json.data?.profile_pic_url as string | undefined) ?? null
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 // ─── Platform scrapers ─────────────────────────────────────────────────────────
 
 function parseIgItem(
@@ -143,6 +188,7 @@ function parseIgItem(
 
 async function scrapeInstagram(handle: string, cachedUserId?: string | null, depth: number = 3): Promise<ScrapeResult> {
   let userId: string | null = cachedUserId ?? null
+  let rawAvatarUrl: string | null = null
   if (!userId) {
     const infoRes = await fetch(
       `${ENSEMBLE_API_URL}/instagram/user/info?username=${encodeURIComponent(handle)}&token=${ENSEMBLE_API_KEY}`
@@ -154,9 +200,10 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null, dep
     const infoJson = await infoRes.json() as { data?: Record<string, unknown> }
     const raw = infoJson.data?.id ?? infoJson.data?.pk ?? infoJson.data?.user_id
     userId = raw ? String(raw) : null
+    rawAvatarUrl = (infoJson.data?.profile_pic_url as string | undefined) ?? null
     if (!userId) {
       console.error(`[posts-worker] Could not resolve IG user_id for @${handle}`)
-      return { posts: [], resolvedId: null }
+      return { posts: [], resolvedId: null, avatarUrl: rawAvatarUrl }
     }
   }
   const [postsRes, reelsRes] = await Promise.all([
@@ -205,7 +252,7 @@ async function scrapeInstagram(handle: string, cachedUserId?: string | null, dep
   } else {
     console.error(`[posts-worker] IG user/reels failed for @${handle}: ${reelsRes.status}`)
   }
-  return { posts, resolvedId: userId }
+  return { posts, resolvedId: userId, avatarUrl: rawAvatarUrl }
 }
 
 function parseTikTokItem(item: Record<string, unknown>, handle: string): NormalizedPost | null {
@@ -249,13 +296,18 @@ async function scrapeTikTok(handle: string): Promise<ScrapeResult> {
   const json = await res.json() as { data?: unknown[]; nextCursor?: number | string | null }
   if (!Array.isArray(json.data)) return { posts: [], resolvedId: null }
   const posts: NormalizedPost[] = []
+  let avatarUrl: string | null = null
   for (const item of json.data) {
     const p = item as Record<string, unknown>
+    if (!avatarUrl) {
+      const author = p.author as Record<string, unknown> | undefined
+      avatarUrl = extractAuthorAvatar(author)
+    }
     const normalized = parseTikTokItem(p, handle)
     if (!normalized) continue
     posts.push(normalized)
   }
-  return { posts, resolvedId: null }
+  return { posts, resolvedId: null, avatarUrl }
 }
 
 async function scrapeYouTube(channelHandle: string, cachedChannelId?: string | null): Promise<ScrapeResult> {
