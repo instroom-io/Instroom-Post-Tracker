@@ -20,7 +20,7 @@ export default function PrivacyPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">1. Introduction</h2>
               <p>
-                Instroom Post Tracker (&quot;Instroom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is a product of Armful Media. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our influencer marketing platform available at instroom.co (the &quot;Service&quot;).
+                Instroom Post Tracker (&quot;Instroom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is a product of Armful Media. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our influencer marketing platform (the &quot;Service&quot;).
               </p>
             </section>
 
