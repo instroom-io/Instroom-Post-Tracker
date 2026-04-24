@@ -539,7 +539,10 @@ export async function refreshInfluencerProfile(
 
   await supabase
     .from('influencers')
-    .update({ profile_pic_url })
+    .update({
+      profile_pic_url,
+      profile_pic_refreshed_at: new Date().toISOString(),
+    })
     .eq('id', influencerId)
     .eq('workspace_id', workspaceId)
 
