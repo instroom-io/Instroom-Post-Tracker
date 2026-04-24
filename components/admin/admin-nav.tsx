@@ -5,8 +5,9 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 const LINKS = [
-  { label: 'Overview', href: '/admin', exact: true },
-  { label: 'Team Plans', href: '/admin/agencies', exact: false },
+  { label: 'Overview',   href: '/admin',           exact: true  },
+  { label: 'Solo Plans', href: '/admin/solo',       exact: false },
+  { label: 'Team Plans', href: '/admin/agencies',   exact: false },
 ]
 
 export function AdminNav() {

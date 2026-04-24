@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { AdminNav } from '@/components/admin/admin-nav'
+import { UserMenu } from '@/components/layout/user-menu'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -31,6 +32,9 @@ export default async function AdminLayout({ children }: LayoutProps) {
           <span className="text-[13px] font-semibold text-foreground">Admin</span>
         </div>
         <AdminNav />
+        <div className="ml-auto">
+          <UserMenu user={user} compact showTheme />
+        </div>
       </div>
       <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
     </div>

@@ -11,15 +11,17 @@ import { getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/layout/theme-toggle'
 
 interface UserMenuProps {
   user: User
   compact?: boolean
   settingsHref?: string
   workspaceSlug?: string
+  showTheme?: boolean
 }
 
-export function UserMenu({ user, compact, settingsHref, workspaceSlug }: UserMenuProps) {
+export function UserMenu({ user, compact, settingsHref, workspaceSlug, showTheme }: UserMenuProps) {
   const [open, setOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -118,25 +120,36 @@ export function UserMenu({ user, compact, settingsHref, workspaceSlug }: UserMen
           </div>
 
           <div className="p-1">
-            <a
-              href={settingsHref ?? `/${workspaceSlug}/settings`}
-              role="menuitem"
-              onClick={() => close()}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
-            >
-              <GearSix size={13} />
-              Settings
-            </a>
+            {(settingsHref || workspaceSlug) && (
+              <>
+                <a
+                  href={settingsHref ?? `/${workspaceSlug}/settings`}
+                  role="menuitem"
+                  onClick={() => close()}
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                >
+                  <GearSix size={13} />
+                  Settings
+                </a>
 
-            <Link
-              href={workspaceSlug ? `/${workspaceSlug}/account/settings` : '/account/settings'}
-              role="menuitem"
-              onClick={() => close()}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
-            >
-              <UserCircle size={13} />
-              Account
-            </Link>
+                <Link
+                  href={workspaceSlug ? `/${workspaceSlug}/account/settings` : '/account/settings'}
+                  role="menuitem"
+                  onClick={() => close()}
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] text-foreground transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                >
+                  <UserCircle size={13} />
+                  Account
+                </Link>
+              </>
+            )}
+
+            {showTheme && (
+              <div className="flex items-center justify-between rounded-md px-3 py-2">
+                <span className="text-[12px] text-foreground">Theme</span>
+                <ThemeToggle />
+              </div>
+            )}
 
             <button
               type="button"
