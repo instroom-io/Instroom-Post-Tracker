@@ -1,8 +1,20 @@
 'use client'
 
-import { MarketingContactProvider } from '@/components/marketing/marketing-contact-provider'
+import { MarketingContactProvider, useMarketingContact } from '@/components/marketing/marketing-contact-provider'
 import { MarketingNav } from '@/components/marketing/marketing-nav'
 import { ContactModal } from '@/components/marketing/contact-modal'
+
+function SupportButton() {
+  const { setOpen } = useMarketingContact()
+  return (
+    <button
+      onClick={() => setOpen(true)}
+      className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60"
+    >
+      Support
+    </button>
+  )
+}
 
 export default function MarketingLayout({
   children,
@@ -31,9 +43,7 @@ export default function MarketingLayout({
               <a href="/terms" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
                 Terms of service
               </a>
-              <a href="mailto:support@instroom.co" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
-                Support
-              </a>
+              <SupportButton />
             </div>
 
             {/* Copyright — right on desktop, centered on mobile */}

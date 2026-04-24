@@ -65,7 +65,7 @@ export function ContactModal() {
           <form onSubmit={handleSubmit}>
             <DialogHeader className="border-border">
               <DialogTitle className="text-foreground">Get in touch</DialogTitle>
-              <DialogDescription className="text-foreground-lighter">Tell us about your agency and we&apos;ll reach out.</DialogDescription>
+              <DialogDescription className="text-foreground-lighter">Fill in the form below and we&apos;ll get back to you shortly.</DialogDescription>
             </DialogHeader>
             <DialogBody className="space-y-4">
               <div className="space-y-1.5">
