@@ -225,7 +225,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
               <p className="text-[12px] text-foreground-lighter mt-0.5">Your name as shown to teammates.</p>
             </div>
 
-            <div className="rounded-xl border border-border bg-background-surface p-5">
+            <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
               <h2 className="text-[13px] font-semibold text-foreground mb-4">Display Name</h2>
               <div className="flex flex-col gap-4">
                 {/* Current identity — read-only */}
@@ -262,7 +262,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
               </div>
             </div>
             {/* Connected Accounts */}
-            <div className="rounded-xl border border-border bg-background-surface p-5">
+            <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
               <h2 className="text-[13px] font-semibold text-foreground mb-4">Connected Accounts</h2>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -340,7 +340,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
             </div>
 
             {/* Language card */}
-            <div className="rounded-xl border border-border bg-background-surface p-5">
+            <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
               <h2 className="text-[13px] font-semibold text-foreground mb-4">Preferred Language</h2>
               <div className="flex flex-col gap-4">
                 <Select
@@ -360,7 +360,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
             </div>
 
             {/* Timezone card */}
-            <div className="rounded-xl border border-border bg-background-surface p-5">
+            <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
               <h2 className="text-[13px] font-semibold text-foreground mb-4">Timezone</h2>
               <div className="flex flex-col gap-4">
                 <Select
@@ -393,7 +393,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
             </div>
 
             {/* Change password card */}
-            <div className="rounded-xl border border-border bg-background-surface p-5">
+            <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
               <h2 className="text-[13px] font-semibold text-foreground mb-4">Change Password</h2>
               <div className="flex flex-col gap-4">
                 <Input

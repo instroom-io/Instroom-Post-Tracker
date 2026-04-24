@@ -78,7 +78,7 @@ export default async function AgencyDetailPage({ params }: PageProps) {
 
       <div className="grid grid-cols-2 gap-4">
         {inlineStats.map((stat) => (
-          <div key={stat.label} className="rounded-xl border border-border bg-background-surface p-4">
+          <div key={stat.label} className="rounded-xl border border-border bg-background-surface p-4 shadow-md">
             <div className="flex items-start justify-between">
               <p className="text-[12px] font-medium text-foreground-lighter">{stat.label}</p>
               <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', stat.iconBg)}>
@@ -91,7 +91,7 @@ export default async function AgencyDetailPage({ params }: PageProps) {
         ))}
       </div>
 
-      <div className="rounded-xl border border-border bg-background-surface p-5">
+      <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
         <h2 className="mb-4 text-[13px] font-semibold text-foreground">Brand Workspaces</h2>
         {(workspaces ?? []).length === 0 ? (
           <p className="text-[13px] text-foreground-lighter">No brand workspaces yet.</p>

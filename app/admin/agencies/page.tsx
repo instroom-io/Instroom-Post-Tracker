@@ -106,7 +106,7 @@ export default async function AdminAgenciesPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-background-surface px-5 py-4">
+      <div className="rounded-xl border border-border bg-background-surface px-5 py-4 shadow-sm">
         <TeamPlanDetailTable agencies={agencies} />
       </div>
     </div>

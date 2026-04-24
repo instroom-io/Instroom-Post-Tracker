@@ -14,7 +14,7 @@ export function PersonalDriveCard({ currentFolderId }: PersonalDriveCardProps) {
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-background-surface p-5">
+      <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
         <h2 className="text-[13px] font-semibold text-foreground mb-1">Personal Drive Folder</h2>
         <p className="text-[12px] text-foreground-lighter mb-4">
           Where your &quot;Save to Drive&quot; posts are saved across all workspaces.

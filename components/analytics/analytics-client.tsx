@@ -264,7 +264,7 @@ export function AnalyticsClient({
         {statCards.map((card, i) => (
           <div
             key={card.label}
-            className={cn('animate-fade-up rounded-xl border border-border-strong bg-background-surface p-4 shadow-xs', delayClasses[i])}
+            className={cn('animate-fade-up rounded-xl border border-border-strong bg-background-surface p-4 shadow-md', delayClasses[i])}
           >
             <div className="flex items-start justify-between">
               <p className="text-[12px] font-medium text-foreground-lighter">{card.label}</p>

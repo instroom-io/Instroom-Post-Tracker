@@ -46,7 +46,7 @@ export default async function AgencyBrandsPage({ params }: PageProps) {
                 <a
                   key={ws.id}
                   href={`/${ws.slug}/overview`}
-                  className="flex flex-col gap-3 rounded-xl border border-border bg-background-surface p-4 transition-colors hover:border-brand hover:bg-brand-muted/30"
+                  className="flex flex-col gap-3 rounded-xl border border-border bg-background-surface p-4 shadow-sm transition-colors hover:border-brand hover:bg-brand-muted/30"
                 >
                   <div className="flex items-center gap-3">
                     {ws.logo_url ? (

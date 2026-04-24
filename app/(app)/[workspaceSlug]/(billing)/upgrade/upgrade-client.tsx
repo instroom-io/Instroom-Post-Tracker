@@ -141,7 +141,7 @@ export function UpgradeClient({
           </p>
         </div>
 
-        <div className="w-full rounded-xl border border-border bg-background-surface px-5 py-4 text-left text-[13px]">
+        <div className="w-full rounded-xl border border-border bg-background-surface px-5 py-4 text-left text-[13px] shadow-sm">
           <p className="text-foreground-lighter">Account summary</p>
           <p className="mt-2 font-semibold text-foreground">
             {successType === 'solo' ? 'Solo' : 'Team'} · {workspaceCount} workspace{workspaceCount !== 1 ? 's' : ''} · ${total}/{successPeriod === 'annual' ? 'year' : 'month'}
@@ -234,7 +234,7 @@ export function UpgradeClient({
       {/* Plan card */}
       <div
         data-testid={selected === 'solo' ? 'upgrade-solo-section' : undefined}
-        className="rounded-xl border border-border bg-background-surface p-6"
+        className="rounded-xl border border-border bg-background-surface p-6 shadow-sm"
       >
         <div className="flex items-baseline justify-between">
           <div>

@@ -58,7 +58,7 @@ export default async function AgencyDashboardPage({ params, searchParams }: Page
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="rounded-xl border border-border bg-background-surface p-5">
+      <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[14px] font-semibold text-foreground">Workspaces</h2>
           <InviteBrandDialog agencyId={agency.id} defaultOpen={invite === '1'} />
@@ -95,7 +95,7 @@ export default async function AgencyDashboardPage({ params, searchParams }: Page
       </div>
 
       {sharedWorkspaces.length > 0 && (
-        <div className="rounded-xl border border-border bg-background-surface p-5">
+        <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
           <h2 className="mb-4 text-[14px] font-semibold text-foreground">Shared Workspaces</h2>
           <div className="flex flex-col gap-2">
             {sharedWorkspaces.map((w) => {
