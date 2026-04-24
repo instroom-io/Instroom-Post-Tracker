@@ -20,10 +20,10 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">1. Acceptance of Terms</h2>
               <p>
-                By accessing or using Instroom Post Tracker (&quot;Instroom&quot;, &quot;the Service&quot;), operated by Armful Media, you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the Service.
+                By accessing or using Instroom Post Tracker (&quot;Instroom&quot;, &quot;the Service&quot;), operated by Armful Media, you agree to be bound by these Terms of Service.
               </p>
               <p>
-                We may modify these terms at any time. Continued use of the Service after modifications constitutes acceptance of the updated terms.
+                We may update these terms occasionally. For material changes, we&apos;ll give you at least 14 days&apos; notice by email or in-app message before they take effect. Continuing to use Instroom after that means you accept the changes.
               </p>
             </section>
 
@@ -34,7 +34,7 @@ export default function TermsPage() {
               </p>
               <ul className="list-disc space-y-1 pl-5">
                 <li>Automatically detect and monitor influencer posts across Instagram, TikTok, and YouTube</li>
-                <li>Download influencer post media to a connected Google Drive folder</li>
+                <li>Download influencer post media to a configured Google Drive folder</li>
                 <li>Track post performance metrics and calculate Estimated Media Value (EMV)</li>
                 <li>Manage campaigns, influencers, and team members within workspaces</li>
               </ul>
@@ -46,7 +46,7 @@ export default function TermsPage() {
                 You must create an account to use the Service. You are responsible for maintaining the confidentiality of your credentials and for all activity that occurs under your account. You must provide accurate and complete information during registration.
               </p>
               <p>
-                You may not use another user&apos;s account without permission. Notify us immediately at <a href="mailto:support@instroom.co" className="text-brand hover:underline">support@instroom.co</a> if you suspect unauthorized access to your account.
+                If you suspect unauthorized access to your account, let us know at <a href="mailto:hello@armfulmedia.com" className="text-brand hover:underline">hello@armfulmedia.com</a> right away.
               </p>
             </section>
 
@@ -78,14 +78,10 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">6. Google Drive Integration</h2>
               <p>
-                The Service allows you to connect your Google account to automatically upload downloaded influencer media to your Google Drive. By connecting your Google account, you authorize us to:
+                Instroom uses a server-side Google service account to automatically upload downloaded influencer media to a folder in Google Drive. Workspace administrators enable this by entering a Drive folder ID in workspace settings — that folder is where Instroom creates and uploads files.
               </p>
-              <ul className="list-disc space-y-1 pl-5">
-                <li>Create and upload files to your designated Drive folder</li>
-                <li>Create subfolders within your designated Drive folder to organize content</li>
-              </ul>
               <p>
-                We will not access, read, modify, or delete any files outside of the folder(s) you designate. You may revoke this access at any time through your Google Account settings. Revoking access will disable automatic downloads but will not affect files already uploaded.
+                The service account only writes to the configured folder. It does not access, read, modify, or delete anything outside of it. To disable Drive uploads, remove the folder ID from workspace settings.
               </p>
             </section>
 
@@ -93,7 +89,7 @@ export default function TermsPage() {
               <h2 className="font-display text-[17px] font-semibold text-foreground">7. User Responsibilities</h2>
               <p>You agree not to:</p>
               <ul className="list-disc space-y-1 pl-5">
-                <li>Use the Service for any unlawful purpose</li>
+                <li>Use Instroom for anything illegal under Philippine law or the laws of your own jurisdiction</li>
                 <li>Track influencers without a legitimate business relationship or consent</li>
                 <li>Attempt to circumvent any security measures or access restrictions</li>
                 <li>Use the Service to infringe on the intellectual property rights of others</li>
@@ -123,14 +119,14 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">10. Disclaimer of Warranties</h2>
               <p>
-                The Service is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, express or implied. We do not warrant that the Service will be uninterrupted, error-free, or that all influencer posts will be detected. Social media platform API limitations may affect data availability.
+                Instroom is provided as-is — we don&apos;t make guarantees about uptime or completeness. Post detection runs on a daily scheduled job; we can&apos;t promise real-time coverage or that every tagged post will be caught. Social media platforms change their APIs without notice, which can temporarily affect how much data we&apos;re able to retrieve.
               </p>
             </section>
 
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">11. Limitation of Liability</h2>
               <p>
-                To the maximum extent permitted by law, Armful Media shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service, including but not limited to missed influencer posts, data loss, or issues with third-party integrations.
+                Armful Media is not liable for missed influencer posts, metric inaccuracies, data loss, or downstream business consequences resulting from your use of Instroom — including losses caused by social media platform changes or third-party service outages. This applies to the fullest extent permitted under Philippine law.
               </p>
               <p>
                 Our total liability to you for any claim arising from use of the Service shall not exceed the amount you paid us in the three months preceding the claim.
@@ -140,7 +136,7 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">12. Termination</h2>
               <p>
-                You may cancel your account at any time by contacting us at <a href="mailto:support@instroom.co" className="text-brand hover:underline">support@instroom.co</a>. We reserve the right to suspend or terminate your account if you violate these Terms or for any other reason with reasonable notice.
+                You can cancel your account at any time by emailing <a href="mailto:hello@armfulmedia.com" className="text-brand hover:underline">hello@armfulmedia.com</a>. We may suspend or terminate accounts for violations of these Terms, non-payment, fraudulent activity, or if we discontinue the Service — we&apos;ll give reasonable notice except where immediate action is needed to protect other users or the platform.
               </p>
               <p>
                 Upon termination, your access to the Service will cease. Data may be retained for a limited period before deletion as described in our Privacy Policy.
@@ -150,16 +146,14 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">13. Governing Law</h2>
               <p>
-                These Terms shall be governed by and construed in accordance with applicable law. Any disputes shall be resolved through good-faith negotiation before pursuing formal proceedings.
+                These Terms are governed by the laws of the Republic of the Philippines. Before taking any formal action, raise the issue with us at <a href="mailto:hello@armfulmedia.com" className="text-brand hover:underline">hello@armfulmedia.com</a>. We&apos;ll respond within 5 business days. If we can&apos;t reach agreement after 30 days of discussion, either party may pursue formal proceedings under Philippine law.
               </p>
             </section>
 
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">14. Contact Us</h2>
               <p>
-                For questions about these Terms of Service, please contact:<br />
-                <a href="mailto:support@instroom.co" className="text-brand hover:underline">support@instroom.co</a><br />
-                Armful Media
+                Questions about these Terms? Email us at <a href="mailto:hello@armfulmedia.com" className="text-brand hover:underline">hello@armfulmedia.com</a>.
               </p>
             </section>
 

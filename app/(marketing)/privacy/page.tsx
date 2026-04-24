@@ -20,10 +20,7 @@ export default function PrivacyPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">1. Introduction</h2>
               <p>
-                Instroom Post Tracker (&quot;Instroom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is a product of Armful Media. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our influencer marketing platform available at instroom.co and instroom-post-tracker.vercel.app (the &quot;Service&quot;).
-              </p>
-              <p>
-                By using the Service, you agree to the collection and use of information in accordance with this policy. If you do not agree, please do not use the Service.
+                Instroom Post Tracker (&quot;Instroom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is a product of Armful Media. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our influencer marketing platform available at instroom.co (the &quot;Service&quot;).
               </p>
             </section>
 
@@ -32,8 +29,8 @@ export default function PrivacyPage() {
               <p><strong className="text-foreground">Account information:</strong> When you sign up, we collect your name, email address, and password (hashed). If you sign up via Google OAuth, we receive your name, email, and profile picture from Google.</p>
               <p><strong className="text-foreground">Workspace and campaign data:</strong> We store information you enter into the Service, including workspace names, campaign names, influencer handles (Instagram, TikTok, YouTube), campaign tracking configurations (hashtags and mentions), and campaign dates.</p>
               <p><strong className="text-foreground">Post data:</strong> We collect publicly available influencer post metadata including post URLs, captions, thumbnail images, media URLs, publication dates, and performance metrics (views, likes, comments, shares, engagement rate).</p>
-              <p><strong className="text-foreground">Google Drive integration:</strong> If you connect your Google account to enable automatic post downloads, we request access to your Google Drive to upload downloaded influencer media files into your designated Drive folder. We store OAuth access and refresh tokens securely in our database. We only access the specific folder(s) you authorize — we do not read, modify, or delete any other files in your Drive.</p>
-              <p><strong className="text-foreground">Usage data:</strong> We may collect information about how you access and use the Service, including your IP address, browser type, pages visited, and actions taken within the app.</p>
+              <p><strong className="text-foreground">Google Drive integration:</strong> Instroom uses its own server-side Google service account to upload downloaded influencer media to your workspace&apos;s designated Drive folder. Workspace administrators configure the target folder by entering a Drive folder ID in workspace settings. No individual user OAuth tokens for Google Drive are collected or stored — the service account operates independently of your personal Google account and writes only to the configured folder.</p>
+              <p><strong className="text-foreground">Usage data:</strong> Our hosting providers (Vercel for the web app, Railway for background workers) capture standard server logs — IP addresses, request timestamps, and response codes — as part of normal infrastructure operation. Instroom itself does not run separate behavioral analytics.</p>
             </section>
 
             <section className="space-y-3">
@@ -41,12 +38,11 @@ export default function PrivacyPage() {
               <ul className="list-disc space-y-1 pl-5">
                 <li>To provide, operate, and maintain the Service</li>
                 <li>To automatically detect and download influencer posts on your behalf</li>
-                <li>To upload downloaded media files to your connected Google Drive folder</li>
+                <li>To upload downloaded media files to your workspace&apos;s configured Google Drive folder</li>
                 <li>To calculate engagement metrics and estimated media value (EMV)</li>
                 <li>To send transactional emails (account verification, trial reminders, team invitations) via SendGrid</li>
                 <li>To process subscription payments via LemonSqueezy</li>
                 <li>To respond to support requests</li>
-                <li>To improve and develop the Service</li>
               </ul>
             </section>
 
@@ -61,8 +57,8 @@ export default function PrivacyPage() {
               </p>
               <p>We use Google OAuth solely to:</p>
               <ul className="list-disc space-y-1 pl-5">
-                <li>Authenticate users who choose to sign in with Google</li>
-                <li>Upload influencer media files to the user&apos;s designated Google Drive folder</li>
+                <li>Authenticate users who choose to sign in with Google (email and profile information only)</li>
+                <li>Upload influencer media files to workspace-designated Google Drive folders via a server-side service account (no Google Drive OAuth tokens are collected from users)</li>
               </ul>
               <p>We do not share Google user data with third parties except as necessary to provide the Service. We do not use Google user data for advertising purposes.</p>
             </section>
@@ -72,7 +68,7 @@ export default function PrivacyPage() {
               <p>We use the following third-party services to operate the platform:</p>
               <ul className="list-disc space-y-1 pl-5">
                 <li><strong className="text-foreground">Supabase</strong> — database hosting, authentication, and file storage</li>
-                <li><strong className="text-foreground">Google Drive API</strong> — storing downloaded influencer media in your Drive</li>
+                <li><strong className="text-foreground">Google Drive API</strong> — storing downloaded influencer media in your workspace&apos;s Drive folder</li>
                 <li><strong className="text-foreground">EnsembleData</strong> — social media data API for detecting influencer posts</li>
                 <li><strong className="text-foreground">SendGrid</strong> — transactional email delivery</li>
                 <li><strong className="text-foreground">LemonSqueezy</strong> — subscription billing and payment processing</li>
@@ -106,10 +102,10 @@ export default function PrivacyPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">8. Security</h2>
               <p>
-                We implement industry-standard security measures including encrypted storage of credentials, row-level security on all database tables, and HTTPS-only access. Google OAuth tokens are stored encrypted and are only used to perform Drive operations on your behalf.
+                We implement security measures including hashed password storage, row-level security on all database tables, HTTPS-only access, and encrypted storage of sensitive credentials.
               </p>
               <p>
-                No method of transmission over the internet is 100% secure. We cannot guarantee absolute security, but we take commercially reasonable steps to protect your data.
+                We can&apos;t guarantee perfect security — no internet service can. In practice: passwords are hashed and never stored in plain text, all database access uses row-level security, the app is HTTPS-only, and sensitive credentials are encrypted at rest. If we become aware of a security incident affecting your data, we&apos;ll notify you promptly.
               </p>
             </section>
 
@@ -123,7 +119,7 @@ export default function PrivacyPage() {
                 <li>Revoke Google OAuth access at any time via your Google Account settings</li>
                 <li>Export your data upon request</li>
               </ul>
-              <p>To exercise any of these rights, contact us at <a href="mailto:support@instroom.co" className="text-brand hover:underline">support@instroom.co</a>.</p>
+              <p>To exercise any of these rights, contact us at <a href="mailto:hello@armfulmedia.com" className="text-brand hover:underline">hello@armfulmedia.com</a>.</p>
             </section>
 
             <section className="space-y-3">
@@ -136,16 +132,14 @@ export default function PrivacyPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">11. Changes to This Policy</h2>
               <p>
-                We may update this Privacy Policy from time to time. We will notify you of significant changes by email or by a notice within the Service. Continued use of the Service after changes constitutes acceptance of the updated policy.
+                We&apos;ll update this policy when our data practices change. For meaningful changes, we&apos;ll send an email or show an in-app notice at least 14 days before they take effect. If you continue using Instroom after that, we&apos;ll take that as acceptance.
               </p>
             </section>
 
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">12. Contact Us</h2>
               <p>
-                If you have questions about this Privacy Policy, please contact us at:<br />
-                <a href="mailto:support@instroom.co" className="text-brand hover:underline">support@instroom.co</a><br />
-                Armful Media
+                Questions about this policy? Email us at <a href="mailto:hello@armfulmedia.com" className="text-brand hover:underline">hello@armfulmedia.com</a>.
               </p>
             </section>
 
