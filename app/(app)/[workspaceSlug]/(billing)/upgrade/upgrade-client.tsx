@@ -98,7 +98,7 @@ export function UpgradeClient({
             </div>
             <p className="text-[11px] text-foreground-muted">
               Need help?{' '}
-              <a href="mailto:support@instroom.co" className="underline hover:no-underline">Contact support</a>
+              <a href="mailto:hello@armfulmedia.com" className="underline hover:no-underline">Contact support</a>
             </p>
           </div>
         )
