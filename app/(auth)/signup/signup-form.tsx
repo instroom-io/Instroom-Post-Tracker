@@ -25,6 +25,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [accountType, setAccountType] = useState<'team' | 'solo'>('solo')
   const [accountName, setAccountName] = useState('')
   const [googleError, setGoogleError] = useState<string | null>(null)
+  const passwordStrength = getPasswordStrength(passwordValue)
   const isInviteSignup = redirectTo?.startsWith('/invite/') || redirectTo?.startsWith('/brand-invite/')
 
   if (state && 'success' in state && state.success) {
@@ -193,22 +194,18 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
             {showPassword ? <EyeSlash size={15} /> : <Eye size={15} />}
           </button>
         </div>
-        {(() => {
-          const strength = getPasswordStrength(passwordValue)
-          if (!strength) return null
-          return (
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="flex flex-1 gap-1">
-                <div className={`h-1 flex-1 rounded-full transition-colors ${strength === 'weak' ? 'bg-destructive' : strength === 'good' ? 'bg-amber-400' : 'bg-brand'}`} />
-                <div className={`h-1 flex-1 rounded-full transition-colors ${strength === 'good' ? 'bg-amber-400' : strength === 'strong' ? 'bg-brand' : 'bg-border'}`} />
-                <div className={`h-1 flex-1 rounded-full transition-colors ${strength === 'strong' ? 'bg-brand' : 'bg-border'}`} />
-              </div>
-              <span className={`text-[10px] font-medium w-10 text-right ${strength === 'strong' ? 'text-brand' : strength === 'good' ? 'text-amber-500' : 'text-destructive'}`}>
-                {strength === 'strong' ? 'Strong' : strength === 'good' ? 'Good' : 'Weak'}
-              </span>
+        {passwordStrength && (
+          <div className="flex items-center gap-2">
+            <div className="flex flex-1 gap-1">
+              <div className={`h-1 flex-1 rounded-full transition-colors ${passwordStrength === 'weak' ? 'bg-destructive' : passwordStrength === 'good' ? 'bg-amber-400' : 'bg-brand'}`} />
+              <div className={`h-1 flex-1 rounded-full transition-colors ${passwordStrength === 'good' ? 'bg-amber-400' : passwordStrength === 'strong' ? 'bg-brand' : 'bg-border'}`} />
+              <div className={`h-1 flex-1 rounded-full transition-colors ${passwordStrength === 'strong' ? 'bg-brand' : 'bg-border'}`} />
             </div>
-          )
-        })()}
+            <span className={`w-10 text-right text-[10px] font-medium ${passwordStrength === 'strong' ? 'text-brand' : passwordStrength === 'good' ? 'text-amber-500' : 'text-destructive'}`}>
+              {passwordStrength === 'strong' ? 'Strong' : passwordStrength === 'good' ? 'Good' : 'Weak'}
+            </span>
+          </div>
+        )}
       </div>
 
       {state && 'error' in state ? (
