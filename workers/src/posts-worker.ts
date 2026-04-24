@@ -2,6 +2,7 @@ import { createServiceClient } from './lib/supabase'
 
 const ENSEMBLE_API_URL = process.env.ENSEMBLE_API_URL ?? 'https://ensembledata.com/apis'
 const ENSEMBLE_API_KEY = process.env.ENSEMBLE_API_KEY!
+const AVATAR_REFRESH_THRESHOLD_MS = 22 * 60 * 60 * 1000 // 22 hours
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -434,6 +435,7 @@ async function main() {
   let totalCandidates = 0
   let totalNewPosts = 0
   const errors: string[] = []
+  const refreshedInfluencerIds = new Set<string>()
 
   for (const row of rows) {
     const campaign = row.campaigns as unknown as {
@@ -487,6 +489,24 @@ async function main() {
         }
 
         const { posts: rawPosts, resolvedId } = result
+
+        if (result.avatarUrl && !refreshedInfluencerIds.has(influencer.id)) {
+          const lastRefreshed = influencer.profile_pic_refreshed_at
+            ? new Date(influencer.profile_pic_refreshed_at).getTime()
+            : 0
+          if (Date.now() - lastRefreshed > AVATAR_REFRESH_THRESHOLD_MS) {
+            await supabase
+              .from('influencers')
+              .update({
+                profile_pic_url: result.avatarUrl,
+                profile_pic_refreshed_at: new Date().toISOString(),
+              })
+              .eq('id', influencer.id)
+            refreshedInfluencerIds.add(influencer.id)
+            console.log(`[posts-worker] avatar refreshed for @${handle} [${platform}]`)
+          }
+        }
+
         totalFetched += rawPosts.length
 
         if (resolvedId && platform !== 'tiktok') {
