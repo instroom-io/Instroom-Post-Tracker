@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex h-14 items-center border-b border-border px-6 gap-6">
         <div className="flex items-center gap-3">
-          <Link href="/"><Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} priority /></Link>
+          <Link href="/admin"><Image src="/POST_TRACKER.svg" alt="Instroom" width={120} height={28} priority /></Link>
           <span className="text-[12px] text-foreground-muted">/</span>
           <span className="text-[13px] font-semibold text-foreground">Admin</span>
         </div>
