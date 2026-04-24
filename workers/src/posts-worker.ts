@@ -703,6 +703,35 @@ async function main() {
 
   }
 
+  // End-of-run sweep: refresh avatars for influencers not covered by the main loop
+  const sweepThreshold = new Date(Date.now() - AVATAR_REFRESH_THRESHOLD_MS).toISOString()
+  const { data: staleInfluencers } = await supabase
+    .from('influencers')
+    .select('id, tiktok_handle, ig_handle, profile_pic_refreshed_at')
+    .or('tiktok_handle.not.is.null,ig_handle.not.is.null')
+    .or(`profile_pic_refreshed_at.is.null,profile_pic_refreshed_at.lt.${sweepThreshold}`)
+
+  for (const inf of staleInfluencers ?? []) {
+    if (refreshedInfluencerIds.has(inf.id)) continue
+    const platform: 'tiktok' | 'instagram' = inf.tiktok_handle ? 'tiktok' : 'instagram'
+    const handle = (inf.tiktok_handle ?? inf.ig_handle)!
+    try {
+      const avatarUrl = await fetchAvatarUrl(platform, handle)
+      if (avatarUrl) {
+        await supabase
+          .from('influencers')
+          .update({
+            profile_pic_url: avatarUrl,
+            profile_pic_refreshed_at: new Date().toISOString(),
+          })
+          .eq('id', inf.id)
+        console.log(`[posts-worker] sweep: avatar refreshed for @${handle}`)
+      }
+    } catch {
+      console.warn(`[posts-worker] sweep: failed to refresh avatar for @${handle}`)
+    }
+  }
+
   console.log(JSON.stringify({
     fetched: totalFetched,
     candidates: totalCandidates,
