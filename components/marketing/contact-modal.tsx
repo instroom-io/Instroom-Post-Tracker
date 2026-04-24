@@ -73,7 +73,7 @@ export function ContactModal() {
                 <Input value={name} onChange={(e) => setName(e.target.value)} required className={inputClassName} />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-foreground-light">Company</label>
+                <label className="text-[12px] font-medium text-foreground-light">Brand / Agency</label>
                 <Input value={company} onChange={(e) => setCompany(e.target.value)} required className={inputClassName} />
               </div>
               <div className="space-y-1.5">
@@ -82,7 +82,7 @@ export function ContactModal() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-[12px] font-medium text-foreground-light">Message</label>
-                <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Tell us about your agency..." className={inputClassName} />
+                <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="How can we help?" className={inputClassName} />
               </div>
             </DialogBody>
             <DialogFooter className="border-border">
