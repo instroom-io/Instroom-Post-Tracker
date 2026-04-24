@@ -120,6 +120,7 @@ export interface Influencer {
   youtube_handle: string | null
   youtube_channel_id: string | null
   profile_pic_url: string | null
+  profile_pic_refreshed_at: string | null
   created_at: string
 }
 
