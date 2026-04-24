@@ -138,9 +138,9 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
             <input
               id="website_url"
               name="website_url"
-              type="url"
+              type="text"
               autoComplete="url"
-              placeholder={accountType === 'team' ? 'https://yourteam.com' : 'https://yourbrand.com'}
+              placeholder={accountType === 'team' ? 'e.g. yourteam.com' : 'e.g. yourbrand.com'}
               className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
             />
             <p className="text-[11px] text-foreground-muted">Used to show your logo automatically.</p>

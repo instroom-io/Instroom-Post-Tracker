@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { signInSchema, signUpSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/validations'
 import { checkActionLimit, getRequestIp, limiters } from '@/lib/rate-limit'
-import { toSlug, deduplicateSlug } from '@/lib/utils'
+import { toSlug, deduplicateSlug, normalizeUrl } from '@/lib/utils'
 
 export async function signIn(
   _prevState: unknown,
@@ -68,7 +68,8 @@ export async function signUp(
   const nextPath = typeof redirectTo === 'string' && redirectTo.startsWith('/') ? redirectTo : '/app'
   const emailRedirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(nextPath)}`
 
-  const websiteUrl = (formData.get('website_url') as string | null) || undefined
+  const rawWebsite = (formData.get('website_url') as string | null)?.trim() || undefined
+  const websiteUrl = rawWebsite ? normalizeUrl(rawWebsite) : undefined
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
@@ -180,7 +181,7 @@ export async function saveOnboardingName(
   let logoUrl: string | null = null
   if (websiteUrl) {
     try {
-      const domain = new URL(websiteUrl).hostname
+      const domain = new URL(normalizeUrl(websiteUrl)).hostname
       logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
     } catch { /* invalid URL — ignore */ }
   }

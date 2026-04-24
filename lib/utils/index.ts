@@ -135,3 +135,11 @@ export function deduplicateSlug(base: string, taken: string[]): string {
   return `${base}-${i}`
 }
 
+/** Normalizes any URL-like string to https://. Accepts https://x, http://x, www.x, or bare x.com */
+export function normalizeUrl(url: string): string {
+  const trimmed = url.trim()
+  if (!trimmed) return trimmed
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://${trimmed}`
+}
+

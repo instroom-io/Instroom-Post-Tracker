@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { extractDriveFolderId } from '@/lib/utils'
+import { extractDriveFolderId, normalizeUrl } from '@/lib/utils'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Accepts full URLs or www. prefixed domains — auto-prepends https:// when needed */
+/** Accepts https://, http://, www., or bare domains — normalizes to https:// */
 const websiteUrl = z.string()
-  .transform((v) => (v && /^www\./i.test(v) ? `https://${v}` : v))
-  .pipe(z.string().url('Please enter a valid URL'))
+  .transform((v) => (v ? normalizeUrl(v) : v))
+  .pipe(z.string().url('Please enter a valid website URL'))
 
 const passwordSchema = z.string()
   .min(12, 'Password must be at least 12 characters')
