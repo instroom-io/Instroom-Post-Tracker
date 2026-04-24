@@ -15,7 +15,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [accountType, setAccountType] = useState<'team' | 'solo'>('solo')
   const [accountName, setAccountName] = useState('')
   const [googleError, setGoogleError] = useState<string | null>(null)
-  const isInviteSignup = redirectTo?.startsWith('/invite/')
+  const isInviteSignup = redirectTo?.startsWith('/invite/') || redirectTo?.startsWith('/brand-invite/')
 
   if (state && 'success' in state && state.success) {
     return (

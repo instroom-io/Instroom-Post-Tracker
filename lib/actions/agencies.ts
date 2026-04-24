@@ -87,12 +87,16 @@ export async function inviteBrand(
 
 /**
  * Accept a brand invite — creates the workspace with the brand's submitted info.
- * Called from the public /brand-invite/[token] page (no auth required).
+ * Requires the caller to be authenticated with the email the invite was sent to.
  */
 export async function acceptBrandInvite(
   token: string,
   data: { logoFile: File | null; websiteUrl: string }
 ): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
   const ip = await getRequestIp()
   const limited = await checkActionLimit(`brandinvite:ip:${ip}`, limiters.brandInviteAccept)
   if (limited) return limited
@@ -114,6 +118,7 @@ export async function acceptBrandInvite(
   if (!invite) return { error: 'Invalid or expired invite link.' }
   if (invite.accepted_at) return { error: 'This invite has already been used.' }
   if (new Date(invite.expires_at) < new Date()) return { error: 'This invite link has expired.' }
+  if (invite.email !== user.email) return { error: 'This invitation was sent to a different email address.' }
 
   // Generate unique slug
   let slug = toSlug(invite.workspace_name)
@@ -163,10 +168,14 @@ export async function acceptBrandInvite(
     }
   }
 
-  // Agency owner becomes workspace owner
-  await serviceClient
-    .from('workspace_members')
-    .insert({ workspace_id: workspace.id, user_id: invite.invited_by, role: 'owner' })
+  // Agency owner becomes workspace owner; authenticated brand user gets brand role
+  const members: { workspace_id: string; user_id: string; role: string }[] = [
+    { workspace_id: workspace.id, user_id: invite.invited_by, role: 'owner' },
+  ]
+  if (user.id !== invite.invited_by) {
+    members.push({ workspace_id: workspace.id, user_id: user.id, role: 'brand' })
+  }
+  await serviceClient.from('workspace_members').insert(members)
 
   await serviceClient.rpc('seed_workspace_defaults', { p_workspace_id: workspace.id })
 

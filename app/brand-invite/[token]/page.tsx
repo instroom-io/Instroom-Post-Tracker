@@ -1,4 +1,5 @@
-import { createServiceClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { BrandOnboardForm } from './brand-onboard-form'
@@ -13,7 +14,7 @@ export default async function BrandInvitePage({ params }: PageProps) {
 
   const { data: invite } = await serviceClient
     .from('brand_invites')
-    .select('workspace_name, expires_at, accepted_at')
+    .select('workspace_name, email, expires_at, accepted_at')
     .eq('token', token)
     .maybeSingle()
 
@@ -63,6 +64,50 @@ export default async function BrandInvitePage({ params }: PageProps) {
         <p className="text-[13px] text-foreground-lighter">
           This invite link has expired. Please contact the agency for a new one.
         </p>
+      </div>
+    )
+  }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    const { data: existingUser } = await serviceClient
+      .from('users')
+      .select('id')
+      .eq('email', invite.email)
+      .maybeSingle()
+    if (existingUser) {
+      redirect(`/login?redirectTo=/brand-invite/${token}`)
+    } else {
+      redirect(`/signup?redirectTo=/brand-invite/${token}`)
+    }
+  }
+
+  if (user.email !== invite.email) {
+    return shell(
+      <div>
+        <div className="mb-6 text-center">
+          <h1 className="font-display text-[22px] font-extrabold text-foreground mb-1">
+            Wrong account
+          </h1>
+          <p className="text-[13px] text-foreground-lighter">
+            This invitation was sent to{' '}
+            <strong className="text-foreground">{invite.email}</strong>.
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-background-surface p-6 shadow-sm flex flex-col gap-3">
+          <p className="text-[12px] text-foreground-lighter text-center">
+            You&apos;re signed in as <strong className="text-foreground">{user.email}</strong>.
+            Please sign in with the correct account to accept this invitation.
+          </p>
+          <Link
+            href={`/login?redirectTo=/brand-invite/${token}`}
+            className="flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-[12px] font-semibold text-white transition-colors hover:bg-brand/90"
+          >
+            Sign in with correct account
+          </Link>
+        </div>
       </div>
     )
   }

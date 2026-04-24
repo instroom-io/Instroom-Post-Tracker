@@ -108,7 +108,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
       <p className="text-center text-[12px] text-foreground-lighter">
         Don't have an account?{' '}
         <Link
-          href="/signup"
+          href={redirectTo ? `/signup?redirectTo=${encodeURIComponent(redirectTo)}` : '/signup'}
           className="text-brand hover:underline"
         >
           Sign up
