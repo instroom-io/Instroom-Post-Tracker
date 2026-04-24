@@ -12,17 +12,17 @@ export async function signIn(
   formData: FormData
 ): Promise<{ error: string } | void> {
   const ip = await getRequestIp()
-  const email = (formData.get('email') as string | null) ?? ''
+  const email = ((formData.get('email') as string | null) ?? '').toLowerCase().trim()
 
   const [ipLimit, emailLimit] = await Promise.all([
     checkActionLimit(`signin:ip:${ip}`, limiters.signinByIp),
-    checkActionLimit(`signin:email:${email.toLowerCase()}`, limiters.signinByEmail),
+    checkActionLimit(`signin:email:${email}`, limiters.signinByEmail),
   ])
   if (ipLimit) return ipLimit
   if (emailLimit) return emailLimit
 
   const parsed = signInSchema.safeParse({
-    email: formData.get('email'),
+    email,
     password: formData.get('password'),
   })
 
@@ -53,7 +53,7 @@ export async function signUp(
   if (limited) return limited
 
   const parsed = signUpSchema.safeParse({
-    email: formData.get('email'),
+    email: ((formData.get('email') as string | null) ?? '').toLowerCase().trim(),
     password: formData.get('password'),
     full_name: formData.get('full_name') ?? undefined,
     account_type: formData.get('account_type') ?? 'solo',
@@ -87,7 +87,7 @@ export async function signUp(
 
   if (error) {
     if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-      return { error: 'An account with this email already exists.' }
+      return { success: true, email: parsed.data.email }
     }
     return { error: 'Failed to create account. Please try again.' }
   }

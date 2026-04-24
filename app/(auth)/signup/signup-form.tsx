@@ -9,9 +9,19 @@ import { signInWithGoogle } from '@/lib/supabase/client'
 
 const initialState = undefined
 
+function getPasswordStrength(pwd: string): 'weak' | 'good' | 'strong' | null {
+  if (!pwd) return null
+  const hasLetter = /[a-zA-Z]/.test(pwd)
+  const hasNumber = /[0-9]/.test(pwd)
+  if (pwd.length < 12 || !hasLetter || !hasNumber) return 'weak'
+  if (pwd.length < 16) return 'good'
+  return 'strong'
+}
+
 export function SignupForm({ redirectTo }: { redirectTo?: string }) {
   const [state, action, isPending] = useActionState(signUp, initialState)
   const [showPassword, setShowPassword] = useState(false)
+  const [passwordValue, setPasswordValue] = useState('')
   const [accountType, setAccountType] = useState<'team' | 'solo'>('solo')
   const [accountName, setAccountName] = useState('')
   const [googleError, setGoogleError] = useState<string | null>(null)
@@ -169,7 +179,9 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             required
-            placeholder="At least 8 characters"
+            placeholder="At least 12 characters"
+            value={passwordValue}
+            onChange={(e) => setPasswordValue(e.target.value)}
             className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 pr-10 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
           />
           <button
@@ -181,6 +193,22 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
             {showPassword ? <EyeSlash size={15} /> : <Eye size={15} />}
           </button>
         </div>
+        {(() => {
+          const strength = getPasswordStrength(passwordValue)
+          if (!strength) return null
+          return (
+            <div className="mt-1.5 flex items-center gap-2">
+              <div className="flex flex-1 gap-1">
+                <div className={`h-1 flex-1 rounded-full transition-colors ${strength === 'weak' ? 'bg-destructive' : strength === 'good' ? 'bg-amber-400' : 'bg-brand'}`} />
+                <div className={`h-1 flex-1 rounded-full transition-colors ${strength === 'good' ? 'bg-amber-400' : strength === 'strong' ? 'bg-brand' : 'bg-border'}`} />
+                <div className={`h-1 flex-1 rounded-full transition-colors ${strength === 'strong' ? 'bg-brand' : 'bg-border'}`} />
+              </div>
+              <span className={`text-[10px] font-medium w-10 text-right ${strength === 'strong' ? 'text-brand' : strength === 'good' ? 'text-amber-500' : 'text-destructive'}`}>
+                {strength === 'strong' ? 'Strong' : strength === 'good' ? 'Good' : 'Weak'}
+              </span>
+            </div>
+          )
+        })()}
       </div>
 
       {state && 'error' in state ? (

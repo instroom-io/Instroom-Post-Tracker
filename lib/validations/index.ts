@@ -8,16 +8,22 @@ const websiteUrl = z.string()
   .transform((v) => (v && /^www\./i.test(v) ? `https://${v}` : v))
   .pipe(z.string().url('Please enter a valid URL'))
 
+const passwordSchema = z.string()
+  .min(12, 'Password must be at least 12 characters')
+  .max(128, 'Password is too long')
+  .refine((v) => /[a-zA-Z]/.test(v), 'Password must include at least one letter')
+  .refine((v) => /[0-9]/.test(v), 'Password must include at least one number')
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string().min(1, 'Password is required'),
 })
 
 export const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: passwordSchema,
   full_name: z.string().min(2).max(100).optional(),
   account_type: z.enum(['solo', 'team']).default('solo'),
   account_name: z
@@ -32,7 +38,7 @@ export const forgotPasswordSchema = z.object({
 })
 
 export const resetPasswordSchema = z.object({
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: passwordSchema,
   confirmPassword: z.string(),
 }).refine((d) => d.password === d.confirmPassword, {
   message: 'Passwords do not match',
@@ -232,7 +238,7 @@ export const updatePreferencesSchema = z.object({
 
 export const updatePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  newPassword: passwordSchema,
   confirmPassword: z.string().min(1, 'Please confirm your new password'),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: 'Passwords do not match',
