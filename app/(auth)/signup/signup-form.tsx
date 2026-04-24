@@ -195,6 +195,13 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
         {isPending ? 'Creating account…' : 'Create account'}
       </button>
 
+      <p className="text-center text-[11px] text-foreground-muted">
+        By creating an account, you agree to our{' '}
+        <Link href="/terms" className="text-brand hover:underline">Terms of Service</Link>
+        {' '}and{' '}
+        <Link href="/privacy" className="text-brand hover:underline">Privacy Policy</Link>.
+      </p>
+
       <div className="relative my-1">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border" />
