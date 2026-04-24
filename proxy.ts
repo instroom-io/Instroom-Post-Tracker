@@ -49,6 +49,8 @@ export async function proxy(request: NextRequest) {
     '/forgot-password',
     '/reset-password',
     '/join',
+    '/privacy',
+    '/terms',
     '/api/webhooks/lemonsqueezy',
   ]
 
