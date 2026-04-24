@@ -537,7 +537,7 @@ export async function refreshInfluencerProfile(
 
   const { profile_pic_url } = await fetchProfileInfo(platform, handle)
 
-  await supabase
+  const { error: updateError } = await supabase
     .from('influencers')
     .update({
       profile_pic_url,
@@ -545,6 +545,8 @@ export async function refreshInfluencerProfile(
     })
     .eq('id', influencerId)
     .eq('workspace_id', workspaceId)
+
+  if (updateError) return { error: 'Failed to save profile picture.' }
 
   revalidatePath('/', 'layout')
   return { profile_pic_url }
