@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { MarketingContactProvider, useMarketingContact } from '@/components/marketing/marketing-contact-provider'
 import { MarketingNav } from '@/components/marketing/marketing-nav'
 import { ContactModal } from '@/components/marketing/contact-modal'
@@ -37,12 +38,12 @@ export default function MarketingLayout({
 
             {/* Links — center column on desktop, centered on mobile */}
             <div className="flex flex-wrap justify-center gap-6">
-              <a href="/privacy" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
+              <Link href="/privacy" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
                 Privacy policy
-              </a>
-              <a href="/terms" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
+              </Link>
+              <Link href="/terms" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
                 Terms of service
-              </a>
+              </Link>
               <SupportButton />
             </div>
 
