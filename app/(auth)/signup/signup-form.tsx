@@ -119,7 +119,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
               required
               minLength={2}
               maxLength={60}
-              placeholder={accountType === 'team' ? 'e.g. Armful Media' : 'e.g. NovaSkin Beauty'}
+              placeholder={accountType === 'team' ? 'e.g. Armful Media' : 'e.g. Luna Beauty'}
               value={accountName}
               onChange={(e) => { setAccountName(e.target.value); setGoogleError(null) }}
               className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
