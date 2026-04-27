@@ -326,7 +326,7 @@ export function MemberTable({
 }: MemberTableProps) {
   const [isPending, startTransition] = useTransition()
 
-  const canManage = currentRole === 'owner' || currentRole === 'admin'
+  const canManage = currentRole === 'owner' || currentRole === 'admin' || currentRole === 'manager'
   const isOwner = currentRole === 'owner'
 
   function handleRemove(memberId: string) {

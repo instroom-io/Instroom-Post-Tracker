@@ -36,7 +36,7 @@ export default async function CampaignsPage({ params, searchParams }: PageProps)
     .single()
 
   const role = (member?.role ?? 'viewer') as WorkspaceRole
-  const canEdit = ['owner', 'admin', 'editor'].includes(role)
+  const canEdit = ['owner', 'admin', 'manager', 'editor'].includes(role)
 
   const [{ data: campaigns }, { data: postCounts }] = await Promise.all([
     supabase

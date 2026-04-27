@@ -74,7 +74,7 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
   const memberDriveUrl = driveFolderId
     ? `https://drive.google.com/drive/folders/${driveFolderId}`
     : undefined
-  const canEdit = ['owner', 'admin', 'editor'].includes(role)
+  const canEdit = ['owner', 'admin', 'manager', 'editor'].includes(role)
 
   const [
     { data: campaign },

@@ -150,7 +150,7 @@ export default async function AnalyticsPage({ params }: PageProps) {
       .single(),
   ])
 
-  const canEdit = member?.role === 'owner' || member?.role === 'admin'
+  const canEdit = member?.role === 'owner' || member?.role === 'admin' || member?.role === 'manager'
   const timezone = userPrefs?.timezone ?? 'UTC'
   // Dates are intentionally omitted — the client computes them in the user's local timezone
   const defaultFilters: AnalyticsFilters = { from: '', to: '', campaignId: 'all', platform: 'all' }

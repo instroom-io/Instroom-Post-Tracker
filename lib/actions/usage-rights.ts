@@ -29,7 +29,7 @@ export async function toggleUsageRights(
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
     .single()
-  if (!member || !['owner', 'admin', 'editor'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'manager', 'editor'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 

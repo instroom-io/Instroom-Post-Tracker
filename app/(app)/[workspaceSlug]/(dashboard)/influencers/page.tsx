@@ -58,7 +58,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
   ])
 
   const canEdit = member?.role
-    ? ['owner', 'admin', 'editor'].includes(member.role)
+    ? ['owner', 'admin', 'manager', 'editor'].includes(member.role)
     : false
 
   // Resolve filter IDs from the conditional Round 2 fetch
