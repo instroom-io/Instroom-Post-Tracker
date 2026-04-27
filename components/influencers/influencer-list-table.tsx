@@ -377,12 +377,11 @@ export function InfluencerListTable({
 
                       {/* Actions cell */}
                       {canEdit && (
-                        <td className="px-3 py-3.5">
+                        <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger>
                               <button
                                 type="button"
-                                onClick={(e) => e.stopPropagation()}
                                 className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               >
                                 <DotsThree size={16} weight="bold" />
