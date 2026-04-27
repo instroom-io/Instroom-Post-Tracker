@@ -56,24 +56,25 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
+        <caption className="sr-only">Influencer performance leaderboard ranked by EMV</caption>
         <thead>
           <tr className="border-b border-border">
-            <th className="w-8 px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+            <th scope="col" className="w-8 px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
               #
             </th>
-            <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+            <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
               Influencer
             </th>
-            <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter">
+            <th scope="col" className="px-4 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter">
               Posts
             </th>
-            <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter">
+            <th scope="col" className="px-4 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter">
               Views
             </th>
-            <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter">
+            <th scope="col" className="px-4 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter">
               Avg ER
             </th>
-            <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter">
+            <th scope="col" className="px-4 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter">
               EMV
             </th>
           </tr>

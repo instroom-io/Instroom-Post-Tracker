@@ -81,15 +81,15 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
     )
   }
 
-  const axisStyle = { fontSize: 11, fill: 'hsl(0, 0%, 52%)' }
+  const axisStyle = { fontSize: 11, fill: CHART_COLORS.foregroundLighter }
 
   return (
     <ResponsiveContainer width="100%" height={200}>
       <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
         <defs>
           <linearGradient id="gradientBrand" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#1FAE5B" stopOpacity={0.28} />
-            <stop offset="95%" stopColor="#1FAE5B" stopOpacity={0} />
+            <stop offset="5%" stopColor={CHART_COLORS.brand} stopOpacity={0.28} />
+            <stop offset="95%" stopColor={CHART_COLORS.brand} stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.muted} vertical={false} />
@@ -151,7 +151,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
           <Area
             type="monotone"
             dataKey="total"
-            stroke="#1FAE5B"
+            stroke={CHART_COLORS.brand}
             strokeWidth={1.5}
             fill="url(#gradientBrand)"
             dot={false}

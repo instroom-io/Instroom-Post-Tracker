@@ -10,7 +10,7 @@ function SupportButton() {
   return (
     <button
       onClick={() => setOpen(true)}
-      className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60"
+      className="text-[0.8rem] text-white/55 transition-colors hover:text-white/80"
     >
       Support
     </button>
@@ -48,7 +48,7 @@ export default function MarketingLayout({
                   <a
                     key={href}
                     href={href}
-                    className="text-[0.8rem] font-medium text-white/40 transition-colors hover:text-white/65"
+                    className="text-[0.8rem] font-medium text-white/55 transition-colors hover:text-white/80"
                   >
                     {label}
                   </a>
@@ -59,10 +59,10 @@ export default function MarketingLayout({
             {/* Bottom row: legal + copyright */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-6">
               <div className="flex flex-wrap gap-5">
-                <Link href="/privacy" className="text-[0.75rem] text-white/30 transition-colors hover:text-white/55">
+                <Link href="/privacy" className="text-[0.75rem] text-white/55 transition-colors hover:text-white/80">
                   Privacy policy
                 </Link>
-                <Link href="/terms" className="text-[0.75rem] text-white/30 transition-colors hover:text-white/55">
+                <Link href="/terms" className="text-[0.75rem] text-white/55 transition-colors hover:text-white/80">
                   Terms of service
                 </Link>
                 <SupportButton />

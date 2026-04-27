@@ -20,7 +20,8 @@ export const ER_BENCHMARK_COLORS = {
 // Full chart color palette — includes utility colors for grid/axis lines.
 // Import this in chart components instead of defining local CHART_COLORS objects.
 export const CHART_COLORS = {
-  brand:  'hsl(145, 72%, 40%)', // --brand
-  muted:  'hsl(0, 0%, 88%)',   // --foreground-muted (grid lines, axis ticks)
+  brand:             'hsl(145, 72%, 40%)', // --brand
+  muted:             'hsl(0, 0%, 88%)',    // --foreground-muted (grid lines)
+  foregroundLighter: 'hsl(0, 0%, 52%)',    // --foreground-lighter (axis tick text)
   ...PLATFORM_COLORS,
 } as const

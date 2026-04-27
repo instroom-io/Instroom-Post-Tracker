@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { DownloadSimple } from '@phosphor-icons/react'
 import { CampaignPostsTable } from './campaign-posts-table'
 import { CampaignPostsGallery } from './campaign-posts-gallery'
@@ -96,6 +96,7 @@ export function CampaignTabs({
   plan,
 }: CampaignTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab ?? 'overview')
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
 
   // Compute summary metrics from already-fetched posts
   const totalViews = posts.reduce((sum, p) => sum + (p.metrics?.views ?? 0), 0)
@@ -108,6 +109,19 @@ export function CampaignTabs({
     { key: 'downloads', label: 'Downloads', count: downloadedPosts.length },
   ]
 
+  function handleTabKeyDown(e: React.KeyboardEvent, index: number) {
+    const count = tabs.length
+    let next: number | null = null
+    if (e.key === 'ArrowRight')      next = (index + 1) % count
+    else if (e.key === 'ArrowLeft')  next = (index - 1 + count) % count
+    else if (e.key === 'Home')       next = 0
+    else if (e.key === 'End')        next = count - 1
+    if (next !== null) {
+      e.preventDefault()
+      setActiveTab(tabs[next].key)
+      tabRefs.current[next]?.focus()
+    }
+  }
 
   const campaignInfluencerIds = new Set(influencers.map((i) => i.influencer.id))
   const availableInfluencers = workspaceInfluencers.filter(
@@ -117,13 +131,20 @@ export function CampaignTabs({
   return (
     <div className="flex flex-col gap-0">
       {/* Tab bar */}
-      <div className="flex items-center gap-0 border-b border-border px-5">
-        {tabs.map((tab) => (
+      <div role="tablist" aria-label="Campaign sections" className="flex items-center gap-0 border-b border-border px-5">
+        {tabs.map((tab, i) => (
           <button
             key={tab.key}
+            ref={(el) => { tabRefs.current[i] = el }}
+            role="tab"
+            id={`tab-${tab.key}`}
+            aria-selected={activeTab === tab.key}
+            aria-controls={`panel-${tab.key}`}
+            tabIndex={activeTab === tab.key ? 0 : -1}
             type="button"
             data-tour={`campaign-tab-${tab.key}`}
             onClick={() => setActiveTab(tab.key)}
+            onKeyDown={(e) => handleTabKeyDown(e, i)}
             className={cn(
               'mr-1 inline-flex items-center gap-1.5 border-b-2 px-3 py-3 text-[13px] transition-colors',
               activeTab === tab.key
@@ -152,7 +173,7 @@ export function CampaignTabs({
       <div className="p-5">
         {/* ── Overview ── */}
         {activeTab === 'overview' && (
-          <div className="flex flex-col gap-5">
+          <div role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" className="flex flex-col gap-5">
             {/* Summary metric cards */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
@@ -213,7 +234,7 @@ export function CampaignTabs({
 
         {/* ── Influencers ── */}
         {activeTab === 'influencers' && (
-          <div className="rounded-xl border border-border bg-background-surface shadow-sm">
+          <div role="tabpanel" id="panel-influencers" aria-labelledby="tab-influencers" className="rounded-xl border border-border bg-background-surface shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-border px-5 py-3.5">
               <h2 className="font-display text-[15px] font-bold text-foreground">Influencers</h2>
               {canEdit && (
@@ -238,7 +259,7 @@ export function CampaignTabs({
 
         {/* ── Posts ── */}
         {activeTab === 'posts' && (
-          <div className="rounded-xl border border-border bg-background-surface shadow-sm">
+          <div role="tabpanel" id="panel-posts" aria-labelledby="tab-posts" className="rounded-xl border border-border bg-background-surface shadow-sm">
             <div className="border-b border-border px-5 py-3.5">
               <h2 className="font-display text-[15px] font-bold text-foreground">Posts</h2>
               <p className="text-[11px] text-foreground-lighter">{posts.length} detected</p>
@@ -249,7 +270,7 @@ export function CampaignTabs({
 
         {/* ── Downloads ── */}
         {activeTab === 'downloads' && (
-          <div className="rounded-xl border border-border bg-background-surface shadow-sm">
+          <div role="tabpanel" id="panel-downloads" aria-labelledby="tab-downloads" className="rounded-xl border border-border bg-background-surface shadow-sm">
             <div className="border-b border-border px-5 py-3.5">
               <h2 className="font-display text-[15px] font-bold text-foreground">Downloads</h2>
               <p className="text-[11px] text-foreground-lighter">

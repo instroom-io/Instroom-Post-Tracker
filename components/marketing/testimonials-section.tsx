@@ -74,7 +74,7 @@ export function TestimonialsSection() {
                     <span
                       key={i}
                       aria-hidden="true"
-                      className="text-[1rem] leading-none text-[#F4B740]"
+                      className="text-[1rem] leading-none text-warning"
                     >
                       ★
                     </span>

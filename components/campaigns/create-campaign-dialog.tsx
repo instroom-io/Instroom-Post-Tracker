@@ -27,9 +27,9 @@ interface CreateCampaignDialogProps {
 }
 
 const PLATFORMS: { value: Platform; label: string; color: string }[] = [
-  { value: 'instagram', label: 'Instagram', color: '#e1306c' },
-  { value: 'tiktok', label: 'TikTok', color: '#0ea5e9' },
-  { value: 'youtube', label: 'YouTube', color: '#ef4444' },
+  { value: 'instagram', label: 'Instagram', color: 'hsl(var(--platform-instagram))' },
+  { value: 'tiktok',    label: 'TikTok',    color: 'hsl(var(--platform-tiktok))' },
+  { value: 'youtube',   label: 'YouTube',   color: 'hsl(var(--platform-youtube))' },
 ]
 
 export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: CreateCampaignDialogProps) {

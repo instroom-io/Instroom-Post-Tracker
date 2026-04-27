@@ -99,7 +99,7 @@ function InfluencerAvatar({ picUrl, label }: { picUrl: string | null; label: str
     )
   }
   return (
-    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-muted to-brand/20 text-[11px] font-bold text-brand ring-1 ring-border">
+    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand/10 text-[11px] font-bold text-brand ring-1 ring-border">
       {getInitials(label)}
     </div>
   )
@@ -243,7 +243,8 @@ export function InfluencerListTable({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name or handle…"
-                className="h-9 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40 sm:w-64"
+                aria-label="Search influencers"
+                className="h-9 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:w-64"
               />
             </div>
             {search && (
@@ -255,7 +256,8 @@ export function InfluencerListTable({
           <select
             value={campaignFilter}
             onChange={(e) => handleCampaignFilter(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
+            aria-label="Filter by campaign"
+            className="h-9 rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             <option value="">All campaigns</option>
             {workspaceCampaigns.map((c) => (
@@ -288,18 +290,19 @@ export function InfluencerListTable({
       <div className="rounded-xl border border-border bg-background-surface">
         <div className="overflow-x-auto">
           <table className="w-full">
+            <caption className="sr-only">Influencers list</caption>
             <thead>
               <tr className="border-b border-border bg-background-muted/40">
-                <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+                <th scope="col" className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Influencer
                 </th>
-                <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+                <th scope="col" className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Platforms
                 </th>
-                <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+                <th scope="col" className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Campaigns
                 </th>
-                {canEdit && <th className="w-10 px-3 py-2.5" />}
+                {canEdit && <th scope="col" className="w-10 px-3 py-2.5" />}
               </tr>
             </thead>
             <tbody>
@@ -323,8 +326,10 @@ export function InfluencerListTable({
                   <React.Fragment key={inf.id}>
                     {/* ── Main row ── */}
                     <tr
-                      className="cursor-pointer border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/30"
+                      tabIndex={0}
+                      className="cursor-pointer border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/40"
                       onClick={() => setSelectedInfluencer(inf)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedInfluencer(inf) } }}
                     >
                       {/* Influencer cell */}
                       <td className="px-5 py-3.5">
@@ -339,21 +344,21 @@ export function InfluencerListTable({
                         <div className="flex items-center gap-2">
                           {inf.ig_handle && (
                             <Tooltip content={`@${inf.ig_handle}`} side="top">
-                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-purple-50 dark:bg-purple-500/10">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-platform-instagram-muted">
                                 <PlatformIcon platform="instagram" size={13} />
                               </span>
                             </Tooltip>
                           )}
                           {inf.tiktok_handle && (
                             <Tooltip content={`@${inf.tiktok_handle}`} side="top">
-                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-blue-50 dark:bg-blue-500/10">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-platform-tiktok-muted">
                                 <PlatformIcon platform="tiktok" size={13} />
                               </span>
                             </Tooltip>
                           )}
                           {inf.youtube_handle && (
                             <Tooltip content={`@${inf.youtube_handle}`} side="top">
-                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-red-50 dark:bg-red-500/10">
+                              <span className="flex h-6 w-6 cursor-help items-center justify-center rounded-md bg-platform-youtube-muted">
                                 <PlatformIcon platform="youtube" size={13} />
                               </span>
                             </Tooltip>
@@ -382,6 +387,7 @@ export function InfluencerListTable({
                             <DropdownMenuTrigger>
                               <button
                                 type="button"
+                                aria-label={`Actions for @${label}`}
                                 className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               >
                                 <DotsThree size={16} weight="bold" />
@@ -461,6 +467,7 @@ export function InfluencerListTable({
                       key={p}
                       type="button"
                       onClick={() => handlePageChange(p)}
+                      aria-current={page === p ? 'page' : undefined}
                       className={cn(
                         'flex h-7 w-7 items-center justify-center rounded-md text-[12px] transition-colors',
                         page === p
@@ -623,7 +630,7 @@ export function InfluencerListTable({
                     <select
                       value={addCampaignId}
                       onChange={(e) => setAddCampaignId(e.target.value)}
-                      className="h-9 w-full rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
+                      className="h-9 w-full rounded-lg border border-border bg-background-surface px-3 text-[12px] text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                     >
                       <option value="">Select a campaign</option>
                       {availableCampaigns.map((c) => (
@@ -640,7 +647,7 @@ export function InfluencerListTable({
                     type="date"
                     value={addProductSentAt}
                     onChange={(e) => setAddProductSentAt(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40"
+                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                   />
                   <p className="text-[11px] text-foreground-subtle">
                     When the product was sent. Used to set the start date for post detection.

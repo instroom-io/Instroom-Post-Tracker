@@ -155,7 +155,8 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search campaigns…"
-              className="h-8 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40"
+              aria-label="Search campaigns"
+              className="h-8 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             />
           </div>
           <button
@@ -175,6 +176,7 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
 
         <div className="overflow-x-auto">
           <table className="w-full">
+            <caption className="sr-only">Campaigns list</caption>
             <thead>
               <tr className="border-b border-border">
                 <th
@@ -236,9 +238,11 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
                 filtered.map((campaign) => (
                   <tr
                     key={campaign.id}
+                    tabIndex={0}
                     onClick={() => router.push(`/${workspaceSlug}/campaigns/${campaign.id}`)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/${workspaceSlug}/campaigns/${campaign.id}`) } }}
                     className={cn(
-                      'group border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted cursor-pointer',
+                      'group border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/40',
                       campaign.status === 'archived' && 'opacity-50'
                     )}
                   >

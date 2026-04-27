@@ -6,17 +6,29 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
+  useId,
   type ReactNode,
 } from 'react'
 import { X } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
+const FOCUSABLE = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ')
+
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 interface DialogContextValue {
   open: boolean
   setOpen: (open: boolean) => void
+  titleId: string
 }
 
 const DialogContext = createContext<DialogContextValue | null>(null)
@@ -37,20 +49,33 @@ interface DialogProps {
 
 export function Dialog({ children, open: controlledOpen, onOpenChange }: DialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const triggerRef = useRef<HTMLElement | null>(null)
+  const titleId = useId()
 
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : uncontrolledOpen
 
   const setOpen = useCallback(
     (val: boolean) => {
+      if (val) {
+        // Capture the element that opened the dialog so we can return focus on close
+        triggerRef.current = document.activeElement as HTMLElement
+      }
       if (!isControlled) setUncontrolledOpen(val)
       onOpenChange?.(val)
     },
     [isControlled, onOpenChange]
   )
 
+  // Return focus to trigger when dialog closes
+  useEffect(() => {
+    if (!open && triggerRef.current) {
+      triggerRef.current.focus()
+    }
+  }, [open])
+
   return (
-    <DialogContext.Provider value={{ open, setOpen }}>
+    <DialogContext.Provider value={{ open, setOpen, titleId }}>
       {children}
     </DialogContext.Provider>
   )
@@ -101,17 +126,60 @@ export function DialogContent({
   size = 'md',
   className,
 }: DialogContentProps) {
-  const { open, setOpen } = useDialogContext()
+  const { open, setOpen, titleId } = useDialogContext()
+  const panelRef = useRef<HTMLDivElement>(null)
 
   // Close on Escape
   useEffect(() => {
     if (!open) return
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setOpen(false)
+      }
     }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
   }, [open, setOpen])
+
+  // Focus trap: cycle Tab/Shift+Tab within dialog
+  useEffect(() => {
+    if (!open) return
+    function handleTab(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const focusable = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE))
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', handleTab)
+    return () => document.removeEventListener('keydown', handleTab)
+  }, [open])
+
+  // Focus first focusable element when dialog opens
+  useEffect(() => {
+    if (!open) return
+    const raf = requestAnimationFrame(() => {
+      const panel = panelRef.current
+      if (!panel) return
+      const first = panel.querySelector<HTMLElement>(FOCUSABLE)
+      first ? first.focus() : panel.focus()
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [open])
 
   // Lock body scroll
   useEffect(() => {
@@ -142,12 +210,17 @@ export function DialogContent({
           {/* Panel */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
+              ref={panelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+              tabIndex={-1}
               initial={{ opacity: 0, scale: 0.96, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                'relative w-full rounded-2xl border border-border bg-background-surface shadow-lg',
+                'relative w-full rounded-2xl border border-border bg-background-surface shadow-lg outline-none',
                 sizeClasses[size],
                 className
               )}
@@ -199,8 +272,10 @@ export function DialogTitle({
   children: ReactNode
   className?: string
 }) {
+  const { titleId } = useDialogContext()
   return (
     <h2
+      id={titleId}
       className={cn(
         'font-display text-[15px] font-bold text-foreground',
         className

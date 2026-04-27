@@ -195,7 +195,7 @@ export function InfluencerProfileModal({
               className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-border"
             />
           ) : (
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-muted to-brand/20 font-display text-lg font-bold text-brand ring-2 ring-border">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand/10 font-display text-lg font-bold text-brand ring-2 ring-border">
               {getInitials(label)}
             </div>
           )}
@@ -211,9 +211,9 @@ export function InfluencerProfileModal({
                     key={h.platform}
                     className={cn(
                       'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-foreground-muted',
-                      h.platform === 'instagram' && 'bg-purple-50 dark:bg-purple-500/10',
-                      h.platform === 'tiktok' && 'bg-blue-50 dark:bg-blue-500/10',
-                      h.platform === 'youtube' && 'bg-red-50 dark:bg-red-500/10',
+                      h.platform === 'instagram' && 'bg-platform-instagram-muted',
+                      h.platform === 'tiktok' && 'bg-platform-tiktok-muted',
+                      h.platform === 'youtube' && 'bg-platform-youtube-muted',
                     )}
                   >
                     <PlatformIcon platform={h.platform} size={11} />

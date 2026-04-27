@@ -135,9 +135,9 @@ function PendingRequestsSection({
 
   return (
     <div className="border-b border-border">
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50/60">
-        <Clock size={13} className="text-amber-600 shrink-0" />
-        <span className="text-[11px] font-semibold text-amber-700">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-warning-muted/60">
+        <Clock size={13} className="text-warning shrink-0" />
+        <span className="text-[11px] font-semibold text-warning">
           Pending requests ({visible.length})
         </span>
       </div>
@@ -164,7 +164,7 @@ function PendingRequestsSection({
                 className="rounded-full object-cover flex-shrink-0"
               />
             ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-[11px] font-bold text-amber-700 flex-shrink-0">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-warning-muted text-[11px] font-bold text-warning flex-shrink-0">
                 {getInitials(name)}
               </div>
             )}
@@ -275,7 +275,7 @@ function InvitedMembersSection({
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {isAccepted && (
-                <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                <span className="inline-flex items-center rounded-full bg-brand-muted px-2 py-0.5 text-[10px] font-semibold text-brand">
                   Accepted
                 </span>
               )}
@@ -286,7 +286,7 @@ function InvitedMembersSection({
               )}
               {isPendingInv && (
                 <>
-                  <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                  <span className="inline-flex items-center rounded-full bg-warning-muted px-2 py-0.5 text-[10px] font-semibold text-warning">
                     Awaiting
                   </span>
                   <button
@@ -363,18 +363,19 @@ export function MemberTable({
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
+            <caption className="sr-only">Workspace members</caption>
             <thead>
               <tr className="border-b border-border">
-                <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+                <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Member
                 </th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+                <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Email
                 </th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+                <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Role
                 </th>
-                <th className="w-10" />
+                <th scope="col" className="w-10" />
               </tr>
             </thead>
             <tbody>
