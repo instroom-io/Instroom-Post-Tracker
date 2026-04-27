@@ -230,7 +230,7 @@ export default async function SettingsPage({ params }: PageProps) {
     : computeDaysRemaining((workspace as unknown as { trial_ends_at: string | null }).trial_ends_at ?? null)
 
   const currentRole = (currentMember?.role ?? 'viewer') as WorkspaceRole
-  const canEdit = currentRole === 'owner' || currentRole === 'admin'
+  const canEdit = currentRole === 'owner' || currentRole === 'admin' || currentRole === 'manager'
   const isOwner = currentRole === 'owner'
 
   // Fetch member counts + subscription extras for billing panel (owner only)

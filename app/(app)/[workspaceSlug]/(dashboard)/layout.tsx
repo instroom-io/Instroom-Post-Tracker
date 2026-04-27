@@ -46,8 +46,9 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
   if (!membership) redirect('/app')
 
   // 4. Fetch all user memberships for workspace switcher + agency back-link (parallel)
-  // Agency is fetched here (not after hard-gate) so billing can be sourced from the agency
-  // for Team workspaces — the agency is the true billing entity for those accounts.
+  // Agency is always looked up by the current user's ownership so the "Team" row in the
+  // workspace switcher appears even when they are viewing a shared solo-brand workspace.
+  // Billing is sourced from the agency only for workspaces the agency actually owns.
   const accountType = workspace.account_type
   const [{ data: allMemberships }, { data: agency }] = await Promise.all([
     supabase
@@ -61,17 +62,19 @@ export default async function DashboardLayout({ children, params }: LayoutProps)
           .eq('id', workspace.agency_id)
           .eq('owner_id', user.id)
           .maybeSingle()
-      : accountType === 'team'
-        ? supabase
-            .from('agencies')
-            .select('id, name, slug, logo_url, plan, trial_ends_at')
-            .eq('owner_id', user.id)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
+      : supabase
+          .from('agencies')
+          .select('id, name, slug, logo_url, plan, trial_ends_at')
+          .eq('owner_id', user.id)
+          .maybeSingle(),
   ])
 
-  // For Team workspaces: agency is the billing entity — use its plan/trial over the workspace's
-  const agencyBilling = agency as typeof agency & { plan?: PlanType; trial_ends_at?: string | null } | null
+  // Use agency billing only when this workspace is actually owned/billed by the agency.
+  // Shared solo-brand workspaces retain their own plan regardless of who is viewing them.
+  const isAgencyBilledWorkspace = !!workspace.agency_id || accountType === 'team'
+  const agencyBilling = isAgencyBilledWorkspace
+    ? agency as typeof agency & { plan?: PlanType; trial_ends_at?: string | null } | null
+    : null
   const workspacePlan = workspace.plan ?? 'free'
   const effectivePlan: PlanType = agencyBilling?.plan ?? workspacePlan
   const effectiveDaysRemaining = agencyBilling
