@@ -13,7 +13,6 @@ import { TourProvider } from '@/components/tour/tour-provider'
 import { cn } from '@/lib/utils'
 import type { Workspace, WorkspaceRole } from '@/lib/types'
 import { WorkspaceSwitcher } from './workspace-switcher'
-import { ThemeToggle } from './theme-toggle'
 import { TrialBanner } from './trial-banner'
 import type { PlanType } from '@/lib/utils/plan'
 
@@ -261,7 +260,6 @@ export function AppShell({
             <SidebarSimple size={16} weight={collapsed ? 'fill' : 'regular'} />
           </button>
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             {/* Agency logo — only shown for agency members; solo/team profile is in the workspace switcher dropdown */}
             {agency?.logo_url && (
               <div

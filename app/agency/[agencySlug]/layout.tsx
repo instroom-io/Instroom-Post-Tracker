@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
 import { AgencyLogoImage } from '@/components/agency/agency-logo-image'
 import { AgencyTourWrapper, AgencyTourButton } from '@/components/agency/agency-tour-wrapper'
@@ -67,7 +66,6 @@ export default async function AgencySlugLayout({ children, params }: LayoutProps
         <div className="flex items-center gap-4">
           <UserMenu user={user} compact settingsHref={`/agency/${agencySlug}/settings`} />
           <AgencyTourButton />
-          <ThemeToggle />
         </div>
       </div>
       <AgencyNav agencySlug={agencySlug} />
