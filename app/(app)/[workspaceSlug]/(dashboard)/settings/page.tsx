@@ -100,7 +100,7 @@ async function MembersSection({
           </p>
         </div>
         {canEdit && canUseFeature(plan, 'team_members') && (
-          <InviteMemberDialog workspaceId={workspaceId} />
+          <InviteMemberDialog workspaceId={workspaceId} currentUserIsOwner={isOwner} />
         )}
         {canEdit && !canUseFeature(plan, 'team_members') && (
           <a

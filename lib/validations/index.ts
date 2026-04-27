@@ -90,7 +90,7 @@ export const updateWorkspaceSchema = z.object({
 
 export const inviteMemberSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  role: z.enum(['manager', 'viewer'], {
+  role: z.enum(['manager', 'viewer', 'admin'], {
     required_error: 'Please select a role',
   }),
 })

@@ -199,6 +199,10 @@ export async function inviteMember(
     return { error: 'Insufficient permissions.' }
   }
 
+  if (parsed.data.role === 'admin' && member.role !== 'owner') {
+    return { error: 'Only the workspace owner can grant Admin access.' }
+  }
+
   // Plan check — team member invites require trial or pro
   const { data: workspaceRow } = await supabase
     .from('workspaces')
@@ -646,8 +650,8 @@ export async function approveJoinRequest(
     .eq('user_id', user.id)
     .single()
 
-  if (!callerMember || callerMember.role !== 'owner') {
-    return { error: 'Only the workspace Admin can approve requests.' }
+  if (!callerMember || !['owner', 'admin'].includes(callerMember.role)) {
+    return { error: 'Only workspace Admins can approve requests.' }
   }
 
   // Check if requester is already a member (could happen if approved via another path)
@@ -735,8 +739,8 @@ export async function denyJoinRequest(
     .eq('user_id', user.id)
     .single()
 
-  if (!callerMember || callerMember.role !== 'owner') {
-    return { error: 'Only the workspace Admin can deny requests.' }
+  if (!callerMember || !['owner', 'admin'].includes(callerMember.role)) {
+    return { error: 'Only workspace Admins can deny requests.' }
   }
 
   // Mark request denied
