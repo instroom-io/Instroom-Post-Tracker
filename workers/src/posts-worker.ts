@@ -534,29 +534,6 @@ async function main() {
           return postedMs >= effectiveStartMs && (lastSeenMs === 0 || postedMs > lastSeenMs)
         })
 
-        // Update watermark: advance only from posts that passed the effectiveStart
-        // filter so pre-effectiveStart posts never permanently block future captures.
-        if (platform === 'tiktok' && unseenPosts.length > 0) {
-          const newest = unseenPosts.reduce(
-            (max, p) => p.posted_at > max ? p.posted_at : max,
-            unseenPosts[0].posted_at
-          )
-          await supabase
-            .from('campaign_influencers')
-            .update({ tiktok_last_post_at: newest })
-            .eq('id', row.id)
-          console.log(`[posts-worker] TT @${handle} watermark → ${newest}`)
-        }
-        if (platform === 'instagram' && unseenPosts.length > 0) {
-          const newest = unseenPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, unseenPosts[0].posted_at)
-          await supabase.from('campaign_influencers').update({ ig_last_post_at: newest }).eq('id', row.id)
-          console.log(`[posts-worker] IG @${handle} cursor updated to ${newest}`)
-        }
-        if (platform === 'youtube' && unseenPosts.length > 0) {
-          const newest = unseenPosts.reduce((max, p) => p.posted_at > max ? p.posted_at : max, unseenPosts[0].posted_at)
-          await supabase.from('campaign_influencers').update({ yt_last_post_at: newest }).eq('id', row.id)
-          console.log(`[posts-worker] YT ${handle} cursor updated to ${newest}`)
-        }
         totalCandidates += unseenPosts.length
 
         const config = campaign.campaign_tracking_configs?.find((c) => c.platform === platform)
@@ -568,6 +545,32 @@ async function main() {
           matchesTrackingConfig(post.caption, hashtags, mentions)
         )
         console.log(`[posts-worker] @${handle} [${platform}] fetched=${rawPosts.length} candidates=${unseenPosts.length} matched=${filtered.length}`)
+
+        // Advance watermark ONLY from matched posts so that unmatched posts are
+        // re-evaluated on future runs — e.g. after a tracking config correction.
+        // Advancing from all candidates would permanently exclude posts that
+        // didn't match the config at the time they were first seen.
+        if (platform === 'tiktok' && filtered.length > 0) {
+          const newest = filtered.reduce(
+            (max, p) => p.posted_at > max ? p.posted_at : max,
+            filtered[0].posted_at
+          )
+          await supabase
+            .from('campaign_influencers')
+            .update({ tiktok_last_post_at: newest })
+            .eq('id', row.id)
+          console.log(`[posts-worker] TT @${handle} watermark → ${newest}`)
+        }
+        if (platform === 'instagram' && filtered.length > 0) {
+          const newest = filtered.reduce((max, p) => p.posted_at > max ? p.posted_at : max, filtered[0].posted_at)
+          await supabase.from('campaign_influencers').update({ ig_last_post_at: newest }).eq('id', row.id)
+          console.log(`[posts-worker] IG @${handle} cursor updated to ${newest}`)
+        }
+        if (platform === 'youtube' && filtered.length > 0) {
+          const newest = filtered.reduce((max, p) => p.posted_at > max ? p.posted_at : max, filtered[0].posted_at)
+          await supabase.from('campaign_influencers').update({ yt_last_post_at: newest }).eq('id', row.id)
+          console.log(`[posts-worker] YT ${handle} cursor updated to ${newest}`)
+        }
 
         if (filtered.length === 0) continue
 
