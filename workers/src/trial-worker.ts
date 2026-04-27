@@ -117,10 +117,11 @@ async function processWorkspaces(
           subject: 'Your Instroom trial ends in 7 days',
           html: trialReminder7Html(name, UPGRADE_URL),
         })
-        await supabase
+        const { error: e7 } = await supabase
           .from('workspaces')
           .update({ trial_reminder_7_sent_at: new Date().toISOString() })
           .eq('id', row.id)
+        if (e7) throw new Error(`Failed to set trial_reminder_7_sent_at: ${e7.message}`)
         emailsSent++
         console.log(`[trial-worker] Day-7 reminder sent to ${ownerEmail} (workspace ${row.id})`)
       }
@@ -132,10 +133,11 @@ async function processWorkspaces(
           subject: '2 days left in your Instroom trial',
           html: trialReminder2Html(name, UPGRADE_URL),
         })
-        await supabase
+        const { error: e2 } = await supabase
           .from('workspaces')
           .update({ trial_reminder_12_sent_at: new Date().toISOString() })
           .eq('id', row.id)
+        if (e2) throw new Error(`Failed to set trial_reminder_12_sent_at: ${e2.message}`)
         emailsSent++
         console.log(`[trial-worker] Day-2 reminder sent to ${ownerEmail} (workspace ${row.id})`)
       }
@@ -147,10 +149,11 @@ async function processWorkspaces(
           subject: 'Your Instroom trial has ended',
           html: trialEndedHtml(name, UPGRADE_URL),
         })
-        await supabase
+        const { error: eEnd } = await supabase
           .from('workspaces')
           .update({ trial_ended_notified_at: new Date().toISOString() })
           .eq('id', row.id)
+        if (eEnd) throw new Error(`Failed to set trial_ended_notified_at: ${eEnd.message}`)
         emailsSent++
         console.log(`[trial-worker] Trial-ended email sent to ${ownerEmail} (workspace ${row.id})`)
       }
@@ -219,10 +222,11 @@ async function processAgencies(
           subject: 'Your Instroom trial ends in 7 days',
           html: trialReminder7Html(name, UPGRADE_URL),
         })
-        await supabase
+        const { error: e7 } = await supabase
           .from('agencies')
           .update({ trial_reminder_7_sent_at: new Date().toISOString() })
           .eq('id', row.id)
+        if (e7) throw new Error(`Failed to set trial_reminder_7_sent_at: ${e7.message}`)
         emailsSent++
         console.log(`[trial-worker] Day-7 reminder sent to ${ownerEmail} (agency ${row.id})`)
       }
@@ -234,10 +238,11 @@ async function processAgencies(
           subject: '2 days left in your Instroom trial',
           html: trialReminder2Html(name, UPGRADE_URL),
         })
-        await supabase
+        const { error: e2 } = await supabase
           .from('agencies')
           .update({ trial_reminder_2_sent_at: new Date().toISOString() })
           .eq('id', row.id)
+        if (e2) throw new Error(`Failed to set trial_reminder_2_sent_at: ${e2.message}`)
         emailsSent++
         console.log(`[trial-worker] Day-2 reminder sent to ${ownerEmail} (agency ${row.id})`)
       }
@@ -249,10 +254,11 @@ async function processAgencies(
           subject: 'Your Instroom trial has ended',
           html: trialEndedHtml(name, UPGRADE_URL),
         })
-        await supabase
+        const { error: eEnd } = await supabase
           .from('agencies')
           .update({ trial_ended_notified_at: new Date().toISOString() })
           .eq('id', row.id)
+        if (eEnd) throw new Error(`Failed to set trial_ended_notified_at: ${eEnd.message}`)
         emailsSent++
         console.log(`[trial-worker] Trial-ended email sent to ${ownerEmail} (agency ${row.id})`)
       }

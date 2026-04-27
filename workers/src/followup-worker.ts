@@ -161,10 +161,11 @@ async function main() {
 
       await sendEmail({ to: recipientEmail, subject, html })
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('campaign_influencers')
         .update(updateField)
         .eq('id', row.id)
+      if (updateError) throw new Error(`Failed to mark follow-up sent: ${updateError.message}`)
 
       emailsSent++
       console.log(`[followup-worker] Sent follow-up to ${recipientEmail} for ${influencerHandle} in ${campaignName}`)

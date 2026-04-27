@@ -9,21 +9,23 @@ async function processJob(
   try {
     await processPostDownload(supabase, job.post_id)
 
-    await supabase
+    const { error: doneError } = await supabase
       .from('retry_queue')
       .update({ status: 'done', processed_at: new Date().toISOString() })
       .eq('id', job.id)
+    if (doneError) throw new Error(`Failed to mark job done: ${doneError.message}`)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error(`[download-worker] Job ${job.id} failed (attempt ${job.attempts + 1}):`, err instanceof Error ? err.stack : err)
 
     if (job.attempts >= 5) {
-      await supabase
+      const { error: failPostError } = await supabase
         .from('posts')
         .update({ download_status: 'failed' })
         .eq('id', job.post_id)
+      if (failPostError) console.error(`[download-worker] Failed to set post failed status: ${failPostError.message}`)
 
-      await supabase
+      const { error: failQueueError } = await supabase
         .from('retry_queue')
         .update({
           status: 'failed',
@@ -31,12 +33,13 @@ async function processJob(
           processed_at: new Date().toISOString(),
         })
         .eq('id', job.id)
+      if (failQueueError) console.error(`[download-worker] Failed to mark job failed: ${failQueueError.message}`)
     } else {
       const scheduledAt = new Date(
         Date.now() + job.attempts * 60 * 60 * 1000
       ).toISOString()
 
-      await supabase
+      const { error: retryError } = await supabase
         .from('retry_queue')
         .update({
           status: 'pending',
@@ -44,6 +47,7 @@ async function processJob(
           scheduled_at: scheduledAt,
         })
         .eq('id', job.id)
+      if (retryError) console.error(`[download-worker] Failed to reschedule job: ${retryError.message}`)
     }
 
     throw err

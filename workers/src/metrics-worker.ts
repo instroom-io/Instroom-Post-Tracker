@@ -198,15 +198,17 @@ async function processJob(
       throw new Error(`Failed to insert metrics: ${insertError.message}`)
     }
 
-    await supabase
+    const { error: postUpdateError } = await supabase
       .from('posts')
       .update({ metrics_fetched_at: new Date().toISOString() })
       .eq('id', job.post_id)
+    if (postUpdateError) throw new Error(`Failed to set metrics_fetched_at: ${postUpdateError.message}`)
 
-    await supabase
+    const { error: doneError } = await supabase
       .from('retry_queue')
       .update({ status: 'done', processed_at: new Date().toISOString() })
       .eq('id', job.id)
+    if (doneError) throw new Error(`Failed to mark job done: ${doneError.message}`)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
 
