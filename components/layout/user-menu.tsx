@@ -11,17 +11,14 @@ import { getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/layout/theme-toggle'
-
 interface UserMenuProps {
   user: User
   compact?: boolean
   settingsHref?: string
   workspaceSlug?: string
-  showTheme?: boolean
 }
 
-export function UserMenu({ user, compact, settingsHref, workspaceSlug, showTheme }: UserMenuProps) {
+export function UserMenu({ user, compact, settingsHref, workspaceSlug }: UserMenuProps) {
   const [open, setOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -142,13 +139,6 @@ export function UserMenu({ user, compact, settingsHref, workspaceSlug, showTheme
                   Account
                 </Link>
               </>
-            )}
-
-            {showTheme && (
-              <div className="flex items-center justify-between rounded-md px-3 py-2">
-                <span className="text-[12px] text-foreground">Theme</span>
-                <ThemeToggle />
-              </div>
             )}
 
             <button

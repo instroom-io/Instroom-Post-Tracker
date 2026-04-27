@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
+import { useTheme } from 'next-themes'
 import { toast } from 'sonner'
+import { CheckCircle } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
@@ -11,6 +13,79 @@ import { getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { GoogleDriveCard } from '@/components/account/google-drive-card'
 import { PersonalDriveCard } from '@/components/account/personal-drive-card'
+
+const THEME_COLORS = {
+  light: {
+    canvas: '#F9F9F9', sidebar: '#EDEDED', surface: '#FFFFFF',
+    muted: '#E4E4E4', bar: '#D4D4D4', border: '#E0E0E0',
+  },
+  dark: {
+    canvas: '#141418', sidebar: '#0b0b0e', surface: '#1a1a1f',
+    muted: '#252529', bar: '#303035', border: '#252529',
+  },
+}
+
+function ThemePreviewCard({ theme, selected, onClick }: {
+  theme: 'light' | 'dark'
+  selected: boolean
+  onClick: () => void
+}) {
+  const c = THEME_COLORS[theme]
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex flex-col overflow-hidden rounded-xl border-2 transition-all text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
+        selected ? 'border-brand ring-2 ring-brand/20' : 'border-border hover:border-foreground-muted'
+      )}
+    >
+      <div className="relative h-[88px] overflow-hidden" style={{ background: c.canvas }}>
+        {/* Top bar */}
+        <div
+          className="absolute top-0 left-0 right-0 h-5 flex items-center px-2 gap-1.5"
+          style={{ background: c.surface, borderBottom: `1px solid ${c.border}` }}
+        >
+          <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#1FAE5B' }} />
+          <div className="h-1 rounded-full w-10" style={{ background: c.muted }} />
+          <div className="ml-auto h-1 rounded-full w-6" style={{ background: c.muted }} />
+        </div>
+        {/* Body */}
+        <div className="absolute top-5 bottom-0 left-0 right-0 flex">
+          {/* Sidebar */}
+          <div
+            className="w-[30%] flex flex-col gap-1 p-1.5 pt-2"
+            style={{ background: c.sidebar, borderRight: `1px solid ${c.border}` }}
+          >
+            <div className="h-1 rounded-full w-4/5" style={{ background: c.bar }} />
+            <div className="h-1 rounded-full w-3/5" style={{ background: c.muted }} />
+            <div className="h-1 rounded-full w-3/4" style={{ background: c.muted }} />
+            <div className="mt-1 h-1 rounded-full w-2/5" style={{ background: c.muted }} />
+            <div className="h-1 rounded-full w-3/5" style={{ background: c.muted }} />
+          </div>
+          {/* Content */}
+          <div className="flex-1 flex flex-col gap-1.5 p-2" style={{ background: c.canvas }}>
+            <div className="h-1.5 rounded-full w-1/3" style={{ background: c.bar }} />
+            <div className="grid grid-cols-3 gap-1 mt-0.5">
+              <div className="h-[18px] rounded-md" style={{ background: c.surface, border: `1px solid ${c.border}` }} />
+              <div className="h-[18px] rounded-md" style={{ background: c.surface, border: `1px solid ${c.border}` }} />
+              <div className="h-[18px] rounded-md" style={{ background: c.surface, border: `1px solid ${c.border}` }} />
+            </div>
+            <div className="h-1 rounded-full w-full" style={{ background: c.muted }} />
+            <div className="h-1 rounded-full w-4/5" style={{ background: c.muted }} />
+          </div>
+        </div>
+      </div>
+      {/* Label */}
+      <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-background-surface">
+        <span className="text-[12px] font-medium text-foreground">
+          {theme === 'light' ? 'Light' : 'Dark'}
+        </span>
+        {selected && <CheckCircle size={14} weight="fill" className="text-brand" />}
+      </div>
+    </button>
+  )
+}
 
 const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English' },
@@ -99,6 +174,7 @@ interface AccountSettingsFormProps {
 export function AccountSettingsForm({ preferredLanguage, timezone, displayName, avatarUrl, email, connectedEmail, personalDriveFolderId, googleLinked }: AccountSettingsFormProps) {
   const VALID_SECTIONS: Section[] = ['profile', 'preferences', 'security', 'integrations']
   const [activeSection, setActiveSection] = useState<Section>('profile')
+  const { theme, setTheme } = useTheme()
 
   // Read ?section= from URL after hydration — must not run on the server to avoid mismatch
   useEffect(() => {
@@ -380,6 +456,24 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
                     Save
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            {/* Appearance card */}
+            <div className="rounded-xl border border-border bg-background-surface p-5 shadow-sm">
+              <h2 className="text-[13px] font-semibold text-foreground mb-1">Appearance</h2>
+              <p className="text-[12px] text-foreground-muted mb-4">Choose how Instroom looks to you.</p>
+              <div className="grid grid-cols-2 gap-3">
+                <ThemePreviewCard
+                  theme="light"
+                  selected={theme === 'light'}
+                  onClick={() => setTheme('light')}
+                />
+                <ThemePreviewCard
+                  theme="dark"
+                  selected={theme === 'dark'}
+                  onClick={() => setTheme('dark')}
+                />
               </div>
             </div>
           </>

@@ -33,7 +33,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
         </div>
         <AdminNav />
         <div className="ml-auto">
-          <UserMenu user={user} compact showTheme />
+          <UserMenu user={user} compact />
         </div>
       </div>
       <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
