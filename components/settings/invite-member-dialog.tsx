@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { PencilLine, Eye, ShieldCheck } from 'lucide-react'
+import { PencilLine, Eye } from 'lucide-react'
 import {
   Dialog,
   DialogTrigger,
@@ -20,14 +20,13 @@ import type { WorkspaceRole } from '@/lib/types'
 
 interface InviteMemberDialogProps {
   workspaceId: string
-  currentUserIsOwner?: boolean
   trigger?: React.ReactNode
 }
 
-export function InviteMemberDialog({ workspaceId, currentUserIsOwner = false, trigger }: InviteMemberDialogProps) {
+export function InviteMemberDialog({ workspaceId, trigger }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<'manager' | 'viewer' | 'admin'>('manager')
+  const [role, setRole] = useState<'manager' | 'viewer'>('manager')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -77,11 +76,8 @@ export function InviteMemberDialog({ workspaceId, currentUserIsOwner = false, tr
               <span className="text-[12px] font-medium text-foreground-light">Role</span>
               <div className="flex gap-2">
                 {([
-                  { value: 'manager', label: 'Manager', description: 'Can edit data', Icon: PencilLine  },
-                  { value: 'viewer',  label: 'Viewer',  description: 'Read-only',      Icon: Eye         },
-                  ...(currentUserIsOwner
-                    ? [{ value: 'admin' as const, label: 'Admin', description: 'Full access', Icon: ShieldCheck }]
-                    : []),
+                  { value: 'manager', label: 'Manager', description: 'Can edit data', Icon: PencilLine },
+                  { value: 'viewer',  label: 'Viewer',  description: 'Read-only',     Icon: Eye        },
                 ] as const).map(({ value, label, description, Icon }) => (
                   <button
                     key={value}

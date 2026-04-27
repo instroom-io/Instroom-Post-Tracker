@@ -161,7 +161,7 @@ export async function updateWorkspace(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -195,12 +195,8 @@ export async function inviteMember(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
-  }
-
-  if (parsed.data.role === 'admin' && member.role !== 'owner') {
-    return { error: 'Only the workspace owner can grant Admin access.' }
   }
 
   // Plan check — team member invites require trial or pro
@@ -358,7 +354,7 @@ export async function updateAssignedMember(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -389,7 +385,7 @@ export async function removeMember(
     .eq('user_id', user.id)
     .single()
 
-  if (!requester || !['owner', 'admin'].includes(requester.role)) {
+  if (!requester || !['owner', 'admin', 'manager'].includes(requester.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -429,7 +425,7 @@ export async function uploadWorkspaceLogo(
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
     .single()
-  if (!member || !['owner', 'admin'].includes(member.role)) return { error: 'Unauthorized.' }
+  if (!member || !['owner', 'admin', 'manager'].includes(member.role)) return { error: 'Unauthorized.' }
 
   const file = formData.get('file') as File | null
   if (!file) return { error: 'No file provided.' }
@@ -479,7 +475,7 @@ export async function removeWorkspaceLogo(
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
     .single()
-  if (!member || !['owner', 'admin'].includes(member.role)) return { error: 'Unauthorized.' }
+  if (!member || !['owner', 'admin', 'manager'].includes(member.role)) return { error: 'Unauthorized.' }
 
   const { data: ws } = await supabase.from('workspaces').select('logo_url').eq('id', workspaceId).single()
   if (ws?.logo_url) {
@@ -650,7 +646,7 @@ export async function approveJoinRequest(
     .eq('user_id', user.id)
     .single()
 
-  if (!callerMember || !['owner', 'admin'].includes(callerMember.role)) {
+  if (!callerMember || !['owner', 'admin', 'manager'].includes(callerMember.role)) {
     return { error: 'Only workspace Admins can approve requests.' }
   }
 
@@ -739,7 +735,7 @@ export async function denyJoinRequest(
     .eq('user_id', user.id)
     .single()
 
-  if (!callerMember || !['owner', 'admin'].includes(callerMember.role)) {
+  if (!callerMember || !['owner', 'admin', 'manager'].includes(callerMember.role)) {
     return { error: 'Only workspace Admins can deny requests.' }
   }
 
@@ -797,7 +793,7 @@ export async function revokeInvitation(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
@@ -834,7 +830,7 @@ export async function resendInvitation(
     .eq('user_id', user.id)
     .single()
 
-  if (!member || !['owner', 'admin'].includes(member.role)) {
+  if (!member || !['owner', 'admin', 'manager'].includes(member.role)) {
     return { error: 'Insufficient permissions.' }
   }
 
