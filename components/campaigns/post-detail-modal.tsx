@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { ArrowSquareOut, ImageBroken, Lock, CloudArrowUp, ArrowClockwise, Play } from '@phosphor-icons/react'
+import { motion } from 'framer-motion'
+import { ArrowSquareOut, ImageBroken, Lock, CloudArrowUp, ArrowClockwise, Play, CheckCircle } from '@phosphor-icons/react'
 import { savePostToUserDrive } from '@/lib/actions/posts'
 import { canUseFeature } from '@/lib/utils/plan'
 import type { PlanType } from '@/lib/utils/plan'
@@ -109,13 +110,17 @@ function ModalDownloadButton({ post, memberDriveUrl }: { post: PostRow; workspac
   return null
 }
 
+type SaveState = 'idle' | 'saving' | 'done'
+
 function ModalSaveToDriveButton({ postId, workspaceId, driveFileId, plan }: {
   postId: string
   workspaceId: string
   driveFileId: string | null
   plan?: PlanType
 }) {
-  const [isPending, setIsPending] = useState(false)
+  const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [progress, setProgress] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   if (!canUseFeature(plan ?? 'free', 'drive_download')) {
     return (
@@ -130,12 +135,27 @@ function ModalSaveToDriveButton({ postId, workspaceId, driveFileId, plan }: {
   }
 
   async function handleClick() {
-    if (isPending) return
-    setIsPending(true)
+    if (saveState !== 'idle') return
+
+    setSaveState('saving')
+    setProgress(0)
+
+    let current = 0
+    intervalRef.current = setInterval(() => {
+      current += (85 - current) * 0.04
+      setProgress(current)
+    }, 80)
+
     const result = await savePostToUserDrive(postId, workspaceId)
-    setIsPending(false)
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
 
     if ('error' in result) {
+      setSaveState('idle')
+      setProgress(0)
       if (result.error === 'connect_required') {
         toast.error('Connect Google Drive in Account Settings to use this feature.', {
           action: { label: 'Settings', onClick: () => window.open('/account/settings', '_blank') },
@@ -148,23 +168,44 @@ function ModalSaveToDriveButton({ postId, workspaceId, driveFileId, plan }: {
       return
     }
 
+    setProgress(100)
+    setSaveState('done')
     window.open(result.url, '_blank')
     toast.success('Saved to your Google Drive.')
+
+    setTimeout(() => {
+      setSaveState('idle')
+      setProgress(0)
+    }, 1500)
   }
+
+  const isBusy = saveState !== 'idle'
+  const isDisabled = isBusy || !driveFileId
 
   return (
     <button
       type="button"
-      disabled={isPending || !driveFileId}
+      disabled={isDisabled}
       onClick={handleClick}
       title={driveFileId ? 'Save to My Drive' : 'Not yet downloaded'}
-      className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-background-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      className="relative overflow-hidden inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
     >
-      {isPending
-        ? <ArrowClockwise size={12} className="animate-spin" />
-        : <CloudArrowUp size={12} />
-      }
-      Save to My Drive
+      <motion.div
+        className="absolute inset-0 bg-foreground/[0.08] origin-left"
+        style={{ scaleX: progress / 100 }}
+        transition={{ ease: 'linear', duration: 0 }}
+      />
+      <span className="relative flex items-center gap-1.5">
+        {saveState === 'done'
+          ? <CheckCircle size={12} weight="fill" className="text-foreground" />
+          : saveState === 'saving'
+          ? <ArrowClockwise size={12} className="animate-spin" />
+          : <CloudArrowUp size={12} />
+        }
+        {saveState === 'idle' && 'Save to My Drive'}
+        {saveState === 'saving' && `Saving… ${Math.round(progress)}%`}
+        {saveState === 'done' && 'Saved!'}
+      </span>
     </button>
   )
 }
