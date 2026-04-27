@@ -104,8 +104,8 @@ async function OverviewBottom({
       </div>
 
       {/* Recent posts grid */}
-      <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-        <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+      <div className="rounded-xl bg-background-surface">
+        <div className="flex items-center justify-between px-5 py-3.5">
           <h2 className="font-display text-[15px] font-bold text-foreground">Recent posts</h2>
           {(campaigns ?? []).length > 0 && (
             <Link
@@ -158,7 +158,7 @@ export default async function OverviewPage({ params }: PageProps) {
 
   return (
     <div>
-      <PageHeader title="Overview" description="Workspace summary and recent activity." />
+      <PageHeader title="Overview" />
 
       <div className="space-y-5 p-5">
         {/* Stat cards stream in first */}

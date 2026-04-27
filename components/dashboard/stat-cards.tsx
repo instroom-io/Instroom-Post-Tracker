@@ -1,4 +1,3 @@
-import { Stack, HardDrives, TrendUp, Megaphone } from '@phosphor-icons/react/dist/ssr'
 import { createClient } from '@/lib/supabase/server'
 import { formatNumber, formatEMV } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -45,38 +44,32 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
 
   const stats = [
     {
-      label: 'Total posts',
+      label: 'Posts detected',
       value: formatNumber(totalPosts ?? 0),
-      sub: 'detected via Ensemble',
-      icon: Stack,
-      iconBg: 'bg-brand/10',
-      iconColor: 'text-brand',
+      sub: totalPosts ? `across all campaigns` : 'none yet',
+      accentColor: 'bg-brand',
+      tourId: undefined,
     },
     {
-      label: 'Downloads',
+      label: 'Downloaded',
       value: formatNumber(downloadedPosts ?? 0),
-      sub: totalPosts
-        ? `${downloadRate}% of ${totalPosts} downloaded`
-        : 'no posts yet',
-      icon: HardDrives,
-      iconBg: 'bg-info/10',
-      iconColor: 'text-info',
+      sub: totalPosts ? `${downloadRate}% of ${totalPosts}` : 'no posts yet',
+      accentColor: 'bg-info',
+      tourId: 'ws-usage-rights',
     },
     {
       label: 'Total EMV',
       value: formatEMV(totalEmv),
       sub: 'estimated media value',
-      icon: TrendUp,
-      iconBg: 'bg-warning/10',
-      iconColor: 'text-warning',
+      accentColor: 'bg-warning',
+      tourId: undefined,
     },
     {
       label: 'Active campaigns',
       value: formatNumber(activeCampaigns ?? 0),
-      sub: 'currently tracking',
-      icon: Megaphone,
-      iconBg: 'bg-accent/10',
-      iconColor: 'text-accent',
+      sub: activeCampaigns ? `running now` : 'none active',
+      accentColor: 'bg-accent',
+      tourId: undefined,
     },
   ]
 
@@ -87,18 +80,15 @@ export async function StatCards({ workspaceId }: StatCardsProps) {
       {stats.map((stat, i) => (
         <div
           key={stat.label}
-          {...(stat.label === 'Downloads' ? { 'data-tour': 'ws-usage-rights' } : {})}
-          className={`animate-fade-up rounded-xl border border-border-strong bg-background-surface p-4 shadow-md ${delayClasses[i] ?? ''}`}
+          {...(stat.tourId ? { 'data-tour': stat.tourId } : {})}
+          className={cn(
+            'animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-sm',
+            delayClasses[i] ?? ''
+          )}
         >
-          <div className="flex items-start justify-between">
-            <p className="text-[12px] font-medium text-foreground-lighter">
-              {stat.label}
-            </p>
-            <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', stat.iconBg)}>
-              <stat.icon size={14} weight="duotone" className={stat.iconColor} />
-            </div>
-          </div>
-          <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
+          <div className={cn('mb-3 h-0.5 w-8 rounded-full', stat.accentColor)} />
+          <p className="text-[12px] font-medium text-foreground-lighter">{stat.label}</p>
+          <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight text-foreground tabular-nums">
             {stat.value}
           </p>
           <p className="mt-0.5 text-[11px] text-foreground-muted">{stat.sub}</p>

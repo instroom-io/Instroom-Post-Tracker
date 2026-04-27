@@ -91,28 +91,28 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
         <table data-testid="campaign-posts-table" className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="w-16 px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="w-16 px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Post
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Influencer
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Platform
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Posted
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
                 Views
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
                 ER
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
                 EMV
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Drive
               </th>
             </tr>
@@ -154,17 +154,17 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
                   {formatRelativeDate(post.posted_at)}
                 </td>
 
-                <td className="px-5 py-3.5 text-right text-[12px] font-medium text-foreground">
+                <td className="px-5 py-3.5 text-right text-[12px] font-medium text-foreground tabular-nums">
                   {post.metrics ? formatNumber(post.metrics.views) : '—'}
                 </td>
 
-                <td className="px-5 py-3.5 text-right text-[12px] font-medium text-foreground">
+                <td className="px-5 py-3.5 text-right text-[12px] font-medium text-foreground tabular-nums">
                   {post.metrics
                     ? formatPercent(post.metrics.engagement_rate)
                     : '—'}
                 </td>
 
-                <td className="px-5 py-3.5 text-right text-[12px] font-medium text-foreground">
+                <td className="px-5 py-3.5 text-right text-[12px] font-medium text-foreground tabular-nums">
                   {post.metrics ? formatEMV(post.metrics.emv) : '—'}
                 </td>
 

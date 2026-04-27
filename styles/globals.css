@@ -5,6 +5,7 @@
 @layer base {
   html {
     overflow-x: hidden;
+    scroll-behavior: smooth;
   }
 
   :root {
@@ -49,11 +50,11 @@
     --platform-youtube: 0 84% 60%;            /* #EF4444 */
     --platform-youtube-muted: 0 84% 95%;
 
-    /* Shadows — 4-level elevation scale */
-    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    /* Shadows — 4-level elevation scale, zinc-tinted (24 24 27 = zinc-900) */
+    --shadow-xs: 0 1px 2px 0 rgb(24 24 27 / 0.05);
+    --shadow-sm: 0 1px 3px 0 rgb(24 24 27 / 0.08), 0 1px 2px -1px rgb(24 24 27 / 0.06);
+    --shadow-md: 0 4px 6px -1px rgb(24 24 27 / 0.08), 0 2px 4px -2px rgb(24 24 27 / 0.06);
+    --shadow-lg: 0 10px 15px -3px rgb(24 24 27 / 0.08), 0 4px 6px -4px rgb(24 24 27 / 0.04);
 
     /* Marketing landing page */
     --marketing-vignette-start: hsl(0 0% 97.5%);
@@ -147,6 +148,11 @@
 }
 
 @layer utilities {
+  /* Tabular figures for all numeric data displays */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
   /* Staggered fade-up entry animation — for stat card rows (RSC-safe, no Framer needed) */
   .animate-fade-up {
     animation: fadeUp 0.3s ease both;

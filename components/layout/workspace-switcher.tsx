@@ -193,7 +193,7 @@ export function WorkspaceSwitcher({
             )}
 
             {/* ── Workspaces ── */}
-            <p className="px-3 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
+            <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold text-foreground-muted">
               Workspaces
             </p>
 
@@ -252,7 +252,7 @@ export function WorkspaceSwitcher({
             {sharedMemberships.length > 0 && (
               <>
                 <div className="mx-1.5 my-1 h-px bg-border" />
-                <p className="px-3 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
+                <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold text-foreground-muted">
                   Shared Workspaces
                 </p>
                 {sharedMemberships.map(({ workspaces: ws, role }) => (

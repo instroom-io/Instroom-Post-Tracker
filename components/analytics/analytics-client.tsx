@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { ChartBar, Eye, Percent, TrendUp } from '@phosphor-icons/react'
 import { AnalyticsFilterBar, type AnalyticsFilters } from '@/components/analytics/analytics-filter-bar'
 import { PostVolumeChart } from '@/components/analytics/post-volume-chart'
 import { PlatformBreakdown } from '@/components/analytics/platform-breakdown'
@@ -214,34 +213,26 @@ export function AnalyticsClient({
     {
       label: 'Posts',
       value: totalPosts.toLocaleString(),
-      sub: 'tracked this period',
-      icon: ChartBar,
-      iconBg: 'bg-brand/10',
-      iconColor: 'text-brand',
+      sub: `in ${dateRangeLabel}`,
+      accentColor: 'bg-brand',
     },
     {
-      label: 'Total Views',
+      label: 'Total views',
       value: formatNumber(totalViews),
       sub: 'across all platforms',
-      icon: Eye,
-      iconBg: 'bg-info/10',
-      iconColor: 'text-info',
+      accentColor: 'bg-info',
     },
     {
       label: 'Avg ER',
       value: avgEr > 0 ? formatPercent(avgEr) : '—',
       sub: 'engagement rate',
-      icon: Percent,
-      iconBg: 'bg-accent/10',
-      iconColor: 'text-accent',
+      accentColor: 'bg-accent',
     },
     {
       label: 'Total EMV',
       value: formatEMV(totalEmv),
       sub: 'estimated media value',
-      icon: TrendUp,
-      iconBg: 'bg-warning/10',
-      iconColor: 'text-warning',
+      accentColor: 'bg-warning',
     },
   ]
 
@@ -255,7 +246,7 @@ export function AnalyticsClient({
 
       {/* Section label */}
       <div className="flex items-center gap-3">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-foreground-lighter">Performance Overview</span>
+        <span className="text-[12px] font-semibold text-foreground-lighter">Performance overview</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
@@ -264,15 +255,11 @@ export function AnalyticsClient({
         {statCards.map((card, i) => (
           <div
             key={card.label}
-            className={cn('animate-fade-up rounded-xl border border-border-strong bg-background-surface p-4 shadow-md', delayClasses[i])}
+            className={cn('animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-sm', delayClasses[i])}
           >
-            <div className="flex items-start justify-between">
-              <p className="text-[12px] font-medium text-foreground-lighter">{card.label}</p>
-              <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', card.iconBg)}>
-                <card.icon size={14} weight="duotone" className={card.iconColor} />
-              </div>
-            </div>
-            <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
+            <div className={cn('mb-3 h-0.5 w-8 rounded-full', card.accentColor)} />
+            <p className="text-[12px] font-medium text-foreground-lighter">{card.label}</p>
+            <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight text-foreground tabular-nums">
               {card.value}
             </p>
             <p className="mt-0.5 text-[11px] text-foreground-muted">{card.sub}</p>
@@ -282,7 +269,7 @@ export function AnalyticsClient({
 
       {/* Section label */}
       <div className="flex items-center gap-3">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-foreground-lighter">Trends & Breakdowns</span>
+        <span className="text-[12px] font-semibold text-foreground-lighter">Trends & breakdowns</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
