@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { CaretDown } from '@phosphor-icons/react'
 
 const faqs = [
@@ -39,6 +39,7 @@ const faqs = [
 
 export function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const shouldReduce = useReducedMotion()
 
   function toggle(index: number) {
     setOpenIndex(openIndex === index ? null : index)
@@ -48,7 +49,7 @@ export function FaqSection() {
     <section id="faq" className="bg-background-surface py-20">
       <div className="mx-auto max-w-[1060px] px-[5%]">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduce ? {} : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45 }}
@@ -65,10 +66,10 @@ export function FaqSection() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduce ? {} : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.45, delay: 0.1 }}
+          transition={{ duration: 0.45, delay: shouldReduce ? 0 : 0.1 }}
           className="mx-auto max-w-[760px] divide-y divide-border rounded-xl border border-border bg-background dark:border-white/8 dark:bg-white/5"
         >
           {faqs.map((faq, index) => {

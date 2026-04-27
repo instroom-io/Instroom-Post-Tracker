@@ -1,9 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
-
-const containerVariants = { hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }
-const itemVariants = { hidden: { opacity: 0, y: 32 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }
+import { motion, useReducedMotion } from 'framer-motion'
 
 const testimonials = [
   {
@@ -33,38 +30,70 @@ const testimonials = [
 ]
 
 export function TestimonialsSection() {
+  const shouldReduce = useReducedMotion()
+
+  const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.1 } },
+  }
+  const itemVariants = {
+    hidden: shouldReduce ? {} : { opacity: 0, y: 32 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
+
   return (
-    <section id="testimonials" className="relative py-24 lg:py-32">
-      <div className="mx-auto max-w-7xl px-6">
+    <section id="testimonials" className="relative py-20">
+      <div className="mx-auto max-w-[1060px] px-[5%]">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-5xl font-bold text-foreground">
-              Trusted by agencies who&apos;ve outgrown spreadsheets
+          <motion.div variants={itemVariants} className="mb-12">
+            <span className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-brand">
+              From the field
+            </span>
+            <h2 className="mt-2 font-display text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.15] tracking-tight text-foreground">
+              Trusted by agencies who&apos;ve
+              <br />
+              outgrown spreadsheets.
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {testimonials.map((t) => (
               <motion.div
                 key={t.name}
                 variants={itemVariants}
-                className="marketing-card p-6"
+                className="marketing-card p-7"
               >
-                <p className="text-foreground-light text-sm leading-relaxed italic mb-6">
+                {/* Star rating */}
+                <div className="mb-4 flex gap-0.5" aria-label="5 out of 5 stars">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <span
+                      key={i}
+                      aria-hidden="true"
+                      className="text-[1rem] leading-none text-[#F4B740]"
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+
+                <p className="mb-6 text-[0.9rem] leading-relaxed text-foreground">
                   &ldquo;{t.quote}&rdquo;
                 </p>
+
                 <div className="flex items-center gap-3">
-                  <div className="bg-brand-muted text-brand rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/15 text-[0.8rem] font-bold text-brand">
                     {t.initials}
                   </div>
                   <div>
-                    <p className="text-foreground font-medium text-sm">{t.name}</p>
-                    <p className="text-foreground-lighter text-xs">
+                    <p className="text-[0.875rem] font-semibold text-foreground">
+                      {t.name}
+                    </p>
+                    <p className="text-[0.78rem] text-foreground-lighter">
                       {t.title}, {t.company}
                     </p>
                   </div>

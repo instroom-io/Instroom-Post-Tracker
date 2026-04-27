@@ -1,21 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
-
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.13 } },
-}
-
-const stepVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' as const } },
-}
-
-const lineVariants = {
-  hidden: { scaleY: 0 },
-  visible: { scaleY: 1, transition: { duration: 0.3, delay: 0.1, ease: 'easeOut' as const } },
-}
+import { motion, useReducedMotion } from 'framer-motion'
 
 const steps = [
   {
@@ -57,6 +42,21 @@ const steps = [
 ]
 
 export function HowItWorksSection() {
+  const shouldReduce = useReducedMotion()
+
+  const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.13 } },
+  }
+  const stepVariants = {
+    hidden: shouldReduce ? {} : { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' as const } },
+  }
+  const lineVariants = {
+    hidden: shouldReduce ? {} : { scaleY: 0 },
+    visible: { scaleY: 1, transition: { duration: 0.3, delay: 0.1, ease: 'easeOut' as const } },
+  }
+
   return (
     <section className="py-20" id="how-it-works">
       <div className="mx-auto max-w-[1060px] px-[5%]">

@@ -45,7 +45,7 @@ export function MarketingNav() {
         {/* Wordmark */}
         <Link href="/">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-16 w-auto" />
+          <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-9 w-auto" />
         </Link>
 
         {/* Desktop nav links — absolutely centered */}
@@ -69,7 +69,7 @@ export function MarketingNav() {
           </Link>
           <Link
             href="/signup"
-            className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
+            className="bg-brand text-[#07130b] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand/90 dark:hover:shadow-[0_0_20px_rgba(31,174,91,0.4)] transition-all"
           >
             Start free trial
           </Link>
@@ -114,7 +114,7 @@ export function MarketingNav() {
               <Link
                 href="/signup"
                 onClick={() => setMobileOpen(false)}
-                className="bg-brand text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand/90 transition-all mt-4"
+                className="bg-brand text-[#07130b] px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand/90 transition-all mt-4"
               >
                 Start free trial
               </Link>

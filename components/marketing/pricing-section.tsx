@@ -2,19 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Check } from '@phosphor-icons/react'
 import { PRICING } from '@/lib/billing/pricing'
 import type { BillingPeriod } from '@/lib/billing/pricing'
-
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
-}
-const itemVariants = {
-  hidden: { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-}
 
 const SOLO_FEATURES = [
   '1 workspace',
@@ -34,6 +25,16 @@ const TEAM_FEATURES = [
 
 export function PricingSection() {
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
+  const shouldReduce = useReducedMotion()
+
+  const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.1 } },
+  }
+  const itemVariants = {
+    hidden: shouldReduce ? {} : { opacity: 0, y: 32 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
 
   const soloPrice = PRICING.solo[period]
   const teamPrice = PRICING.team[period]
@@ -130,7 +131,7 @@ export function PricingSection() {
               variants={itemVariants}
               className="relative rounded-[16px] bg-brand-dark p-8"
             >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-white">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-brand px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-[#07130b]">
                 Most popular
               </div>
 
@@ -161,7 +162,7 @@ export function PricingSection() {
 
               <Link
                 href="/signup"
-                className="block w-full rounded-[9px] bg-brand py-[0.85rem] text-center text-[0.9rem] font-semibold text-white transition-colors hover:bg-brand/90"
+                className="block w-full rounded-[9px] bg-brand py-[0.85rem] text-center text-[0.9rem] font-semibold text-[#07130b] transition-colors hover:bg-brand/90"
               >
                 Start free trial →
               </Link>

@@ -1,16 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Storefront, Buildings, Briefcase, Check } from '@phosphor-icons/react'
-
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
-}
-const itemVariants = {
-  hidden: { opacity: 0, y: 28 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-}
 
 const personas = [
   {
@@ -52,6 +43,19 @@ const personas = [
 ]
 
 export function WhoSection() {
+  const shouldReduce = useReducedMotion()
+
+  const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.1 } },
+  }
+  const itemVariants = {
+    hidden: shouldReduce ? {} : { opacity: 0, y: 28 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
+
+  const [agencies, ...secondaryPersonas] = personas
+
   return (
     <section className="bg-background-surface py-20">
       <div className="mx-auto max-w-[1060px] px-[5%]">
@@ -61,6 +65,7 @@ export function WhoSection() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
+          {/* Section header */}
           <motion.div variants={itemVariants}>
             <span className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-brand">
               Who it&apos;s for
@@ -76,8 +81,44 @@ export function WhoSection() {
             </p>
           </motion.div>
 
-          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
-            {personas.map((persona) => (
+          {/* Featured Agencies card — full width */}
+          <motion.div
+            variants={itemVariants}
+            className="mt-12 mb-5 rounded-[14px] border border-border bg-background-overlay p-8 dark:border-white/8 dark:bg-white/5 md:flex md:items-start md:gap-12"
+          >
+            <div className="md:flex-1">
+              <div className="mb-4 text-brand">
+                <agencies.icon size={28} weight="duotone" />
+              </div>
+              <span className="text-[0.75rem] font-bold uppercase tracking-[0.08em] text-brand">
+                {agencies.label}
+              </span>
+              <h3 className="mt-1.5 mb-3 font-display text-[1.15rem] font-bold tracking-tight text-foreground">
+                {agencies.title}
+              </h3>
+              <p className="text-[0.9rem] leading-relaxed text-foreground-lighter">
+                {agencies.description}
+              </p>
+            </div>
+            <ul className="mt-6 space-y-2.5 md:mt-0 md:w-[280px] md:shrink-0">
+              {agencies.bullets.map((bullet) => (
+                <li key={bullet} className="flex items-start gap-2">
+                  <Check
+                    size={14}
+                    weight="bold"
+                    className="mt-0.5 shrink-0 text-brand"
+                  />
+                  <span className="text-[0.85rem] leading-snug text-foreground-lighter">
+                    {bullet}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Brands + Freelancers — 2-col secondary cards */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {secondaryPersonas.map((persona) => (
               <motion.div
                 key={persona.title}
                 variants={itemVariants}

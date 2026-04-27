@@ -1,16 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Check, X } from '@phosphor-icons/react'
-
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-}
-const itemVariants = {
-  hidden: { opacity: 0, y: 28 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-}
 
 type CellValue = 'yes' | 'no' | 'partial'
 
@@ -67,51 +58,43 @@ const rows: ComparisonRow[] = [
 ]
 
 function Cell({ value, highlighted }: { value: CellValue; highlighted?: boolean }) {
+  const baseTd = highlighted
+    ? 'bg-brand-dark/5 border-l border-l-brand/25 dark:bg-brand-dark/10 px-5 py-4 text-center align-middle'
+    : 'px-5 py-4 text-center align-middle'
+
   if (value === 'yes') {
     return (
-      <td
-        className={
-          highlighted
-            ? 'bg-brand-dark/5 dark:bg-brand-dark/10 px-5 py-4 text-center align-middle'
-            : 'px-5 py-4 text-center align-middle'
-        }
-      >
-        <Check
-          size={16}
-          weight="bold"
-          className={highlighted ? 'inline text-brand' : 'inline text-brand'}
-        />
+      <td className={baseTd}>
+        <Check size={16} weight="bold" className="inline text-brand" />
       </td>
     )
   }
   if (value === 'no') {
     return (
-      <td
-        className={
-          highlighted
-            ? 'bg-brand-dark/5 dark:bg-brand-dark/10 px-5 py-4 text-center align-middle'
-            : 'px-5 py-4 text-center align-middle'
-        }
-      >
+      <td className={baseTd}>
         <X size={16} weight="bold" className="inline text-border-strong dark:text-white/20" />
       </td>
     )
   }
-  // partial
   return (
-    <td
-      className={
-        highlighted
-          ? 'bg-brand-dark/5 dark:bg-brand-dark/10 px-5 py-4 text-center align-middle'
-          : 'px-5 py-4 text-center align-middle'
-      }
-    >
+    <td className={baseTd}>
       <span className="text-[0.8rem] text-foreground-lighter">Partial</span>
     </td>
   )
 }
 
 export function ComparisonSection() {
+  const shouldReduce = useReducedMotion()
+
+  const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.08 } },
+  }
+  const itemVariants = {
+    hidden: shouldReduce ? {} : { opacity: 0, y: 28 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
+
   return (
     <section className="py-20">
       <div className="mx-auto max-w-[1060px] px-[5%]">
@@ -138,40 +121,44 @@ export function ComparisonSection() {
           </motion.div>
 
           <motion.div variants={itemVariants} className="mt-10 overflow-hidden rounded-[14px] border border-border">
+            {/* Mobile scroll hint */}
+            <p className="px-5 pt-3 pb-1 text-[0.78rem] text-foreground-muted sm:hidden">
+              Scroll to compare →
+            </p>
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] border-collapse bg-background-surface">
-              <thead>
-                <tr>
-                  <th className="bg-background-muted px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
-                    Feature
-                  </th>
-                  <th className="border-l border-border px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
-                    Generic trackers
-                  </th>
-                  <th className="border-l border-border px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
-                    Expensive CRMs
-                  </th>
-                  <th className="border-l border-border bg-brand-dark px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-white/85">
-                    Instroom Post Tracker
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, i) => (
-                  <tr
-                    key={row.feature}
-                    className={i < rows.length - 1 ? 'border-b border-border' : ''}
-                  >
-                    <td className="px-5 py-4 text-[0.875rem] text-foreground">
-                      {row.feature}
-                    </td>
-                    <Cell value={row.generic} />
-                    <Cell value={row.crm} />
-                    <Cell value={row.instroom} highlighted />
+              <table className="w-full min-w-[560px] border-collapse bg-background-surface">
+                <thead>
+                  <tr>
+                    <th className="bg-background-muted px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
+                      Feature
+                    </th>
+                    <th className="border-l border-border px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
+                      Generic trackers
+                    </th>
+                    <th className="border-l border-border px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
+                      Expensive CRMs
+                    </th>
+                    <th className="border-l border-l-brand/25 bg-brand-dark px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-white/85">
+                      Instroom Post Tracker
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {rows.map((row, i) => (
+                    <tr
+                      key={row.feature}
+                      className={i < rows.length - 1 ? 'border-b border-border' : ''}
+                    >
+                      <td className="px-5 py-4 text-[0.875rem] text-foreground">
+                        {row.feature}
+                      </td>
+                      <Cell value={row.generic} />
+                      <Cell value={row.crm} />
+                      <Cell value={row.instroom} highlighted />
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </motion.div>
         </motion.div>

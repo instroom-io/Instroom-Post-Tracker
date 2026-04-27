@@ -30,27 +30,47 @@ export default function MarketingLayout({
         <main className="relative z-10">{children}</main>
 
         {/* Footer */}
-        <footer className="bg-marketing-dark px-[5%] py-12">
-          <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
-            {/* Logo — left on desktop, centered on mobile */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-16 w-auto brightness-0 invert md:justify-self-start" />
-
-            {/* Links — center column on desktop, centered on mobile */}
-            <div className="flex flex-wrap justify-center gap-6">
-              <Link href="/privacy" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
-                Privacy policy
-              </Link>
-              <Link href="/terms" className="text-[0.8rem] text-white/35 transition-colors hover:text-white/60">
-                Terms of service
-              </Link>
-              <SupportButton />
+        <footer className="bg-marketing-dark px-[5%] py-14">
+          <div className="mx-auto max-w-7xl">
+            {/* Top row: logo + product nav */}
+            <div className="mb-10 flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-9 w-auto brightness-0 invert" />
+              <div className="flex flex-wrap gap-x-8 gap-y-3">
+                {(
+                  [
+                    ['#features', 'Features'],
+                    ['#how-it-works', 'How It Works'],
+                    ['#pricing', 'Pricing'],
+                    ['#faq', 'FAQ'],
+                  ] as const
+                ).map(([href, label]) => (
+                  <a
+                    key={href}
+                    href={href}
+                    className="text-[0.8rem] font-medium text-white/40 transition-colors hover:text-white/65"
+                  >
+                    {label}
+                  </a>
+                ))}
+              </div>
             </div>
 
-            {/* Copyright — right on desktop, centered on mobile */}
-            <p className="text-[0.78rem] text-white/25 md:justify-self-end md:text-right">
-              © {new Date().getFullYear()} Instroom. Built by Armful Media.
-            </p>
+            {/* Bottom row: legal + copyright */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-6">
+              <div className="flex flex-wrap gap-5">
+                <Link href="/privacy" className="text-[0.75rem] text-white/30 transition-colors hover:text-white/55">
+                  Privacy policy
+                </Link>
+                <Link href="/terms" className="text-[0.75rem] text-white/30 transition-colors hover:text-white/55">
+                  Terms of service
+                </Link>
+                <SupportButton />
+              </div>
+              <p className="text-[0.75rem] text-white/20">
+                © {new Date().getFullYear()} Instroom. Built by Armful Media.
+              </p>
+            </div>
           </div>
         </footer>
 

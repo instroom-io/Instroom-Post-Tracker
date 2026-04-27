@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   MagnifyingGlass,
   FilmSlate,
@@ -9,15 +9,6 @@ import {
   Warning,
   ShieldWarning,
 } from '@phosphor-icons/react'
-
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-}
-const itemVariants = {
-  hidden: { opacity: 0, y: 28 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45 } },
-}
 
 const painPoints = [
   {
@@ -59,6 +50,17 @@ const painPoints = [
 ]
 
 export function PainSection() {
+  const shouldReduce = useReducedMotion()
+
+  const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.08 } },
+  }
+  const itemVariants = {
+    hidden: shouldReduce ? {} : { opacity: 0, y: 28 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45 } },
+  }
+
   return (
     <section className="bg-marketing-dark py-20" id="pain">
       <div className="mx-auto max-w-[1060px] px-[5%]">
@@ -68,6 +70,7 @@ export function PainSection() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.15 }}
         >
+          {/* Section header */}
           <motion.div variants={itemVariants}>
             <span className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-brand">
               Sound familiar?
@@ -83,22 +86,46 @@ export function PainSection() {
             </p>
           </motion.div>
 
-          <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
-            {painPoints.map((point) => (
+          {/* Top 2 — hero treatment, no glass, no blur */}
+          <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {painPoints.slice(0, 2).map((point) => (
               <motion.div
                 key={point.title}
                 variants={itemVariants}
-                className="rounded-xl border border-white/8 bg-white/5 p-6 backdrop-blur-sm"
+                className="rounded-xl border border-white/10 p-7"
               >
                 <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-brand/15">
                   <point.icon size={18} weight="duotone" className="text-brand" />
                 </div>
-                <h3 className="mb-2 font-display text-[0.95rem] font-bold text-white">
+                <h3 className="mb-2 font-display text-[1rem] font-bold text-white">
                   {point.title}
                 </h3>
-                <p className="text-[0.85rem] leading-relaxed text-white/45">
+                <p className="text-[0.875rem] leading-relaxed text-white/50">
                   {point.description}
                 </p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Bottom 4 — compact row format */}
+          <div className="mt-1 grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+            {painPoints.slice(2).map((point) => (
+              <motion.div
+                key={point.title}
+                variants={itemVariants}
+                className="flex gap-4 border-t border-white/8 py-6"
+              >
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand/12">
+                  <point.icon size={14} weight="duotone" className="text-brand" />
+                </div>
+                <div>
+                  <h3 className="mb-1 font-display text-[0.9rem] font-bold text-white">
+                    {point.title}
+                  </h3>
+                  <p className="text-[0.82rem] leading-relaxed text-white/45">
+                    {point.description}
+                  </p>
+                </div>
               </motion.div>
             ))}
           </div>
