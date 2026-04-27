@@ -56,10 +56,10 @@ export default async function AgencyRequestsPage({ params }: PageProps) {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="border-b border-border bg-background-subtle">
-                  <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">Brand</th>
-                  <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">Contact email</th>
-                  <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">Sent</th>
-                  <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">Status</th>
+                  <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">Brand</th>
+                  <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">Contact email</th>
+                  <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">Sent</th>
+                  <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border bg-background-surface">

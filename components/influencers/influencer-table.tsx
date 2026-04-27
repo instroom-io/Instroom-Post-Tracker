@@ -104,25 +104,25 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
             <tr className="border-b border-border">
               <th
                 onClick={() => toggleSort('name')}
-                className="cursor-pointer select-none px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter hover:text-foreground"
+                className="cursor-pointer select-none px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter hover:text-foreground"
               >
                 <span className="inline-flex items-center gap-1.5">
                   Influencer
                   <SortIcon active={sortKey === 'name'} dir={sortDir} />
                 </span>
               </th>
-              <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+              <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                 <PlatformIcon platform="instagram" size={14} />
               </th>
-              <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+              <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                 <PlatformIcon platform="tiktok" size={14} />
               </th>
-              <th className="px-5 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+              <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                 <PlatformIcon platform="youtube" size={14} />
               </th>
               <th
                 onClick={() => toggleSort('campaign_count')}
-                className="cursor-pointer select-none px-5 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter hover:text-foreground"
+                className="cursor-pointer select-none px-5 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter hover:text-foreground"
               >
                 <span className="inline-flex items-center justify-end gap-1.5">
                   Campaigns

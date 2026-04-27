@@ -195,7 +195,7 @@ export function AccountSettingsForm({ preferredLanguage, timezone, displayName, 
     <div className="flex flex-col gap-6 sm:flex-row sm:gap-10">
       {/* Sidebar */}
       <nav className="sm:w-[180px] sm:flex-shrink-0">
-        <p className="mb-2 hidden text-[11px] font-semibold uppercase tracking-wider text-foreground-muted sm:block">Account</p>
+        <p className="mb-2 hidden text-[11px] font-semibold text-foreground-muted sm:block">Account</p>
         <ul className="flex flex-row gap-1 overflow-x-auto sm:flex-col sm:gap-0.5 sm:overflow-x-visible">
           {SIDEBAR_ITEMS.map((item) => (
             <li key={item.id} className="flex-shrink-0 sm:flex-shrink">

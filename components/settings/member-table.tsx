@@ -69,7 +69,7 @@ function JoinLinkCopy({ workspaceSlug }: { workspaceSlug: string }) {
   return (
     <div className="flex items-center gap-2 border-b border-border px-4 py-3">
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-foreground-lighter uppercase tracking-wider mb-0.5">
+        <p className="text-[11px] font-semibold text-foreground-lighter mb-0.5">
           Join link
         </p>
         <p className="text-[11px] text-foreground-muted truncate">{joinUrl}</p>
@@ -137,7 +137,7 @@ function PendingRequestsSection({
     <div className="border-b border-border">
       <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50/60">
         <Clock size={13} className="text-amber-600 shrink-0" />
-        <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">
+        <span className="text-[11px] font-semibold text-amber-700">
           Pending requests ({visible.length})
         </span>
       </div>
@@ -243,7 +243,7 @@ function InvitedMembersSection({
     <div className="border-b border-border">
       <div className="flex items-center gap-2 px-4 py-2.5 bg-background-subtle">
         <EnvelopeSimple size={13} className="text-foreground-lighter shrink-0" />
-        <span className="text-[11px] font-semibold text-foreground-lighter uppercase tracking-wider">
+        <span className="text-[11px] font-semibold text-foreground-lighter">
           Invitations ({visible.length})
         </span>
       </div>
@@ -365,13 +365,13 @@ export function MemberTable({
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+                <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Member
                 </th>
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+                <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Email
                 </th>
-                <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-foreground-lighter">
+                <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Role
                 </th>
                 <th className="w-10" />

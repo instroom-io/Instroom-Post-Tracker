@@ -182,7 +182,7 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
                     >
                       <div className="flex items-center gap-2">
                         <PlatformIcon platform={platform} size={13} />
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
+                        <span className="text-[11px] font-semibold text-foreground-muted">
                           {p.label}
                         </span>
                       </div>

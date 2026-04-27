@@ -67,7 +67,7 @@ const downloadVariant: Record<DownloadStatus, 'muted' | 'success' | 'warning' | 
 function MetricCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-background-muted p-3">
-      <p className="text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
+      <p className="text-[11px] font-medium text-foreground-muted">
         {label}
       </p>
       <p className="mt-1 font-display text-[17px] font-extrabold text-foreground">{value}</p>
@@ -337,7 +337,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                   <div className="flex flex-1 flex-col gap-4 p-5">
                     {/* Caption */}
                     <div>
-                      <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
+                      <p className="mb-1 text-[11px] font-medium text-foreground-muted">
                         Caption
                       </p>
                       {post.caption ? (
@@ -352,7 +352,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
                     {/* Matched tracking keywords */}
                     {hasMatches && (
                       <div>
-                        <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
+                        <p className="mb-1.5 text-[11px] font-medium text-foreground-muted">
                           Matched tracking
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -380,7 +380,7 @@ export function PostDetailModal({ post, onClose, trackingConfigs, workspaceId, m
 
                 {/* Metrics grid */}
                 <div className="border-t border-border px-5 py-4">
-                  <p className="mb-3 text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
+                  <p className="mb-3 text-[11px] font-medium text-foreground-muted">
                     Performance metrics
                   </p>
                   {m ? (

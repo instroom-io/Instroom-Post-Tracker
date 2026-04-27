@@ -44,7 +44,7 @@ export function JoinRequestForm({ workspaceId, workspaceName }: JoinRequestFormP
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-lg border border-border bg-background-muted/40 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-lighter mb-0.5">
+        <p className="text-[11px] font-semibold text-foreground-lighter mb-0.5">
           Workspace
         </p>
         <p className="text-[13px] font-medium text-foreground">{workspaceName}</p>

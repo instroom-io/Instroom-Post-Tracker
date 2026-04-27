@@ -274,22 +274,22 @@ export function CampaignInfluencersList({
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Influencer
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Platforms
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Status
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Usage rights
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Product sent
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter">
+              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Follow-up
               </th>
               {canEdit && <th className="w-10 px-5 py-3" />}

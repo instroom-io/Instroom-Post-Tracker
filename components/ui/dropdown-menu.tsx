@@ -229,7 +229,7 @@ export function DropdownMenuSeparator() {
 
 export function DropdownMenuLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+    <div className="px-3 py-1.5 text-[11px] font-semibold text-foreground-muted">
       {children}
     </div>
   )

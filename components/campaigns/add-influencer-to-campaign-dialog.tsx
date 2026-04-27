@@ -420,7 +420,7 @@ export function AddInfluencerToCampaignDialog({
                 </button>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                  <label className="text-[11px] font-medium text-foreground-muted">
                     Product sent date <span className="normal-case text-foreground-subtle">(optional)</span>
                   </label>
                   <input
@@ -487,7 +487,7 @@ export function AddInfluencerToCampaignDialog({
 
                 {/* Product sent date */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                  <label className="text-[11px] font-medium text-foreground-muted">
                     Product sent date <span className="normal-case text-foreground-subtle">(optional)</span>
                   </label>
                   <input
@@ -593,9 +593,9 @@ export function AddInfluencerToCampaignDialog({
                   <div className="grid grid-cols-[16px_24px_1fr_60px_88px] items-center gap-3 border-b border-border bg-background-muted px-3 py-2">
                     <span />
                     <span />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Handle</span>
-                    <span className="text-center text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Platform</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-foreground-subtle">Status</span>
+                    <span className="text-[11px] font-semibold text-foreground-subtle">Handle</span>
+                    <span className="text-center text-[11px] font-semibold text-foreground-subtle">Platform</span>
+                    <span className="text-[11px] font-semibold text-foreground-subtle">Status</span>
                   </div>
                   <div className="max-h-56 overflow-y-auto divide-y divide-border">
                     {validationResults.map((r) => {

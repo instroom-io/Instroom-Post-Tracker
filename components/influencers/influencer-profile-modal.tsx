@@ -36,7 +36,7 @@ interface InfluencerProfileModalProps {
 function MetricCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-background-muted p-3">
-      <p className="text-[10px] font-medium uppercase tracking-wide text-foreground-muted">{label}</p>
+      <p className="text-[11px] font-medium text-foreground-muted">{label}</p>
       <p className="mt-1 font-display text-[17px] font-extrabold text-foreground">{value}</p>
     </div>
   )
@@ -259,7 +259,7 @@ export function InfluencerProfileModal({
         <div className="max-h-[calc(100dvh-180px)] overflow-y-auto sm:max-h-[calc(100dvh-220px)]">
           {/* Performance */}
           <div className="border-t border-border px-6 py-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
+            <p className="mb-3 text-[11px] font-semibold text-foreground-muted">
               Performance
             </p>
             {loading ? (
@@ -320,7 +320,7 @@ export function InfluencerProfileModal({
 
           {/* Campaigns */}
           <div className="border-t border-border px-6 py-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
+            <p className="mb-3 text-[11px] font-semibold text-foreground-muted">
               Campaigns{profile ? ` (${profile.campaigns.length})` : ''}
             </p>
             {loading ? (
@@ -342,7 +342,7 @@ export function InfluencerProfileModal({
 
           {/* Recent Posts */}
           <div className="border-t border-border px-6 py-4 pb-6">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
+            <p className="mb-3 text-[11px] font-semibold text-foreground-muted">
               Recent Posts
             </p>
             {loading ? (

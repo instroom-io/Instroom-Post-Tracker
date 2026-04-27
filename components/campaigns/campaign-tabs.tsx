@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DownloadSimple, Stack, HardDrives, Eye, TrendUp } from '@phosphor-icons/react'
+import { DownloadSimple } from '@phosphor-icons/react'
 import { CampaignPostsTable } from './campaign-posts-table'
 import { CampaignPostsGallery } from './campaign-posts-gallery'
 import { CampaignInfluencersList } from './campaign-influencers-list'
@@ -156,25 +156,17 @@ export function CampaignTabs({
             {/* Summary metric cards */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
-                <div className="flex items-start justify-between">
-                  <p className="text-[11px] font-medium text-foreground-lighter">Posts detected</p>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10">
-                    <Stack size={14} className="text-brand" />
-                  </div>
-                </div>
-                <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
+                <div className="mb-3 h-0.5 w-8 rounded-full bg-brand" />
+                <p className="text-[11px] font-medium text-foreground-lighter">Posts detected</p>
+                <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">
                   {posts.length}
                 </p>
-                <p className="mt-0.5 text-[11px] text-foreground-muted">via Ensemble</p>
+                <p className="mt-0.5 text-[11px] text-foreground-muted">in this campaign</p>
               </div>
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
-                <div className="flex items-start justify-between">
-                  <p className="text-[11px] font-medium text-foreground-lighter">Downloaded</p>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
-                    <HardDrives size={14} className="text-info" />
-                  </div>
-                </div>
-                <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
+                <div className="mb-3 h-0.5 w-8 rounded-full bg-info" />
+                <p className="text-[11px] font-medium text-foreground-lighter">Downloaded</p>
+                <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">
                   {downloadedPosts.length}
                 </p>
                 <p className="mt-0.5 text-[11px] text-foreground-muted">
@@ -184,25 +176,17 @@ export function CampaignTabs({
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
-                <div className="flex items-start justify-between">
-                  <p className="text-[11px] font-medium text-foreground-lighter">Total views</p>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10">
-                    <Eye size={14} className="text-warning" />
-                  </div>
-                </div>
-                <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
+                <div className="mb-3 h-0.5 w-8 rounded-full bg-accent" />
+                <p className="text-[11px] font-medium text-foreground-lighter">Total views</p>
+                <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">
                   {formatNumber(totalViews)}
                 </p>
                 <p className="mt-0.5 text-[11px] text-foreground-muted">across all posts</p>
               </div>
               <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
-                <div className="flex items-start justify-between">
-                  <p className="text-[11px] font-medium text-foreground-lighter">Total EMV</p>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10">
-                    <TrendUp size={14} className="text-warning" />
-                  </div>
-                </div>
-                <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
+                <div className="mb-3 h-0.5 w-8 rounded-full bg-warning" />
+                <p className="text-[11px] font-medium text-foreground-lighter">Total EMV</p>
+                <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">
                   {formatEMV(totalEmv)}
                 </p>
                 <p className="mt-0.5 text-[11px] text-foreground-muted">estimated value</p>

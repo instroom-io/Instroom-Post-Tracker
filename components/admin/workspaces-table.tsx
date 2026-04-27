@@ -51,10 +51,10 @@ export function WorkspacesTable({ workspaces }: Props) {
       <table className="w-full text-[12px]">
         <thead>
           <tr className="border-b border-border text-left">
-            <th className="pb-2.5 pr-4 text-[10px] font-semibold uppercase tracking-wide text-foreground-lighter">Account</th>
-            <th className="pb-2.5 pr-4 text-[10px] font-semibold uppercase tracking-wide text-foreground-lighter">Plan Status</th>
-            <th className="pb-2.5 pr-4 text-[10px] font-semibold uppercase tracking-wide text-foreground-lighter">Trial / Billing</th>
-            <th className="pb-2.5 text-[10px] font-semibold uppercase tracking-wide text-foreground-lighter">Owner</th>
+            <th className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Account</th>
+            <th className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Plan Status</th>
+            <th className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Trial / Billing</th>
+            <th className="pb-2.5 text-[11px] font-semibold text-foreground-lighter">Owner</th>
           </tr>
         </thead>
         <tbody>

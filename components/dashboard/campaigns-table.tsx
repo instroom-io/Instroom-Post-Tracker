@@ -180,7 +180,7 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
                 <th
                   scope="col"
                   onClick={() => toggleSort('name')}
-                  className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter hover:text-foreground"
+                  className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter hover:text-foreground"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     Campaign
@@ -190,7 +190,7 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
                 <th
                   scope="col"
                   onClick={() => toggleSort('status')}
-                  className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter hover:text-foreground"
+                  className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter hover:text-foreground"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     Status
@@ -200,7 +200,7 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
                 <th
                   scope="col"
                   onClick={() => toggleSort('post_count')}
-                  className="cursor-pointer select-none px-5 py-3 text-right text-[11px] font-medium uppercase tracking-wide text-foreground-lighter hover:text-foreground"
+                  className="cursor-pointer select-none px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter hover:text-foreground"
                 >
                   <span className="inline-flex items-center justify-end gap-1.5">
                     Posts
@@ -210,7 +210,7 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
                 <th
                   scope="col"
                   onClick={() => toggleSort('start_date')}
-                  className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-foreground-lighter hover:text-foreground"
+                  className="cursor-pointer select-none px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter hover:text-foreground"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     Date range

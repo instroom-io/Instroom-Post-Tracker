@@ -290,13 +290,13 @@ export function InfluencerListTable({
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-background-muted/40">
-                <th className="px-5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-lighter">
+                <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Influencer
                 </th>
-                <th className="px-5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-lighter">
+                <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Platforms
                 </th>
-                <th className="px-5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground-lighter">
+                <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                   Campaigns
                 </th>
                 {canEdit && <th className="w-10 px-3 py-2.5" />}
@@ -516,7 +516,7 @@ export function InfluencerListTable({
             </ul>
             {removeConfirmInfluencer && removeConfirmInfluencer.campaigns.length > 0 && (
               <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2">
-                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-destructive/70">
+                <p className="mb-1.5 text-[11px] font-semibold text-destructive/70">
                   Active in {removeConfirmInfluencer.campaigns.length} campaign{removeConfirmInfluencer.campaigns.length !== 1 ? 's' : ''}
                 </p>
                 <ul className="space-y-0.5">
@@ -613,7 +613,7 @@ export function InfluencerListTable({
               </DialogHeader>
               <DialogBody className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                  <label className="text-[11px] font-medium text-foreground-muted">
                     Campaign
                   </label>
                   {availableCampaigns.length === 0 ? (
@@ -634,7 +634,7 @@ export function InfluencerListTable({
                   )}
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+                  <label className="text-[11px] font-medium text-foreground-muted">
                     Product sent date <span className="normal-case text-foreground-subtle">(optional)</span>
                   </label>
                   <input

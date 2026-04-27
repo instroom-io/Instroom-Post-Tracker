@@ -81,7 +81,7 @@ export function PlatformBreakdown({ data }: PlatformBreakdownProps) {
         </ResponsiveContainer>
         {/* Center label */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <p className="font-display text-[20px] font-extrabold leading-none text-foreground">
+          <p className="font-display text-[20px] font-extrabold tracking-tight tabular-nums leading-none text-foreground">
             {totalPosts}
           </p>
           <p className="mt-0.5 text-[10px] text-foreground-muted">posts</p>
@@ -99,7 +99,7 @@ export function PlatformBreakdown({ data }: PlatformBreakdownProps) {
             >
               <div className="mb-1 flex items-center gap-1.5">
                 <PlatformIcon platform={d.platform as 'instagram' | 'tiktok' | 'youtube'} size={11} />
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted capitalize">
+                <p className="text-[11px] font-semibold text-foreground-muted capitalize">
                   {d.platform}
                 </p>
               </div>

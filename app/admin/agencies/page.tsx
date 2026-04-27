@@ -81,23 +81,26 @@ export default async function AdminAgenciesPage() {
 
       {/* 3 stat cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border bg-background-surface p-4 shadow-md">
+        <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
+          <div className="mb-3 h-0.5 w-8 rounded-full bg-info" />
           <p className="text-[12px] font-medium text-foreground-lighter">Team Plan Accounts</p>
-          <p className="mt-2 font-display text-[22px] font-extrabold text-info">{agencies.length}</p>
+          <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">{agencies.length}</p>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {trialCount > 0 && <PlanPill type="trial" count={trialCount} />}
             {proCount   > 0 && <PlanPill type="pro"   count={proCount} />}
             {freeCount  > 0 && <PlanPill type="free"  count={freeCount} />}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-background-surface p-4 shadow-md">
+        <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
+          <div className="mb-3 h-0.5 w-8 rounded-full bg-brand" />
           <p className="text-[12px] font-medium text-foreground-lighter">Brand Workspaces</p>
-          <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{brandWorkspaces.length}</p>
+          <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">{brandWorkspaces.length}</p>
           <p className="mt-0.5 text-[11px] text-foreground-muted">managed under team accounts</p>
         </div>
-        <div className="rounded-xl border border-border bg-background-surface p-4 shadow-md">
+        <div className="rounded-xl border border-border bg-background-surface p-4 shadow-sm">
+          <div className={`mb-3 h-0.5 w-8 rounded-full ${expiringCount > 0 ? 'bg-destructive' : 'bg-foreground-muted/30'}`} />
           <p className="text-[12px] font-medium text-foreground-lighter">Expiring ≤ 3 days</p>
-          <p className={`mt-2 font-display text-[22px] font-extrabold ${expiringCount > 0 ? 'text-destructive' : 'text-foreground'}`}>
+          <p className={`mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums ${expiringCount > 0 ? 'text-destructive' : 'text-foreground'}`}>
             {expiringCount}
           </p>
           <p className="mt-0.5 text-[11px] text-foreground-muted">

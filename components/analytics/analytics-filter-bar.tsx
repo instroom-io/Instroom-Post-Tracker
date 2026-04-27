@@ -137,7 +137,7 @@ function DateRangeFilter({
       {open && (
         <div className="absolute left-0 top-full z-50 mt-1.5 w-52 rounded-xl border border-border bg-background-surface shadow-md">
           <div className="p-1">
-            <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <div className="px-3 py-1.5 text-[11px] font-semibold text-foreground-muted">
               Date range
             </div>
 
@@ -161,7 +161,7 @@ function DateRangeFilter({
 
             <div className="-mx-1 my-1 border-t border-border" />
 
-            <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <div className="px-3 py-1.5 text-[11px] font-semibold text-foreground-muted">
               Custom range
             </div>
             <div className="space-y-1.5 px-2 pb-2">

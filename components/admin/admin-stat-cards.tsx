@@ -1,4 +1,3 @@
-import { HardDrives, TrendUp } from '@phosphor-icons/react/dist/ssr'
 import { createServiceClient } from '@/lib/supabase/server'
 
 function PlanPill({ type, count }: { type: 'trial' | 'pro' | 'free'; count: number }) {
@@ -76,9 +75,10 @@ export async function AdminStatCards() {
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
 
       {/* Card 1 — Solo Plan Accounts */}
-      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[0]}`}>
+      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-sm ${delayClasses[0]}`}>
+        <div className="mb-3 h-0.5 w-8 rounded-full bg-accent" />
         <p className="text-[12px] font-medium text-foreground-lighter">Solo Plan Accounts</p>
-        <p className="mt-2 font-display text-[22px] font-extrabold text-accent">{soloTotal}</p>
+        <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">{soloTotal}</p>
         <div className="mt-1.5 flex flex-wrap gap-1">
           {soloTrialCount > 0 && <PlanPill type="trial" count={soloTrialCount} />}
           {soloProCount   > 0 && <PlanPill type="pro"   count={soloProCount} />}
@@ -87,9 +87,10 @@ export async function AdminStatCards() {
       </div>
 
       {/* Card 2 — Team Plan Accounts */}
-      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[1]}`}>
+      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-sm ${delayClasses[1]}`}>
+        <div className="mb-3 h-0.5 w-8 rounded-full bg-info" />
         <p className="text-[12px] font-medium text-foreground-lighter">Team Plan Accounts</p>
-        <p className="mt-2 font-display text-[22px] font-extrabold text-info">{teamTotal}</p>
+        <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">{teamTotal}</p>
         <div className="mt-1.5 flex flex-wrap gap-1">
           {teamTrialCount > 0 && <PlanPill type="trial" count={teamTrialCount} />}
           {teamProCount   > 0 && <PlanPill type="pro"   count={teamProCount} />}
@@ -98,9 +99,10 @@ export async function AdminStatCards() {
       </div>
 
       {/* Card 3 — Trials Expiring */}
-      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[2]}`}>
+      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-sm ${delayClasses[2]}`}>
+        <div className={`mb-3 h-0.5 w-8 rounded-full ${expiringCount > 0 ? 'bg-destructive' : 'bg-foreground-muted/30'}`} />
         <p className="text-[12px] font-medium text-foreground-lighter">Trials Expiring ≤ 3 days</p>
-        <p className={`mt-2 font-display text-[22px] font-extrabold ${expiringCount > 0 ? 'text-destructive' : 'text-foreground'}`}>
+        <p className={`mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums ${expiringCount > 0 ? 'text-destructive' : 'text-foreground'}`}>
           {expiringCount}
         </p>
         <p className="mt-0.5 text-[11px] text-foreground-muted">
@@ -109,28 +111,20 @@ export async function AdminStatCards() {
       </div>
 
       {/* Card 4 — Posts Downloaded */}
-      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[3]}`}>
-        <div className="flex items-start justify-between">
-          <p className="text-[12px] font-medium text-foreground-lighter">Posts Downloaded</p>
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10">
-            <HardDrives size={14} weight="duotone" className="text-info" />
-          </div>
-        </div>
-        <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">
+      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-sm ${delayClasses[3]}`}>
+        <div className="mb-3 h-0.5 w-8 rounded-full bg-brand" />
+        <p className="text-[12px] font-medium text-foreground-lighter">Posts Downloaded</p>
+        <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">
           {(postCount ?? 0).toLocaleString()}
         </p>
         <p className="mt-0.5 text-[11px] text-foreground-muted">to Google Drive</p>
       </div>
 
       {/* Card 5 — Platform EMV */}
-      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-md ${delayClasses[4]}`}>
-        <div className="flex items-start justify-between">
-          <p className="text-[12px] font-medium text-foreground-lighter">Platform EMV</p>
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10">
-            <TrendUp size={14} weight="duotone" className="text-warning" />
-          </div>
-        </div>
-        <p className="mt-2 font-display text-[22px] font-extrabold text-foreground">{formattedEmv}</p>
+      <div className={`animate-fade-up rounded-xl border border-border bg-background-surface p-4 shadow-sm ${delayClasses[4]}`}>
+        <div className="mb-3 h-0.5 w-8 rounded-full bg-warning" />
+        <p className="text-[12px] font-medium text-foreground-lighter">Platform EMV</p>
+        <p className="mt-1 font-display text-[24px] font-extrabold tracking-tight tabular-nums text-foreground">{formattedEmv}</p>
         <p className="mt-0.5 text-[11px] text-foreground-muted">estimated media value</p>
       </div>
 
