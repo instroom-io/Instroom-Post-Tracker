@@ -280,7 +280,7 @@ export function UpgradeClient({
                 max={20}
                 value={extra}
                 onChange={(e) => setExtra(Math.max(0, parseInt(e.target.value) || 0))}
-                className="h-9 w-20 rounded-lg border border-border bg-background px-3 text-[13px] text-foreground focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="h-9 w-20 rounded-lg border border-border bg-background px-3 text-[13px] text-foreground focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20"
               />
               <span className="text-[12px] text-foreground-lighter">
                 extra workspaces · +${extraPrice}/mo each

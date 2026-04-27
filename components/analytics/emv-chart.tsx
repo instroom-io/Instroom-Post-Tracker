@@ -28,7 +28,7 @@ export function EmvChart({ data }: EmvChartProps) {
   const maxEmv = sorted[0]?.emv ?? 1
 
   return (
-    <div className="space-y-2.5">
+    <div role="img" aria-label="EMV ranking by influencer" className="space-y-2.5">
       {sorted.map((item, i) => (
         <div key={item.handle} className="flex items-center gap-3">
           <span className="w-4 shrink-0 text-right text-[11px] tabular-nums text-foreground-muted">

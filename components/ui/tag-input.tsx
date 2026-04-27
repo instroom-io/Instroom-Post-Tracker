@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, KeyboardEvent } from 'react'
+import { useState, useRef, useId, KeyboardEvent } from 'react'
 import { X } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
@@ -28,6 +28,7 @@ export function TagInput({
   const [inputValue, setInputValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const inputId = useId()
 
   function addTag(raw: string) {
     // Strip prefix characters and whitespace
@@ -63,7 +64,7 @@ export function TagInput({
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="text-[12px] font-medium text-foreground-light">
+        <label htmlFor={inputId} className="text-[12px] font-medium text-foreground-light">
           {label}
         </label>
       )}
@@ -90,6 +91,7 @@ export function TagInput({
             {!disabled && (
               <button
                 type="button"
+                aria-label={`Remove ${prefix ?? ''}${tag}`}
                 onClick={(e) => {
                   e.stopPropagation()
                   removeTag(i)
@@ -107,6 +109,7 @@ export function TagInput({
         )}
         <input
           ref={inputRef}
+          id={inputId}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}

@@ -69,7 +69,7 @@ export function CtaSection() {
 
         <motion.p
           variants={itemVariants}
-          className="mt-5 text-[0.8rem] text-white/30"
+          className="mt-5 text-[0.8rem] text-white/55"
         >
           No credit card required · Works with your existing Google Drive ·
           Cancel anytime

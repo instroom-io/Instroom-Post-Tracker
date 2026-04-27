@@ -265,9 +265,10 @@ export function CampaignPostsGallery({
                   key={post.id}
                   role="button"
                   tabIndex={0}
+                  aria-label={`View post by @${post.influencer ? getInfluencerLabel(post.influencer) : 'influencer'}`}
                   onClick={() => setSelectedPost(post)}
                   onKeyDown={(e) => e.key === 'Enter' && setSelectedPost(post)}
-                  className="group rounded-xl overflow-hidden border border-border bg-background-surface shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-border-strong text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                  className="group rounded-xl overflow-hidden border border-border bg-background-surface shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-border-strong text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                 >
                   {/* Thumbnail + badges */}
                   <GalleryThumbnail post={post} workspaceId={workspaceId} />

@@ -385,7 +385,7 @@ export function AddInfluencerToCampaignDialog({
                         onClick={() => setSelectedId(inf.id)}
                         className={cn(
                           'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-background-muted first:rounded-t-lg last:rounded-b-lg',
-                          selectedId === inf.id && 'bg-brand/10 border-l-2 border-brand'
+                          selectedId === inf.id && 'bg-brand-muted ring-1 ring-inset ring-brand/30'
                         )}
                       >
                         <InfluencerAvatar
@@ -427,7 +427,7 @@ export function AddInfluencerToCampaignDialog({
                     type="date"
                     value={productSentAt}
                     onChange={(e) => setProductSentAt(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                   <p className="text-[11px] text-foreground-subtle">
                     {campaignPlatforms.includes('tiktok')
@@ -494,7 +494,7 @@ export function AddInfluencerToCampaignDialog({
                     type="date"
                     value={productSentAt}
                     onChange={(e) => setProductSentAt(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                   <p className="text-[11px] text-foreground-subtle">
                     {getProductSentHint(batchPlatform)}
@@ -509,7 +509,7 @@ export function AddInfluencerToCampaignDialog({
                     onChange={(e) => setBatchText(e.target.value)}
                     placeholder="Paste handles without @, one per line or comma-separated&#10;e.g. kellyx, debalans, nadia"
                     rows={4}
-                    className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-[13px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand transition-colors"
+                    className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:border-brand transition-colors"
                   />
                   {parsedHandles.length > 0 && (
                     <p className="text-[11px] text-foreground-muted">

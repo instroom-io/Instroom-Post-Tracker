@@ -72,7 +72,7 @@ function Cell({ value, highlighted }: { value: CellValue; highlighted?: boolean 
   if (value === 'no') {
     return (
       <td className={baseTd}>
-        <X size={16} weight="bold" className="inline text-border-strong dark:text-white/20" />
+        <X size={16} weight="bold" className="inline text-border-strong dark:text-white/55" />
       </td>
     )
   }
@@ -127,18 +127,19 @@ export function ComparisonSection() {
             </p>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] border-collapse bg-background-surface">
+                <caption className="sr-only">Feature comparison: Post Tracker vs generic trackers vs expensive CRMs</caption>
                 <thead>
                   <tr>
-                    <th className="bg-background-muted px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
+                    <th scope="col" className="bg-background-muted px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
                       Feature
                     </th>
-                    <th className="border-l border-border px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
+                    <th scope="col" className="border-l border-border px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
                       Generic trackers
                     </th>
-                    <th className="border-l border-border px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
+                    <th scope="col" className="border-l border-border px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-foreground-lighter dark:bg-white/5">
                       Expensive CRMs
                     </th>
-                    <th className="border-l border-l-brand/25 bg-brand-dark px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-white/85">
+                    <th scope="col" className="border-l border-l-brand/25 bg-brand-dark px-5 py-4 text-left text-[0.78rem] font-bold uppercase tracking-[0.06em] text-white/85">
                       Instroom Post Tracker
                     </th>
                   </tr>

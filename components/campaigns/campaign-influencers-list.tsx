@@ -108,6 +108,7 @@ function ProductSentDateCell({ row, canEdit, workspaceId }: { row: InfluencerRow
       type="date"
       defaultValue={row.product_sent_at ?? ''}
       disabled={!canEdit}
+      aria-label="Product sent date"
       onChange={(e) => {
         startTransition(async () => {
           const result = await updateProductSentAt(workspaceId, {
@@ -121,7 +122,7 @@ function ProductSentDateCell({ row, canEdit, workspaceId }: { row: InfluencerRow
           }
         })
       }}
-      className="rounded border border-border bg-transparent px-2 py-1 text-xs text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+      className="rounded border border-border bg-transparent px-2 py-1 text-xs text-foreground [color-scheme:light] dark:[color-scheme:dark] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
     />
   )
 }
@@ -272,27 +273,28 @@ export function CampaignInfluencersList({
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
+          <caption className="sr-only">Campaign influencers</caption>
           <thead>
             <tr className="border-b border-border">
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Influencer
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Platforms
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Status
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Usage rights
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Product sent
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Follow-up
               </th>
-              {canEdit && <th className="w-10 px-5 py-3" />}
+              {canEdit && <th scope="col" className="w-10 px-5 py-3" />}
             </tr>
           </thead>
           <tbody>

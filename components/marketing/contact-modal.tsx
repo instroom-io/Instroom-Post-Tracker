@@ -11,7 +11,7 @@ import { useMarketingContact } from '@/components/marketing/marketing-contact-pr
 
 type FormState = 'idle' | 'submitting' | 'success'
 
-const inputClassName = 'bg-background-muted border-border text-foreground placeholder:text-foreground-muted focus:border-brand focus:ring-brand/20 dark:bg-white/5 dark:border-white/10'
+const inputClassName = 'bg-background-muted border-border text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:ring-brand/20 dark:bg-white/5 dark:border-white/10'
 
 export function ContactModal() {
   const { open, setOpen } = useMarketingContact()

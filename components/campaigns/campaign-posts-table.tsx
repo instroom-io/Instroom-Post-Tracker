@@ -89,30 +89,31 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
     <>
       <div className="overflow-x-auto">
         <table data-testid="campaign-posts-table" className="w-full">
+          <caption className="sr-only">Campaign posts</caption>
           <thead>
             <tr className="border-b border-border">
-              <th className="w-16 px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="w-16 px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Post
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Influencer
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Platform
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Posted
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
                 Views
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
                 ER
               </th>
-              <th className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-right text-[11px] font-medium text-foreground-lighter">
                 EMV
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
+              <th scope="col" className="px-5 py-3 text-left text-[11px] font-medium text-foreground-lighter">
                 Drive
               </th>
             </tr>
@@ -122,7 +123,9 @@ export function CampaignPostsTable({ posts, trackingConfigs = [], workspaceId, m
               <tr
                 key={post.id}
                 onClick={() => setSelectedPost(post)}
-                className="cursor-pointer border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPost(post) } }}
+                className="cursor-pointer border-b border-border/50 transition-colors last:border-0 hover:bg-background-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/40"
               >
                 {/* Thumbnail */}
                 <td className="px-5 py-3.5">

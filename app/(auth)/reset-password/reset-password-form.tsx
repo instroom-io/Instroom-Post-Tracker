@@ -31,7 +31,7 @@ export function ResetPasswordForm() {
             autoComplete="new-password"
             required
             placeholder="At least 8 characters"
-            className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 pr-10 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+            className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 pr-10 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
           />
           <button
             type="button"
@@ -59,7 +59,7 @@ export function ResetPasswordForm() {
             autoComplete="new-password"
             required
             placeholder="Re-enter your password"
-            className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 pr-10 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+            className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 pr-10 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
           />
           <button
             type="button"

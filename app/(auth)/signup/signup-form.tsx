@@ -122,7 +122,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
               placeholder={accountType === 'team' ? 'e.g. Armful Media' : 'e.g. Luna Beauty'}
               value={accountName}
               onChange={(e) => { setAccountName(e.target.value); setGoogleError(null) }}
-              className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+              className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
             />
           </div>
 
@@ -141,7 +141,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
               type="text"
               autoComplete="url"
               placeholder={accountType === 'team' ? 'e.g. yourteam.com' : 'e.g. yourbrand.com'}
-              className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+              className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
             />
             <p className="text-[11px] text-foreground-muted">Used to show your logo automatically.</p>
           </div>
@@ -162,7 +162,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
           autoComplete="email"
           required
           placeholder="you@example.com"
-          className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+          className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
         />
       </div>
 
@@ -183,7 +183,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string }) {
             placeholder="At least 12 characters"
             value={passwordValue}
             onChange={(e) => setPasswordValue(e.target.value)}
-            className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 pr-10 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+            className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 pr-10 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
           />
           <button
             type="button"

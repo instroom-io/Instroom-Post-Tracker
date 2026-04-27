@@ -24,7 +24,7 @@ export function OnboardingForm() {
           required
           placeholder="Acme Brand"
           autoFocus
-          className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+          className="h-10 w-full rounded-lg border border-border bg-background-surface px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
         />
         <p className="text-[11px] text-foreground-lighter">
           This is your brand's workspace. You can create more later.

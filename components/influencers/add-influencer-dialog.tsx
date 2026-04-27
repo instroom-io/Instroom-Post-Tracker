@@ -419,7 +419,7 @@ export function AddInfluencerDialog({
                       }
                       placeholder={`Paste ${PLATFORMS.find(p => p.value === manualActivePlatform)?.label} handles, one per line\ne.g. @username\n\n@ symbols and extra whitespace are stripped automatically`}
                       rows={6}
-                      className="w-full rounded-lg border border-border bg-background-surface px-3 py-2 text-[13px] text-foreground placeholder:text-foreground-muted resize-none focus:outline-none focus:ring-2 focus:ring-brand/50"
+                      className="w-full rounded-lg border border-border bg-background-surface px-3 py-2 text-[13px] text-foreground placeholder:text-foreground-muted resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                     />
                   </div>
                 </div>

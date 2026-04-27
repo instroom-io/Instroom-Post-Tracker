@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useId } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 
@@ -16,6 +16,7 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({ visibility: 'hidden' })
   const triggerRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
+  const tooltipId = useId()
 
   useLayoutEffect(() => {
     if (!visible) {
@@ -57,8 +58,11 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
     <div
       ref={triggerRef}
       className="relative inline-flex"
+      aria-describedby={visible ? tooltipId : undefined}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
+      onFocus={() => setVisible(true)}
+      onBlur={() => setVisible(false)}
     >
       {children}
 
@@ -66,6 +70,8 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
         createPortal(
           <div
             ref={tooltipRef}
+            id={tooltipId}
+            role="tooltip"
             style={tooltipStyle}
             className={cn(
               'pointer-events-none fixed z-[9999] max-w-xs w-max',

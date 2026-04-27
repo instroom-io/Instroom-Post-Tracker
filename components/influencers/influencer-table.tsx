@@ -93,16 +93,19 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or handle…"
-            className="h-8 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand/40"
+            aria-label="Search influencers"
+            className="h-8 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           />
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
+          <caption className="sr-only">Influencers list</caption>
           <thead>
             <tr className="border-b border-border">
               <th
+                scope="col"
                 onClick={() => toggleSort('name')}
                 className="cursor-pointer select-none px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter hover:text-foreground"
               >
@@ -111,16 +114,17 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
                   <SortIcon active={sortKey === 'name'} dir={sortDir} />
                 </span>
               </th>
-              <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+              <th scope="col" aria-label="Instagram" className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                 <PlatformIcon platform="instagram" size={14} />
               </th>
-              <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+              <th scope="col" aria-label="TikTok" className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                 <PlatformIcon platform="tiktok" size={14} />
               </th>
-              <th className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
+              <th scope="col" aria-label="YouTube" className="px-5 py-2.5 text-left text-[11px] font-semibold text-foreground-lighter">
                 <PlatformIcon platform="youtube" size={14} />
               </th>
               <th
+                scope="col"
                 onClick={() => toggleSort('campaign_count')}
                 className="cursor-pointer select-none px-5 py-2.5 text-right text-[11px] font-semibold text-foreground-lighter hover:text-foreground"
               >
@@ -129,7 +133,7 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
                   <SortIcon active={sortKey === 'campaign_count'} dir={sortDir} />
                 </span>
               </th>
-              {canEdit && <th className="w-10 px-5 py-2.5" />}
+              {canEdit && <th scope="col" className="w-10 px-5 py-2.5" />}
             </tr>
           </thead>
           <tbody>
@@ -182,6 +186,7 @@ export function InfluencerTable({ influencers, canEdit, onRemove }: InfluencerTa
                         <DropdownMenuTrigger>
                           <button
                             type="button"
+                            aria-label={`Actions for @${getInfluencerLabel(inf)}`}
                             className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <DotsThree size={16} weight="bold" />

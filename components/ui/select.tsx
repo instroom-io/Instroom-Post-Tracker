@@ -1,4 +1,6 @@
-import { forwardRef } from 'react'
+'use client'
+
+import { forwardRef, useId } from 'react'
 import { CaretDown } from '@phosphor-icons/react/dist/ssr'
 import { cn } from '@/lib/utils'
 
@@ -16,24 +18,30 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, hint, options, placeholder, className, ...props }, ref) => {
+  ({ label, error, hint, options, placeholder, className, id: externalId, ...props }, ref) => {
+    const generatedId = useId()
+    const selectId = externalId ?? generatedId
+
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label className="text-[12px] font-medium text-foreground-light">
+          <label htmlFor={selectId} className="text-[12px] font-medium text-foreground-light">
             {label}
           </label>
         )}
         <div className="relative">
           <select
             ref={ref}
+            id={selectId}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={error ? `${selectId}-error` : hint ? `${selectId}-hint` : undefined}
             className={cn(
               'h-9 w-full appearance-none rounded-lg border bg-background-surface pl-3 pr-8 text-[13px] text-foreground',
-              'focus:outline-none focus:ring-2 transition-colors',
+              'focus-visible:outline-none focus-visible:ring-2 transition-colors',
               'disabled:cursor-not-allowed disabled:opacity-50',
               error
-                ? 'border-destructive focus:border-destructive focus:ring-destructive/20'
-                : 'border-border focus:border-brand focus:ring-brand/20',
+                ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20'
+                : 'border-border focus-visible:border-brand focus-visible:ring-brand/20',
               className
             )}
             {...props}
@@ -55,10 +63,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           />
         </div>
         {hint && !error && (
-          <p className="text-[11px] text-foreground-lighter">{hint}</p>
+          <p id={`${selectId}-hint`} className="text-[11px] text-foreground-lighter">{hint}</p>
         )}
         {error && (
-          <p className="text-[11px] text-destructive">{error}</p>
+          <p id={`${selectId}-error`} className="text-[11px] text-destructive">{error}</p>
         )}
       </div>
     )

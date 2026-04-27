@@ -78,7 +78,7 @@ export function OnboardingNameForm() {
                 minLength={2}
                 maxLength={60}
                 placeholder={accountType === 'team' ? 'e.g. Armful Media' : 'e.g. Luna Beauty'}
-                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
               />
             </div>
 
@@ -95,7 +95,7 @@ export function OnboardingNameForm() {
                 onChange={(e) => setWebsiteUrl(e.target.value)}
                 autoComplete="url"
                 placeholder={accountType === 'team' ? 'https://yourteam.com' : 'https://yourbrand.com'}
-                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors"
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-[13px] text-foreground placeholder:text-foreground-muted focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 transition-colors"
               />
               <p className="text-[11px] text-foreground-muted">Used to show your logo automatically.</p>
             </div>

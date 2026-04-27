@@ -84,6 +84,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
   const axisStyle = { fontSize: 11, fill: CHART_COLORS.foregroundLighter }
 
   return (
+    <div role="img" aria-label="Post volume over time">
     <ResponsiveContainer width="100%" height={200}>
       <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
         <defs>
@@ -161,5 +162,6 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
         )}
       </AreaChart>
     </ResponsiveContainer>
+    </div>
   )
 }

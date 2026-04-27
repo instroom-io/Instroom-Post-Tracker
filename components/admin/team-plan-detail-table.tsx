@@ -57,12 +57,13 @@ export function TeamPlanDetailTable({ agencies }: Props) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[12px]">
+        <caption className="sr-only">Team plan account details</caption>
         <thead>
           <tr className="border-b border-border text-left">
-            <th className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Account</th>
-            <th className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Plan Status</th>
-            <th className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Trial / Billing</th>
-            <th className="pb-2.5 text-[11px] font-semibold text-foreground-lighter">Owner</th>
+            <th scope="col" className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Account</th>
+            <th scope="col" className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Plan Status</th>
+            <th scope="col" className="pb-2.5 pr-4 text-[11px] font-semibold text-foreground-lighter">Trial / Billing</th>
+            <th scope="col" className="pb-2.5 text-[11px] font-semibold text-foreground-lighter">Owner</th>
           </tr>
         </thead>
         <tbody>

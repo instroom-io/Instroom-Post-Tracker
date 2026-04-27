@@ -175,7 +175,7 @@ function DateRangeFilter({
                   value={filters.from}
                   onChange={(e) => onFilterChange({ ...filters, from: e.target.value })}
                   aria-label="From date"
-                  className="h-8 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[11px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  className="h-8 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[11px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20"
                 />
               </div>
               <div className="relative">
@@ -188,7 +188,7 @@ function DateRangeFilter({
                   value={filters.to}
                   onChange={(e) => onFilterChange({ ...filters, to: e.target.value })}
                   aria-label="To date"
-                  className="h-8 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[11px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  className="h-8 w-full rounded-lg border border-border bg-background-surface pl-8 pr-3 text-[11px] text-foreground [color-scheme:light] dark:[color-scheme:dark] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20"
                 />
               </div>
             </div>
