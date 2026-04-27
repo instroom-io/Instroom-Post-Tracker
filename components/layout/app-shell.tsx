@@ -260,17 +260,7 @@ export function AppShell({
             <SidebarSimple size={16} weight={collapsed ? 'fill' : 'regular'} />
           </button>
           <div className="flex items-center gap-3">
-            {/* Agency logo — only shown for agency members; solo/team profile is in the workspace switcher dropdown */}
-            {agency?.logo_url && (
-              <div
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg overflow-hidden bg-background-muted ring-1 ring-border"
-                title={agency.name}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-contain" />
-              </div>
-            )}
-            <WorkspaceSwitcher
+<WorkspaceSwitcher
               currentWorkspace={currentWorkspace}
               currentRole={currentRole}
               memberships={allMemberships}

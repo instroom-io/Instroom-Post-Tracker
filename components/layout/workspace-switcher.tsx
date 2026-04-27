@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Check, CaretUpDown, SignOut, Users } from '@phosphor-icons/react'
+import { Check, CaretUpDown, SignOut } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/utils'
 import { signOut } from '@/lib/actions/auth'
@@ -179,9 +179,19 @@ export function WorkspaceSwitcher({
                     onClick={close}
                     className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-background-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
                   >
-                    <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md overflow-hidden bg-background-muted border border-border">
-                      <Users size={12} className="text-foreground-lighter" />
-                    </div>
+                    {agency.logo_url ? (
+                      <WorkspaceLogo
+                        name={agency.name}
+                        logoUrl={agency.logo_url}
+                        className="h-[22px] w-[22px] flex-shrink-0 rounded-md object-contain"
+                        fallbackClassName="h-[22px] w-[22px] rounded-md bg-background-muted border border-border text-foreground-lighter"
+                        textClassName="text-[8px]"
+                      />
+                    ) : (
+                      <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md bg-background-muted border border-border text-[8px] font-bold text-foreground-lighter">
+                        {getInitials(agency.name)}
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[12px] font-semibold text-foreground">Team</p>
                       <p className="text-[10px] text-foreground-muted">Team settings</p>
