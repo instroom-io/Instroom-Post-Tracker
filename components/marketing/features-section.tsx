@@ -1,6 +1,7 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
+import { useRef } from 'react'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
 import {
   UsersThree,
   DownloadSimple,
@@ -15,7 +16,6 @@ interface FeatureCard {
   title: string
   icon: React.ElementType
   description: string
-  featured?: boolean
 }
 
 const features: FeatureCard[] = [
@@ -25,7 +25,6 @@ const features: FeatureCard[] = [
     icon: UsersThree,
     description:
       "Unlike generic hashtag trackers that surface everyone who used your tag, Post Tracker monitors only the influencers you've hired. No irrelevant noise. No stranger content cluttering your library.",
-    featured: true,
   },
   {
     tag: 'Automation',
@@ -66,92 +65,78 @@ const features: FeatureCard[] = [
 
 export function FeaturesSection() {
   const shouldReduce = useReducedMotion()
-
-  const containerVariants = {
-    hidden: {},
-    visible: { transition: { staggerChildren: shouldReduce ? 0 : 0.08 } },
-  }
-  const itemVariants = {
-    hidden: shouldReduce ? {} : { opacity: 0, y: 28 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
-
-  const [heroFeature, ...restFeatures] = features
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, amount: 0.1 })
 
   return (
     <section className="bg-background-surface py-20" id="features">
       <div className="mx-auto max-w-[1060px] px-[5%]">
+        {/* Section header */}
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          initial={shouldReduce ? {} : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
         >
-          {/* Section header */}
-          <motion.div variants={itemVariants}>
-            <span className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-brand">
-              Features
-            </span>
-            <h2 className="mt-2 font-display text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.15] tracking-tight text-foreground">
-              Everything you need.
-              <br />
-              Nothing you don&apos;t.
-            </h2>
-            <p className="mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
-              We built Post Tracker as a standalone tool because you
-              shouldn&apos;t pay for a full CRM just to solve a tracking
-              problem.
-            </p>
-          </motion.div>
-
-          {/* Hero feature card — full width, bg-brand-dark */}
-          <motion.div
-            variants={itemVariants}
-            className="mt-12 mb-5 rounded-[14px] bg-brand-dark p-8 md:flex md:items-start md:gap-10"
-          >
-            <div className="mb-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/12 md:mb-0">
-              <heroFeature.icon size={24} weight="duotone" className="text-white" />
-            </div>
-            <div>
-              <span className="mb-3 inline-block rounded-full bg-white/15 px-2.5 py-1 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-white/90">
-                {heroFeature.tag}
-              </span>
-              <h3 className="mb-2 font-display text-[1.15rem] font-bold tracking-tight text-white">
-                {heroFeature.title}
-              </h3>
-              <p className="text-[0.9rem] leading-relaxed text-white/70">
-                {heroFeature.description}
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Remaining 5 — 2-col grid with icons */}
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            {restFeatures.map((feature) => {
-              const Icon = feature.icon
-              return (
-                <motion.div
-                  key={feature.title}
-                  variants={itemVariants}
-                  className="rounded-[14px] border border-border bg-background p-7 transition-colors hover:border-border-strong dark:border-white/8 dark:bg-white/5 dark:hover:border-white/15"
-                >
-                  <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-brand/10 dark:bg-brand/12">
-                    <Icon size={18} weight="duotone" className="text-brand" />
-                  </div>
-                  <span className="mb-3 inline-block rounded-full bg-brand/10 px-2.5 py-1 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-brand-dark dark:text-brand">
-                    {feature.tag}
-                  </span>
-                  <h3 className="mb-2 font-display text-[1rem] font-bold tracking-tight text-foreground">
-                    {feature.title}
-                  </h3>
-                  <p className="text-[0.875rem] leading-relaxed text-foreground-lighter">
-                    {feature.description}
-                  </p>
-                </motion.div>
-              )
-            })}
-          </div>
+          <span className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-brand">
+            Features
+          </span>
+          <h2 className="mt-2 font-display text-[clamp(1.75rem,3.2vw,2.5rem)] font-bold leading-[1.15] tracking-tight text-foreground">
+            Everything you need.
+            <br />
+            Nothing you don&apos;t.
+          </h2>
+          <p className="mt-3 max-w-[560px] text-[1rem] leading-[1.7] text-foreground-lighter">
+            We built Post Tracker as a standalone tool because you
+            shouldn&apos;t pay for a full CRM just to solve a tracking problem.
+          </p>
         </motion.div>
+
+        {/* 3×2 grid — all 6 features, equal hierarchy */}
+        <div
+          ref={ref}
+          className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {features.map((feature, index) => {
+            const Icon = feature.icon
+            return (
+              <motion.div
+                key={feature.title}
+                initial={shouldReduce ? {} : { opacity: 0, y: 24 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                transition={{
+                  duration: 0.5,
+                  delay: shouldReduce ? 0 : index * 0.07,
+                  ease: 'easeOut',
+                }}
+                className="flex flex-col rounded-[14px] border border-border bg-background p-7 transition-shadow hover:border-border-strong hover:shadow-md dark:border-white/8 dark:bg-white/5 dark:hover:border-white/15"
+              >
+                {/* Icon + number */}
+                <div className="mb-5 flex items-start justify-between">
+                  <Icon size={22} weight="duotone" className="text-brand" />
+                  <span className="font-display text-[0.7rem] font-bold tabular-nums text-foreground-muted">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                </div>
+
+                {/* Category label */}
+                <span className="mb-1.5 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-foreground-muted">
+                  {feature.tag}
+                </span>
+
+                {/* Heading */}
+                <h3 className="mb-2 font-display text-[1rem] font-bold leading-snug tracking-tight text-foreground">
+                  {feature.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-[0.84rem] leading-relaxed text-foreground-lighter">
+                  {feature.description}
+                </p>
+              </motion.div>
+            )
+          })}
+        </div>
       </div>
     </section>
   )
