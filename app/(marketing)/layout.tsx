@@ -68,7 +68,7 @@ export default function MarketingLayout({
                 <SupportButton />
               </div>
               <p className="text-[0.75rem] text-white/20">
-                © {new Date().getFullYear()} Instroom. Built by Armful Media.
+                © {new Date().getFullYear()} Instroom Post Tracker. Built by Armful Media.
               </p>
             </div>
           </div>
