@@ -86,43 +86,22 @@ export function PainSection() {
             </p>
           </motion.div>
 
-          {/* Top 2 — hero treatment, no glass, no blur */}
-          <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {painPoints.slice(0, 2).map((point) => (
+          {/* All 6 pain points — unified row grid */}
+          <div className="mt-12 grid grid-cols-1 gap-x-10 sm:grid-cols-2">
+            {painPoints.map((point) => (
               <motion.div
                 key={point.title}
                 variants={itemVariants}
-                className="rounded-xl border border-white/10 p-7"
+                className="flex gap-5 border-t border-white/[0.08] py-7"
               >
-                <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-brand/15">
-                  <point.icon size={18} weight="duotone" className="text-brand" />
-                </div>
-                <h3 className="mb-2 font-display text-[1rem] font-bold text-white">
-                  {point.title}
-                </h3>
-                <p className="text-[0.875rem] leading-relaxed text-white/50">
-                  {point.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Bottom 4 — compact row format */}
-          <div className="mt-1 grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-            {painPoints.slice(2).map((point) => (
-              <motion.div
-                key={point.title}
-                variants={itemVariants}
-                className="flex gap-4 border-t border-white/8 py-6"
-              >
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand/12">
-                  <point.icon size={14} weight="duotone" className="text-brand" />
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand/10">
+                  <point.icon size={16} weight="duotone" className="text-brand" />
                 </div>
                 <div>
-                  <h3 className="mb-1 font-display text-[0.9rem] font-bold text-white">
+                  <h3 className="mb-1.5 font-display text-[0.9375rem] font-semibold leading-snug text-white">
                     {point.title}
                   </h3>
-                  <p className="text-[0.82rem] leading-relaxed text-white/45">
+                  <p className="text-[0.8125rem] leading-relaxed text-white/50">
                     {point.description}
                   </p>
                 </div>
