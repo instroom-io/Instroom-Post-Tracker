@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { MarketingContactProvider, useMarketingContact } from '@/components/marketing/marketing-contact-provider'
 import { MarketingNav } from '@/components/marketing/marketing-nav'
 import { ContactModal } from '@/components/marketing/contact-modal'
+import { ThemeSwitcher } from '@/components/marketing/theme-switcher'
 
 function SupportButton() {
   const { setOpen } = useMarketingContact()
@@ -67,9 +68,12 @@ export default function MarketingLayout({
                 </Link>
                 <SupportButton />
               </div>
-              <p className="text-[0.75rem] text-white/20">
-                © {new Date().getFullYear()} Instroom Post Tracker. Built by Armful Media.
-              </p>
+              <div className="flex items-center gap-4">
+                <ThemeSwitcher />
+                <p className="text-[0.75rem] text-white/20">
+                  © {new Date().getFullYear()} Instroom Post Tracker. Built by Armful Media.
+                </p>
+              </div>
             </div>
           </div>
         </footer>
