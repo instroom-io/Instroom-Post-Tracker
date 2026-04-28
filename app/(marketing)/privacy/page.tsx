@@ -20,7 +20,7 @@ export default function PrivacyPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">1. Introduction</h2>
               <p>
-                Instroom Post Tracker (&quot;Instroom&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is a product of Armful Media. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our influencer marketing platform (the &quot;Service&quot;).
+                Instroom Post Tracker (&quot;Instroom&quot;, &quot;we&quot;, &quot;us&quot;) is a product of Armful Media. We run a platform at <a href="https://posttracker.instroom.io" className="text-brand hover:underline">posttracker.instroom.io</a> that helps marketing agencies automatically track, download, and report on influencer posts. This policy covers what data we collect while operating it, why we need it, and what we do with it.
               </p>
             </section>
 
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
 
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">6. Data Sharing</h2>
-              <p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
+              <p>We don&apos;t sell your data. We don&apos;t use it for advertising. The only reason your information touches a third party is to operate the platform:</p>
               <ul className="list-disc space-y-1 pl-5">
                 <li>With service providers listed above, as necessary to operate the Service</li>
                 <li>With other members of your workspace, to the extent you have invited them</li>
@@ -125,7 +125,7 @@ export default function PrivacyPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">10. Children&apos;s Privacy</h2>
               <p>
-                The Service is not directed to individuals under the age of 16. We do not knowingly collect personal information from children. If you believe we have inadvertently collected such information, please contact us immediately.
+                Instroom is built for professional marketing teams — it&apos;s not for people under 16. If a child&apos;s data ended up in our system, email us at <a href="mailto:hello@armfulmedia.com" className="text-brand hover:underline">hello@armfulmedia.com</a> and we&apos;ll delete it promptly.
               </p>
             </section>
 

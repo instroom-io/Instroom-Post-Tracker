@@ -20,7 +20,7 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">1. Acceptance of Terms</h2>
               <p>
-                By accessing or using Instroom Post Tracker (&quot;Instroom&quot;, &quot;the Service&quot;), operated by Armful Media, you agree to be bound by these Terms of Service.
+                Instroom Post Tracker (available at <a href="https://posttracker.instroom.io" className="text-brand hover:underline">posttracker.instroom.io</a>) is operated by Armful Media. Using the platform means you accept these terms.
               </p>
               <p>
                 We may update these terms occasionally. For material changes, we&apos;ll give you at least 14 days&apos; notice by email or in-app message before they take effect. Continuing to use Instroom after that means you accept the changes.
@@ -43,7 +43,7 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">3. Accounts and Registration</h2>
               <p>
-                You must create an account to use the Service. You are responsible for maintaining the confidentiality of your credentials and for all activity that occurs under your account. You must provide accurate and complete information during registration.
+                You&apos;ll need an account to use Instroom. Use accurate information when signing up — we need a real email address to send verification and billing emails. Keep your login details secure; anything that happens under your account is your responsibility.
               </p>
               <p>
                 If you suspect unauthorized access to your account, let us know at <a href="mailto:hello@armfulmedia.com" className="text-brand hover:underline">hello@armfulmedia.com</a> right away.
@@ -102,10 +102,7 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="font-display text-[17px] font-semibold text-foreground">8. Intellectual Property</h2>
               <p>
-                The Service, including its design, code, and content, is owned by Armful Media and protected by applicable intellectual property laws. You retain ownership of the data you input into the Service (campaign data, influencer lists, etc.).
-              </p>
-              <p>
-                By using the Service, you grant us a limited license to store and process your data solely to provide the Service.
+                The platform — its design, code, and the Instroom name — belongs to Armful Media. Your data (campaigns, influencer lists, workspace content) stays yours. By using Instroom, you give us a limited right to store and process that data for the sole purpose of running the service.
               </p>
             </section>
 
