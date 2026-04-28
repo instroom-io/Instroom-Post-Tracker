@@ -48,8 +48,8 @@ export function HeroSection() {
           {...fadeIn(0.06)}
           className="mb-5 max-w-[860px] font-display text-[clamp(2.4rem,6vw,4.5rem)] font-bold leading-[1.06] tracking-tight text-foreground"
         >
-          Every influencer post, filed to Drive.{' '}
-          <span className="text-brand">Automatically.</span>
+          Stop hunting for influencer posts.{' '}
+          <span className="text-brand">Let the system do it.</span>
         </motion.h1>
 
         {/* Subheadline */}
