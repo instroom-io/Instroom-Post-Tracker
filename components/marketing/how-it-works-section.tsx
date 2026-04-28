@@ -6,7 +6,6 @@ import {
   useScroll,
   useTransform,
   useReducedMotion,
-  useMotionValueEvent,
   type MotionValue,
 } from 'framer-motion'
 
@@ -45,7 +44,6 @@ const steps = [
     title: 'Repurpose directly for paid ads',
     description:
       'Your UGC creative library builds itself. Pull assets directly into your paid ads workflow without chasing anyone for files or permission again.',
-    isPayoff: true,
   },
 ]
 
@@ -56,27 +54,17 @@ function StepNode({
   scrollYProgress,
   threshold,
   shouldReduce,
-  isPayoff,
 }: {
   step: Step
   scrollYProgress: MotionValue<number>
   threshold: number
   shouldReduce: boolean | null
-  isPayoff: boolean
 }) {
   const lo = Math.max(0, threshold - 0.06)
   const hi = Math.min(1, threshold + 0.06)
   const active = useTransform(scrollYProgress, [lo, hi], [0, 1])
-  const [isActive, setIsActive] = useState(false)
 
-  useMotionValueEvent(active, 'change', (v) => {
-    if (isPayoff) setIsActive(v > 0.85)
-  })
-
-  // Node 05 gets solid fill; 01–04 get a light tint
-  const activeOverlayClass = isPayoff
-    ? 'absolute inset-0 rounded-full border-2 border-brand bg-brand'
-    : 'absolute inset-0 rounded-full border-2 border-brand bg-brand/10'
+  const activeOverlayClass = 'absolute inset-0 rounded-full border-2 border-brand bg-brand/10'
 
   return (
     <div className="relative flex h-10 w-10 items-center justify-center">
@@ -90,21 +78,7 @@ function StepNode({
         <motion.div style={{ opacity: active }} className={activeOverlayClass} />
       )}
 
-      {/* Glow pulse ring — node 05 only, plays when fully active */}
-      {isPayoff && isActive && !shouldReduce && (
-        <motion.div
-          animate={{ scale: [1, 1.28, 1], opacity: [0.45, 0.12, 0.45] }}
-          transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
-          className="absolute -inset-2 rounded-full bg-brand/30"
-        />
-      )}
-
-      <span
-        className={[
-          'relative z-10 font-display text-[0.75rem] font-bold',
-          isPayoff && isActive ? 'text-white' : 'text-foreground-light',
-        ].join(' ')}
-      >
+      <span className="relative z-10 font-display text-[0.75rem] font-bold text-foreground-light">
         {step.num}
       </span>
     </div>
@@ -226,7 +200,6 @@ export function HowItWorksSection() {
                     scrollYProgress={scrollYProgress}
                     threshold={threshold}
                     shouldReduce={shouldReduce}
-                    isPayoff={!!step.isPayoff}
                   />
                 </div>
 
@@ -238,31 +211,17 @@ export function HowItWorksSection() {
                   transition={{ duration: 0.48, ease: 'easeOut' }}
                   className={isLast ? 'w-full pb-0' : 'w-full pb-10'}
                 >
-                  {step.isPayoff ? (
-                    <div className="rounded-xl bg-brand-muted px-5 py-4 dark:bg-brand/10">
-                      <span className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-brand-dark dark:text-brand">
-                        {step.category}
-                      </span>
-                      <h3 className="mt-1.5 font-display text-[1.05rem] font-bold leading-snug tracking-tight text-foreground">
-                        {step.title}
-                      </h3>
-                      <p className="mt-2 text-[0.875rem] leading-relaxed text-foreground-lighter">
-                        {step.description}
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-foreground-muted">
-                        {step.category}
-                      </span>
-                      <h3 className="mt-1.5 font-display text-[1.05rem] font-bold leading-snug tracking-tight text-foreground">
-                        {step.title}
-                      </h3>
-                      <p className="mt-2 text-[0.875rem] leading-relaxed text-foreground-lighter">
-                        {step.description}
-                      </p>
-                    </>
-                  )}
+                  <>
+                    <span className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-foreground-muted">
+                      {step.category}
+                    </span>
+                    <h3 className="mt-1.5 font-display text-[1.05rem] font-bold leading-snug tracking-tight text-foreground">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-[0.875rem] leading-relaxed text-foreground-lighter">
+                      {step.description}
+                    </p>
+                  </>
                 </motion.div>
               </div>
             )
