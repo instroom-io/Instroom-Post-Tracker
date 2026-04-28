@@ -12,6 +12,7 @@ import { CtaSection } from '@/components/marketing/cta-section'
 
 export const metadata: Metadata = {
   title: 'Instroom Post Tracker — Automate Influencer Post Monitoring | Never Miss a Post',
+  applicationName: 'Instroom Post Tracker',
   description:
     'Instroom Post Tracker automatically monitors every post from your campaign influencers by hashtag and mention, downloads content to Google Drive, and builds your UGC library on autopilot. Built for brands, agencies, and freelancers. Start free.',
   openGraph: {
