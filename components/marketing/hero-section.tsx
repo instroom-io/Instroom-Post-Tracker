@@ -40,7 +40,7 @@ export function HeroSection() {
           {...fadeIn(0)}
           className="mb-6 text-[0.68rem] font-semibold uppercase tracking-widest text-brand"
         >
-          Built by marketers, for marketers
+          Instroom Post Tracker
         </motion.div>
 
         {/* H1 */}
