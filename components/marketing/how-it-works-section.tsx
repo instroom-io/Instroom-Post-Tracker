@@ -49,6 +49,20 @@ const steps = [
 
 type Step = (typeof steps)[number]
 
+// Orb opacity keyframes — fades out ±0.04 around each node so the number stays legible
+const orbOpacityKeyframes = (() => {
+  const thresholds = steps.map((_, i) => i / (steps.length - 1))
+  const fade = 0.04
+  const input: number[] = []
+  const output: number[] = []
+  thresholds.forEach((t, i) => {
+    if (i > 0) { input.push(t - fade); output.push(1) }
+    input.push(t); output.push(0)
+    if (i < thresholds.length - 1) { input.push(t + fade); output.push(1) }
+  })
+  return { input, output }
+})()
+
 function StepNode({
   step,
   scrollYProgress,
@@ -105,6 +119,7 @@ export function HowItWorksSection() {
   // Orb: top = 14px at scroll=0 (first node centre − 6px half-orb),
   //       top = 14 + railHeight at scroll=1 (last node centre − 6px)
   const glowY = useTransform(scrollYProgress, [0, 1], [14, 14 + railHeight])
+  const orbOpacity = useTransform(scrollYProgress, orbOpacityKeyframes.input, orbOpacityKeyframes.output)
 
   useEffect(() => {
     const update = () => {
@@ -176,6 +191,7 @@ export function HowItWorksSection() {
               style={{
                 y: glowY,
                 x: '-50%',
+                opacity: orbOpacity,
                 boxShadow:
                   '0 0 10px 4px hsl(var(--brand) / 0.55), 0 0 26px 10px hsl(var(--brand) / 0.22)',
               }}
