@@ -24,7 +24,7 @@ const TEAM_FEATURES = [
 ]
 
 export function PricingSection() {
-  const [period, setPeriod] = useState<BillingPeriod>('monthly')
+  const [period, setPeriod] = useState<BillingPeriod>('annual')
   const shouldReduce = useReducedMotion()
 
   const containerVariants = {

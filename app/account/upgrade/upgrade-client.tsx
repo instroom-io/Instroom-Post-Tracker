@@ -50,7 +50,7 @@ export function UpgradeClient({
   successPeriod = 'monthly',
 }: UpgradeClientProps) {
   const [selected, setSelected] = useState<'solo' | 'team'>(accountType)
-  const [period, setPeriod] = useState<BillingPeriod>('monthly')
+  const [period, setPeriod] = useState<BillingPeriod>('annual')
   const [extra, setExtra] = useState(0)
   const [pollingTimedOut, setPollingTimedOut] = useState(false)
   const router = useRouter()
