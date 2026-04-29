@@ -18,32 +18,6 @@ const accentStyles: Record<AccentKey, { bg: string; color: string }> = {
   indigo: { bg: 'rgba(91,111,230,0.12)',  color: '#5B6FE6' },
 }
 
-const iconAnimations: Record<string, Variants> = {
-  MagnifyingGlass: {
-    rest:  { x: 0 },
-    hover: { x: [0, -5, 4, -3, 2, 0], transition: { duration: 0.65, ease: 'easeInOut' } },
-  },
-  FilmSlate: {
-    rest:  { rotate: 0 },
-    hover: { rotate: [0, -14, 5, -8, 2, 0], transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } },
-  },
-  FileText: {
-    rest:  { y: 0 },
-    hover: { y: [0, -5, 1, -3, 0], transition: { duration: 0.55, ease: 'easeOut' } },
-  },
-  UploadSimple: {
-    rest:  { y: 0 },
-    hover: { y: [0, -7, 1, -4, 0], transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } },
-  },
-  Warning: {
-    rest:  { rotate: 0 },
-    hover: { rotate: [0, -7, 7, -5, 5, -2, 0], transition: { duration: 0.65, ease: 'easeInOut' } },
-  },
-  ShieldWarning: {
-    rest:  { scale: 1 },
-    hover: { scale: [1, 1.2, 0.92, 1.1, 1], transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] as const } },
-  },
-}
 
 const cardVariants: Variants = {
   rest:  { y: 0 },
@@ -53,7 +27,6 @@ const cardVariants: Variants = {
 const painPoints = [
   {
     icon: MagnifyingGlass,
-    iconKey: 'MagnifyingGlass',
     accent: 'green' as AccentKey,
     title: "You're checking profiles manually",
     description:
@@ -61,7 +34,6 @@ const painPoints = [
   },
   {
     icon: FilmSlate,
-    iconKey: 'FilmSlate',
     accent: 'amber' as AccentKey,
     title: 'Content comes back watermarked',
     description:
@@ -69,7 +41,6 @@ const painPoints = [
   },
   {
     icon: FileText,
-    iconKey: 'FileText',
     accent: 'indigo' as AccentKey,
     title: 'Chasing influencers for deliverables',
     description:
@@ -77,7 +48,6 @@ const painPoints = [
   },
   {
     icon: UploadSimple,
-    iconKey: 'UploadSimple',
     accent: 'indigo' as AccentKey,
     title: 'Manually uploading to Drive',
     description:
@@ -85,7 +55,6 @@ const painPoints = [
   },
   {
     icon: Warning,
-    iconKey: 'Warning',
     accent: 'amber' as AccentKey,
     title: 'Posts fall through the cracks',
     description:
@@ -93,7 +62,6 @@ const painPoints = [
   },
   {
     icon: ShieldWarning,
-    iconKey: 'ShieldWarning',
     accent: 'green' as AccentKey,
     title: 'Usage rights tracked in a spreadsheet',
     description:
@@ -142,7 +110,6 @@ export function PainSection() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {painPoints.map((point) => {
               const accent = accentStyles[point.accent]
-              const iconVariant = shouldReduce ? undefined : iconAnimations[point.iconKey]
 
               return (
                 <motion.div key={point.title} variants={itemVariants}>
@@ -157,9 +124,7 @@ export function PainSection() {
                       className="flex h-10 w-10 items-center justify-center rounded-xl"
                       style={{ background: accent.bg }}
                     >
-                      <motion.div variants={iconVariant}>
-                        <point.icon size={18} weight="duotone" style={{ color: accent.color }} />
-                      </motion.div>
+                      <point.icon size={18} weight="duotone" style={{ color: accent.color }} />
                     </div>
 
                     {/* Copy */}
