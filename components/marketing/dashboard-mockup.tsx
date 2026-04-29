@@ -58,8 +58,8 @@ export function DashboardMockup() {
   function entry(delay: number) {
     if (prefersReduced) return {}
     return {
-      initial: { opacity: 0, scale: 0.96 },
-      animate: { opacity: 1, scale: 1 },
+      initial: { opacity: 0, scale: 0.96, y: 8 },
+      animate: { opacity: 1, scale: 1, y: 0 },
       transition: { duration: 0.65, delay, ease: [0.16, 1, 0.3, 1] as const },
     }
   }
@@ -68,7 +68,13 @@ export function DashboardMockup() {
     if (prefersReduced) return {}
     return {
       animate: { y: [0, -yRange, 0] },
-      transition: { repeat: Infinity, duration, ease: 'easeInOut' as const, delay },
+      transition: {
+        repeat: Infinity,
+        repeatType: 'loop' as const,
+        duration,
+        ease: [0.45, 0, 0.55, 1] as const,
+        delay,
+      },
     }
   }
 
@@ -76,9 +82,9 @@ export function DashboardMockup() {
     <div className="relative select-none" style={{ width: 580, height: 500 }}>
 
       {/* ── Main app window ──────────────────────────────────────── */}
-      <motion.div {...entry(0.2)} className="absolute left-0 top-4">
+      <motion.div {...entry(0.10)} className="absolute left-0 top-4">
         <motion.div
-          {...floatProps(7.5, 6, 1)}
+          {...floatProps(7.5, 6, 0)}
           className="w-[420px] overflow-hidden rounded-[14px] border border-zinc-200/80 bg-white"
           style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.05)' }}
         >
@@ -233,9 +239,9 @@ export function DashboardMockup() {
       </motion.div>
 
       {/* ── Satellite 1: Post detected (top right) ───────────────── */}
-      <motion.div {...entry(0.5)} className="absolute right-0 top-0">
+      <motion.div {...entry(0.25)} className="absolute right-0 top-0">
         <motion.div
-          {...floatProps(5.5, 5, 2)}
+          {...floatProps(5.5, 5, 4.0)}
           className="w-[196px] rounded-[11px] border border-zinc-200/80 bg-white px-3 py-2.5"
           style={{ boxShadow: '0 10px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
         >
@@ -247,7 +253,7 @@ export function DashboardMockup() {
                   className="absolute inset-0 rounded-full"
                   style={{ background: '#1FAE5B' }}
                   animate={{ scale: [1, 2.4, 1], opacity: [0.5, 0, 0.5] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                  transition={{ repeat: Infinity, repeatType: 'loop', duration: 2, ease: [0.45, 0, 0.55, 1] as const }}
                 />
               )}
             </div>
@@ -271,9 +277,9 @@ export function DashboardMockup() {
       </motion.div>
 
       {/* ── Satellite 2: Drive synced (bottom right) ──────────────── */}
-      <motion.div {...entry(0.65)} className="absolute bottom-[62px] right-0">
+      <motion.div {...entry(0.40)} className="absolute bottom-[62px] right-0">
         <motion.div
-          {...floatProps(6.5, 4, 1.5)}
+          {...floatProps(6.5, 4, 3.5)}
           className="flex w-[176px] items-center gap-2.5 rounded-[11px] border border-zinc-200/80 bg-white px-3 py-2"
           style={{ boxShadow: '0 10px 28px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04)' }}
         >
@@ -290,9 +296,9 @@ export function DashboardMockup() {
       </motion.div>
 
       {/* ── Satellite 3: EMV card (bottom left) ───────────────────── */}
-      <motion.div {...entry(0.8)} className="absolute bottom-0 left-5">
+      <motion.div {...entry(0.55)} className="absolute bottom-0 left-5">
         <motion.div
-          {...floatProps(8, 6, 0.5)}
+          {...floatProps(8.0, 6, 1.4)}
           className="w-[158px] rounded-[11px] border border-zinc-200/80 bg-white px-3 py-2.5"
           style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04)' }}
         >
@@ -322,9 +328,9 @@ export function DashboardMockup() {
       </motion.div>
 
       {/* ── Satellite 4: Post card thumbnails (bottom-centre) ────────── */}
-      <motion.div {...entry(0.9)} className="absolute bottom-0 left-[178px]">
+      <motion.div {...entry(0.70)} className="absolute bottom-0 left-[178px]">
         <motion.div
-          {...floatProps(6.8, 5, 1.2)}
+          {...floatProps(6.8, 5, 2.4)}
           className="flex gap-[6px]"
         >
           {postCards.map((card, i) => (
