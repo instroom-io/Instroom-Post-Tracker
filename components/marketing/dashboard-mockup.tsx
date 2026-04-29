@@ -25,6 +25,33 @@ const campaigns = [
 
 const sparkBars = [4, 6, 5, 8, 7, 9, 11]
 
+const postCards = [
+  {
+    gradient: 'linear-gradient(150deg, #FDE68A 0%, #FDBA74 45%, #F97316 100%)',
+    platform: 'instagram',
+    platformColor: '#A855F7',
+    handle: '@coastal.glow',
+    time: '2d ago',
+    status: 'Downloaded',
+    statusColor: '#1FAE5B',
+    views: '12k',
+    er: '18.4%',
+    emv: '$24',
+  },
+  {
+    gradient: 'linear-gradient(150deg, #C4B5FD 0%, #A78BFA 45%, #7C3AED 100%)',
+    platform: 'tiktok',
+    platformColor: '#3B82F6',
+    handle: '@emmawrites_',
+    time: '5d ago',
+    status: 'Saved',
+    statusColor: '#1FAE5B',
+    views: '8.4k',
+    er: '9.1%',
+    emv: '$18',
+  },
+]
+
 export function DashboardMockup() {
   const prefersReduced = useReducedMotion()
 
@@ -46,7 +73,7 @@ export function DashboardMockup() {
   }
 
   return (
-    <div className="relative select-none" style={{ width: 520, height: 450 }}>
+    <div className="relative select-none" style={{ width: 580, height: 500 }}>
 
       {/* ── Main app window ──────────────────────────────────────── */}
       <motion.div {...entry(0.2)} className="absolute left-0 top-4">
@@ -60,9 +87,7 @@ export function DashboardMockup() {
             <span className="h-2 w-2 rounded-full bg-[#FF5F57]" />
             <span className="h-2 w-2 rounded-full bg-[#FFBD2E]" />
             <span className="h-2 w-2 rounded-full bg-[#28C840]" />
-            <span className="mx-auto text-[8px] font-medium text-zinc-400">
-              app.instroom.co/soleil-agency/overview
-            </span>
+            <div className="mx-auto h-[14px] w-[160px] rounded-sm bg-zinc-200/60" />
           </div>
 
           <div className="flex" style={{ height: 305 }}>
@@ -71,7 +96,7 @@ export function DashboardMockup() {
               {/* Logo area */}
               <div className="mb-3 flex items-center gap-1.5 px-1">
                 <div className="h-4 w-4 rounded-[4px]" style={{ background: 'rgba(31,174,91,0.22)' }} />
-                <span className="text-[7.5px] font-bold text-zinc-700 leading-tight">Soleil Agency</span>
+                <span className="text-[7.5px] font-bold leading-tight text-zinc-700">Soleil Agency</span>
               </div>
 
               {/* Nav items */}
@@ -107,7 +132,7 @@ export function DashboardMockup() {
               </div>
 
               {/* Take a tour */}
-              <div className="mt-auto mb-2 px-0.5">
+              <div className="mb-2 mt-auto px-0.5">
                 <div
                   className="rounded-md px-2 py-1 text-center"
                   style={{
@@ -215,12 +240,8 @@ export function DashboardMockup() {
           style={{ boxShadow: '0 10px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
         >
           <div className="flex items-start gap-2">
-            {/* Pulsing live dot */}
             <div className="relative mt-[3px] h-2 w-2 shrink-0">
-              <span
-                className="absolute inset-0 rounded-full"
-                style={{ background: '#1FAE5B' }}
-              />
+              <span className="absolute inset-0 rounded-full" style={{ background: '#1FAE5B' }} />
               {!prefersReduced && (
                 <motion.span
                   className="absolute inset-0 rounded-full"
@@ -250,13 +271,12 @@ export function DashboardMockup() {
       </motion.div>
 
       {/* ── Satellite 2: Drive synced (bottom right) ──────────────── */}
-      <motion.div {...entry(0.65)} className="absolute bottom-4 right-0">
+      <motion.div {...entry(0.65)} className="absolute bottom-[62px] right-0">
         <motion.div
           {...floatProps(6.5, 4, 1.5)}
           className="flex w-[176px] items-center gap-2.5 rounded-[11px] border border-zinc-200/80 bg-white px-3 py-2"
           style={{ boxShadow: '0 10px 28px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04)' }}
         >
-          {/* Google Drive tricolor dots */}
           <div className="relative h-6 w-6 shrink-0">
             <span className="absolute left-0 top-0 h-2.5 w-2.5 rounded-full bg-[#4285F4]" />
             <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-[#EA4335]" />
@@ -282,7 +302,6 @@ export function DashboardMockup() {
           <p className="mt-0.5 font-display text-[18px] font-bold leading-tight text-zinc-800">
             €12,400
           </p>
-          {/* Mini sparkline */}
           <div className="mt-2 flex items-end gap-[2px]">
             {sparkBars.map((h, i) => (
               <div
@@ -290,20 +309,88 @@ export function DashboardMockup() {
                 className="w-[10px] rounded-[2px]"
                 style={{
                   height: `${h * 2}px`,
-                  background:
-                    i === sparkBars.length - 1
-                      ? '#1FAE5B'
-                      : 'rgba(31,174,91,0.22)',
+                  background: i === sparkBars.length - 1 ? '#1FAE5B' : 'rgba(31,174,91,0.22)',
                 }}
               />
             ))}
           </div>
           <div className="mt-1.5 flex items-center gap-1">
-            <span className="text-[8.5px] font-semibold" style={{ color: '#1FAE5B' }}>
-              ↑ 18%
-            </span>
+            <span className="text-[8.5px] font-semibold" style={{ color: '#1FAE5B' }}>↑ 18%</span>
             <span className="text-[7px] text-zinc-400">vs last month</span>
           </div>
+        </motion.div>
+      </motion.div>
+
+      {/* ── Satellite 4: Post card thumbnails (bottom-centre) ────────── */}
+      <motion.div {...entry(0.9)} className="absolute bottom-0 left-[178px]">
+        <motion.div
+          {...floatProps(6.8, 5, 1.2)}
+          className="flex gap-[6px]"
+        >
+          {postCards.map((card, i) => (
+            <div
+              key={i}
+              className="w-[108px] overflow-hidden rounded-[10px] border border-zinc-200/70 bg-white"
+              style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.09), 0 2px 8px rgba(0,0,0,0.05)' }}
+            >
+              {/* Thumbnail */}
+              <div className="relative overflow-hidden" style={{ height: 66 }}>
+                <div className="absolute inset-0" style={{ background: card.gradient }} />
+                {/* Face silhouette */}
+                <div className="absolute left-1/2 top-[14%] h-[18px] w-[14px] -translate-x-1/2 rounded-full bg-white/20" />
+                {/* Shoulder arc */}
+                <div className="absolute bottom-0 left-1/2 h-[22px] w-[38px] -translate-x-1/2 rounded-t-full bg-white/15" />
+                {/* Platform badge top-left */}
+                <div
+                  className="absolute left-1.5 top-1.5 flex items-center gap-[3px] rounded-full px-[5px] py-[2px]"
+                  style={{ background: `${card.platformColor}dd` }}
+                >
+                  <span className="h-[5px] w-[5px] rounded-full bg-white" />
+                  <span className="text-[5.5px] font-semibold capitalize text-white">
+                    {card.platform}
+                  </span>
+                </div>
+                {/* Status badge top-right */}
+                <div className="absolute right-1.5 top-1.5 flex items-center gap-[3px] rounded-full bg-black/50 px-[5px] py-[2px]">
+                  <span
+                    className="h-[5px] w-[5px] rounded-full"
+                    style={{ background: card.statusColor }}
+                  />
+                  <span className="text-[5.5px] font-semibold text-white">{card.status}</span>
+                </div>
+                {/* Play button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-black/40">
+                    <div
+                      className="ml-[2px] h-0 w-0"
+                      style={{
+                        borderTop: '4px solid transparent',
+                        borderBottom: '4px solid transparent',
+                        borderLeft: '7px solid white',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card info */}
+              <div className="px-2 py-1.5">
+                <p className="text-[7.5px] font-semibold leading-tight text-zinc-800">
+                  {card.handle}
+                </p>
+                <p className="mt-[2px] text-[6px] text-zinc-400">{card.time}</p>
+                <div className="mt-1.5 flex items-center justify-between border-t border-zinc-100 pt-1">
+                  <div className="flex flex-col gap-[1px]">
+                    <span className="text-[6px] text-zinc-400">{card.views} views</span>
+                    <span className="text-[6px] text-zinc-400">{card.er} ER</span>
+                  </div>
+                  <span className="text-[7px] font-semibold" style={{ color: '#1FAE5B' }}>
+                    {card.emv}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
         </motion.div>
       </motion.div>
 
