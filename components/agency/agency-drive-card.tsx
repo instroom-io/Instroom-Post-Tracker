@@ -87,23 +87,30 @@ export function AgencyDriveCard({
               </div>
             </>
           ) : (
-            <div className="flex flex-wrap items-center justify-between gap-y-2 rounded-lg border border-border px-4 py-3">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <HardDrive size={16} className="flex-shrink-0 text-foreground-muted" />
-                <p className="text-[12px] text-foreground-muted">
-                  Connect a Google account to choose a Shared Drive.
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-y-2 rounded-lg border border-border px-4 py-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <HardDrive size={16} className="flex-shrink-0 text-foreground-muted" />
+                  <p className="text-[12px] text-foreground-muted">
+                    Connect a Google account to choose a Shared Drive.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-shrink-0"
+                  onClick={() => {
+                    window.location.href = `/api/auth/google-drive?agencyId=${agencyId}&returnTo=/agency/${agencySlug}/settings&section=storage`
+                  }}
+                >
+                  Connect Google
+                </Button>
+              </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30 px-3.5 py-2.5">
+                <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                  <span className="font-semibold">Note:</span> Google will show a &quot;This app isn&apos;t verified&quot; warning. This is expected — click <span className="font-semibold">Advanced</span> → <span className="font-semibold">Go to Instroom Post Tracker (unsafe)</span> to continue. The app is safe to use.
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-shrink-0"
-                onClick={() => {
-                  window.location.href = `/api/auth/google-drive?agencyId=${agencyId}&returnTo=/agency/${agencySlug}/settings&section=storage`
-                }}
-              >
-                Connect Google
-              </Button>
             </div>
           )}
         </div>
