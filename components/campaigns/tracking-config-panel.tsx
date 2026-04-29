@@ -92,6 +92,7 @@ export function TrackingConfigPanel({
       {/* Config for active platform */}
       <div className="space-y-4 p-5">
         <TagInput
+          id={`tag-hashtags-${activeTab}`}
           label="Hashtags"
           tags={configState[activeTab]?.hashtags ?? []}
           onChange={(tags) =>
@@ -107,6 +108,7 @@ export function TrackingConfigPanel({
         />
 
         <TagInput
+          id={`tag-mentions-${activeTab}`}
           label="Mentions"
           tags={configState[activeTab]?.mentions ?? []}
           onChange={(tags) =>

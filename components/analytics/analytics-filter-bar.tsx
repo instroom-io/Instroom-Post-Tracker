@@ -22,20 +22,21 @@ interface AnalyticsFilterBarProps {
   filters: AnalyticsFilters
   onFilterChange: (filters: AnalyticsFilters) => void
   campaigns: Campaign[]
+  timezone?: string
 }
 
-function toLocalDate(d: Date): string {
-  return d.toLocaleDateString('en-CA')
+function toLocalDate(d: Date, tz?: string): string {
+  return d.toLocaleDateString('en-CA', tz ? { timeZone: tz } : undefined)
 }
 
-const PRESETS = [
+const PRESETS = (tz?: string) => [
   {
     label: 'Last 7d',
     getValue: () => {
       const to = new Date()
       const from = new Date()
       from.setDate(from.getDate() - 6)
-      return { from: toLocalDate(from), to: toLocalDate(to) }
+      return { from: toLocalDate(from, tz), to: toLocalDate(to, tz) }
     },
   },
   {
@@ -44,7 +45,7 @@ const PRESETS = [
       const to = new Date()
       const from = new Date()
       from.setDate(from.getDate() - 29)
-      return { from: toLocalDate(from), to: toLocalDate(to) }
+      return { from: toLocalDate(from, tz), to: toLocalDate(to, tz) }
     },
   },
   {
@@ -52,7 +53,7 @@ const PRESETS = [
     getValue: () => {
       const to = new Date()
       const from = new Date(to.getFullYear(), to.getMonth(), 1)
-      return { from: toLocalDate(from), to: toLocalDate(to) }
+      return { from: toLocalDate(from, tz), to: toLocalDate(to, tz) }
     },
   },
   {
@@ -61,7 +62,7 @@ const PRESETS = [
       const to = new Date()
       const from = new Date()
       from.setMonth(from.getMonth() - 3)
-      return { from: toLocalDate(from), to: toLocalDate(to) }
+      return { from: toLocalDate(from, tz), to: toLocalDate(to, tz) }
     },
   },
   {
@@ -69,7 +70,7 @@ const PRESETS = [
     getValue: () => {
       const to = new Date()
       const from = new Date(to.getFullYear(), 0, 1)
-      return { from: toLocalDate(from), to: toLocalDate(to) }
+      return { from: toLocalDate(from, tz), to: toLocalDate(to, tz) }
     },
   },
   {
@@ -81,15 +82,15 @@ const PRESETS = [
 function DateRangeFilter({
   filters,
   onFilterChange,
+  timezone,
 }: {
   filters: AnalyticsFilters
   onFilterChange: (f: AnalyticsFilters) => void
+  timezone?: string
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Close on outside click or Escape — the panel is inside ref so date
-  // input interactions won't accidentally trigger this.
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
@@ -107,8 +108,10 @@ function DateRangeFilter({
     }
   }, [open])
 
+  const presets = PRESETS(timezone)
+
   const activePreset =
-    PRESETS.find((p) => {
+    presets.find((p) => {
       const r = p.getValue()
       return r.from === filters.from && r.to === filters.to
     })?.label ?? 'Custom'
@@ -141,7 +144,7 @@ function DateRangeFilter({
               Date range
             </div>
 
-            {PRESETS.map((p) => {
+            {presets.map((p) => {
               const isActive = activePreset === p.label
               return (
                 <button
@@ -203,6 +206,7 @@ export function AnalyticsFilterBar({
   filters,
   onFilterChange,
   campaigns,
+  timezone,
 }: AnalyticsFilterBarProps) {
   function update<K extends keyof AnalyticsFilters>(key: K, value: AnalyticsFilters[K]) {
     onFilterChange({ ...filters, [key]: value })
@@ -211,7 +215,7 @@ export function AnalyticsFilterBar({
   return (
     <div className="rounded-xl border border-border bg-background-surface p-4 shadow-xs">
       <div className="flex flex-wrap items-center gap-3">
-        <DateRangeFilter filters={filters} onFilterChange={onFilterChange} />
+        <DateRangeFilter filters={filters} onFilterChange={onFilterChange} timezone={timezone} />
 
         <div className="w-full sm:w-44">
           <Select

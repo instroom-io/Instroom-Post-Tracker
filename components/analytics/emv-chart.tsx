@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { TrendUp } from '@phosphor-icons/react/dist/ssr'
 import { formatEMV } from '@/lib/utils'
 
@@ -38,9 +39,11 @@ export function EmvChart({ data }: EmvChartProps) {
             {item.handle}
           </span>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-background-muted">
-            <div
-              className="h-full rounded-full bg-brand transition-all"
-              style={{ width: `${Math.max((item.emv / maxEmv) * 100, 2)}%` }}
+            <motion.div
+              className="h-full w-full origin-left rounded-full bg-brand"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: Math.max(item.emv / maxEmv, 0.02) }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: i * 0.05 }}
             />
           </div>
           <span className="w-14 shrink-0 text-right text-[12px] font-semibold tabular-nums text-foreground">

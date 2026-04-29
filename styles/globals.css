@@ -163,17 +163,21 @@
 
   /* Staggered fade-up entry animation — for stat card rows (RSC-safe, no Framer needed) */
   .animate-fade-up {
-    animation: fadeUp 0.3s ease both;
+    animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
-  .animate-fade-up-delay-1 { animation-delay: 60ms; }
-  .animate-fade-up-delay-2 { animation-delay: 120ms; }
-  .animate-fade-up-delay-3 { animation-delay: 180ms; }
+  .animate-fade-up-delay-1 { animation-delay: 80ms; }
+  .animate-fade-up-delay-2 { animation-delay: 160ms; }
+  .animate-fade-up-delay-3 { animation-delay: 240ms; }
+  .animate-fade-up-delay-4 { animation-delay: 320ms; }
+  .animate-fade-up-delay-5 { animation-delay: 400ms; }
 
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-up,
     .animate-fade-up-delay-1,
     .animate-fade-up-delay-2,
-    .animate-fade-up-delay-3 {
+    .animate-fade-up-delay-3,
+    .animate-fade-up-delay-4,
+    .animate-fade-up-delay-5 {
       animation: none;
     }
   }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion, MotionConfig } from 'framer-motion'
 import { AnalyticsFilterBar, type AnalyticsFilters } from '@/components/analytics/analytics-filter-bar'
 import { PostVolumeChart } from '@/components/analytics/post-volume-chart'
 import { PlatformBreakdown } from '@/components/analytics/platform-breakdown'
@@ -23,6 +24,7 @@ export interface PostMetricRow {
     posted_at: string
     campaign_id: string | null
     influencer: {
+      id: string
       tiktok_handle: string | null
       ig_handle: string | null
       youtube_handle: string | null
@@ -75,15 +77,14 @@ export function AnalyticsClient({
   workspaceSlug,
 }: AnalyticsClientProps) {
   const [filters, setFilters] = useState<AnalyticsFilters>(() => {
-    // Compute date defaults client-side so they reflect the user's local timezone
-    // and are never stale due to server-side RSC caching.
     const to = new Date()
     const from = new Date()
     from.setDate(from.getDate() - 29)
-    // en-CA locale gives YYYY-MM-DD in local timezone (not UTC like toISOString does)
+    // Use the same timezone as post bucketing so filter bounds are consistent
+    const tzOpt = timezone ? { timeZone: timezone } : undefined
     return {
-      from: from.toLocaleDateString('en-CA'),
-      to: to.toLocaleDateString('en-CA'),
+      from: from.toLocaleDateString('en-CA', tzOpt),
+      to: to.toLocaleDateString('en-CA', tzOpt),
       campaignId: defaultFilters.campaignId,
       platform: defaultFilters.platform,
     }
@@ -91,8 +92,9 @@ export function AnalyticsClient({
 
   const filtered = metrics.filter((m) => {
     if (!m.post) return false
-    const date = m.post.posted_at.split('T')[0]
-    if (date < filters.from || date > filters.to) return false
+    const date = new Date(m.post.posted_at).toLocaleDateString('en-CA', timezone ? { timeZone: timezone } : undefined)
+    if (filters.from && date < filters.from) return false
+    if (filters.to && date > filters.to) return false
     if (filters.platform !== 'all' && m.post.platform !== filters.platform) return false
     if (filters.campaignId !== 'all' && m.post.campaign_id !== filters.campaignId) return false
     return true
@@ -107,28 +109,50 @@ export function AnalyticsClient({
       : 0
 
   // Date range label
-  const fromDate = new Date(filters.from)
-  const toDate = new Date(filters.to)
-  const dayDiff = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-  const dateRangeLabel = `${dayDiff}d`
+  const dateRangeLabel = (() => {
+    if (!filters.from && !filters.to) return 'All time'
+    if (!filters.from || !filters.to) return 'Custom'
+    const fromDate = new Date(filters.from)
+    const toDate = new Date(filters.to)
+    const dayDiff = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    return `${dayDiff}d`
+  })()
 
   // PostVolumeChart data
   const dayMap = new Map<string, { total: number; instagram: number; tiktok: number; youtube: number }>()
   filtered.forEach((m) => {
     if (!m.post) return
-    const date = m.post.posted_at.split('T')[0]
+    const date = new Date(m.post.posted_at).toLocaleDateString('en-CA', timezone ? { timeZone: timezone } : undefined)
     const existing = dayMap.get(date) ?? { total: 0, instagram: 0, tiktok: 0, youtube: 0 }
     existing.total += 1
     const p = m.post.platform as 'instagram' | 'tiktok' | 'youtube'
     existing[p] = (existing[p] ?? 0) + 1
     dayMap.set(date, existing)
   })
-  const volumeData = Array.from(dayMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, counts]) => ({
-      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(timezone ? { timeZone: timezone } : {}) }),
-      ...counts,
-    }))
+  const tzFmt = timezone ? { timeZone: timezone } : {}
+  const volumeData = (() => {
+    const empty = { total: 0, instagram: 0, tiktok: 0, youtube: 0 }
+    if (!filters.from || !filters.to) {
+      return Array.from(dayMap.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, counts]) => ({
+          date: new Date(key + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...tzFmt }),
+          ...counts,
+        }))
+    }
+    const result: Array<{ date: string; total: number; instagram: number; tiktok: number; youtube: number }> = []
+    const cur = new Date(filters.from + 'T12:00:00Z')
+    const end = new Date(filters.to + 'T12:00:00Z')
+    while (cur <= end) {
+      const key = cur.toISOString().slice(0, 10)
+      result.push({
+        date: new Date(key + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...tzFmt }),
+        ...(dayMap.get(key) ?? empty),
+      })
+      cur.setUTCDate(cur.getUTCDate() + 1)
+    }
+    return result
+  })()
 
   // PlatformBreakdown data
   const platformMap = new Map<string, { posts: number; emv: number }>()
@@ -149,10 +173,11 @@ export function AnalyticsClient({
   const influencerEmvMap = new Map<string, { handle: string; emv: number }>()
   filtered.forEach((m) => {
     if (!m.post?.influencer) return
-    const handle = getInfluencerLabel(m.post.influencer)
-    const existing = influencerEmvMap.get(handle) ?? { handle, emv: 0 }
+    const { id, ...inf } = m.post.influencer
+    const handle = getInfluencerLabel(inf)
+    const existing = influencerEmvMap.get(id) ?? { handle, emv: 0 }
     existing.emv += m.emv
-    influencerEmvMap.set(handle, existing)
+    influencerEmvMap.set(id, existing)
   })
   const emvData = Array.from(influencerEmvMap.values())
 
@@ -160,11 +185,12 @@ export function AnalyticsClient({
   const influencerErMap = new Map<string, { handle: string; erSum: number; count: number }>()
   filtered.forEach((m) => {
     if (!m.post?.influencer) return
-    const handle = getInfluencerLabel(m.post.influencer)
-    const existing = influencerErMap.get(handle) ?? { handle, erSum: 0, count: 0 }
+    const { id, ...inf } = m.post.influencer
+    const handle = getInfluencerLabel(inf)
+    const existing = influencerErMap.get(id) ?? { handle, erSum: 0, count: 0 }
     existing.erSum += m.engagement_rate
     existing.count += 1
-    influencerErMap.set(handle, existing)
+    influencerErMap.set(id, existing)
   })
   const erData = Array.from(influencerErMap.values()).map(({ handle, erSum, count }) => ({
     handle,
@@ -178,10 +204,11 @@ export function AnalyticsClient({
   >()
   filtered.forEach((m) => {
     if (!m.post?.influencer) return
-    const key = getInfluencerLabel(m.post.influencer)
-    const existing = leaderboardMap.get(key) ?? {
-      fullName: key,
-      handle: key,
+    const { id, ...inf } = m.post.influencer
+    const handle = getInfluencerLabel(inf)
+    const existing = leaderboardMap.get(id) ?? {
+      fullName: handle,
+      handle,
       posts: 0,
       totalViews: 0,
       erSum: 0,
@@ -191,7 +218,7 @@ export function AnalyticsClient({
     existing.totalViews += m.views
     existing.erSum += m.engagement_rate
     existing.totalEmv += m.emv
-    leaderboardMap.set(key, existing)
+    leaderboardMap.set(id, existing)
   })
   const leaderboardRows = Array.from(leaderboardMap.values())
     .sort((a, b) => b.totalEmv - a.totalEmv)
@@ -208,6 +235,15 @@ export function AnalyticsClient({
   const multiPlatform = filters.platform === 'all'
 
   const delayClasses = ['', 'animate-fade-up-delay-1', 'animate-fade-up-delay-2', 'animate-fade-up-delay-3']
+
+  const chartGridVariants = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.08 } },
+  } as const
+  const chartItemVariant = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const } },
+  } as const
 
   const statCards = [
     {
@@ -237,11 +273,13 @@ export function AnalyticsClient({
   ]
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="space-y-5">
       <AnalyticsFilterBar
         filters={filters}
         onFilterChange={setFilters}
         campaigns={campaigns}
+        timezone={timezone}
       />
 
       {/* Section label */}
@@ -274,44 +312,53 @@ export function AnalyticsClient({
       </div>
 
       {/* Charts — 2-col grid */}
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div data-testid="post-volume-chart">
-          <ChartCard title="Post Volume" badge={dateRangeLabel}>
+      <motion.div
+        className="grid gap-5 lg:grid-cols-2"
+        variants={chartGridVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <motion.div variants={chartItemVariant} data-testid="post-volume-chart">
+          <ChartCard title="Posts per Day" badge={dateRangeLabel}>
             <PostVolumeChart data={volumeData} multiPlatform={multiPlatform} />
           </ChartCard>
-        </div>
+        </motion.div>
 
-        <ChartCard title="Platform Breakdown">
-          <PlatformBreakdown data={platformData} />
-        </ChartCard>
-
-        <UpgradeGate plan={plan} feature="emv_reporting" minHeight="200px">
-          <div data-testid="emv-section">
-            <ChartCard title="EMV by Influencer" badge="Top 10">
-              <EmvChart data={emvData} />
-            </ChartCard>
-          </div>
-        </UpgradeGate>
-
-        <UpgradeGate plan={plan} feature="advanced_analytics" minHeight="200px">
-          <ChartCard title="Engagement Rate" badge="vs benchmark">
-            <ErBenchmarkChart data={erData} />
+        <motion.div variants={chartItemVariant}>
+          <ChartCard title="Platform Breakdown">
+            <PlatformBreakdown data={platformData} />
           </ChartCard>
-        </UpgradeGate>
-      </div>
+        </motion.div>
+
+        <motion.div variants={chartItemVariant}>
+          <UpgradeGate plan={plan} feature="emv_reporting" minHeight="200px">
+            <div data-testid="emv-section">
+              <ChartCard title="EMV by Influencer" badge="Top 10">
+                <EmvChart data={emvData} />
+              </ChartCard>
+            </div>
+          </UpgradeGate>
+        </motion.div>
+
+        <motion.div variants={chartItemVariant}>
+          <UpgradeGate plan={plan} feature="advanced_analytics" minHeight="200px">
+            <ChartCard title="Engagement Rate" badge="vs benchmark">
+              <ErBenchmarkChart data={erData} />
+            </ChartCard>
+          </UpgradeGate>
+        </motion.div>
+      </motion.div>
 
       {/* Leaderboard */}
       <UpgradeGate plan={plan} feature="advanced_analytics" minHeight="200px">
-        <div className="rounded-xl border border-border bg-background-surface shadow-sm">
-          <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-            <p className="text-[13px] font-display font-bold text-foreground">Influencer Leaderboard</p>
-            {leaderboardRows.length > 0 && (
-              <Badge variant="muted">{leaderboardRows.length} influencers</Badge>
-            )}
-          </div>
+        <ChartCard
+          title="Influencer Leaderboard"
+          badge={leaderboardRows.length > 0 ? `${leaderboardRows.length} influencers` : undefined}
+        >
           <InfluencerLeaderboard rows={leaderboardRows} />
-        </div>
+        </ChartCard>
       </UpgradeGate>
     </div>
+    </MotionConfig>
   )
 }

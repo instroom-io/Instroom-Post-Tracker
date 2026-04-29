@@ -238,6 +238,11 @@ export interface InfluencerPlatformStats {
   platform: Platform
   post_count: number
   total_views: number
+  total_likes: number
+  total_comments: number
+  total_shares: number
+  total_saves: number
+  latest_follower_count: number | null
   total_emv: number
   avg_er: number
 }

@@ -13,6 +13,7 @@ interface TagInputProps {
   error?: string
   hint?: string
   disabled?: boolean
+  id?: string
 }
 
 export function TagInput({
@@ -24,11 +25,13 @@ export function TagInput({
   error,
   hint,
   disabled = false,
+  id,
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const inputId = useId()
+  const generatedId = useId()
+  const inputId = id ?? generatedId
 
   function addTag(raw: string) {
     // Strip prefix characters and whitespace

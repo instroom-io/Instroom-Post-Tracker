@@ -16,6 +16,12 @@ import { PlatformIcon } from '@/components/ui/platform-icon'
 
 type Platform = 'instagram' | 'tiktok' | 'youtube'
 
+interface ActiveDotProps {
+  cx: number
+  cy: number
+  payload: DayData
+}
+
 function PlatformLegend({ payload }: { payload?: Array<{ value: string; color: string }> }) {
   return (
     <div className="flex justify-center gap-4 pt-1">
@@ -114,7 +120,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
             fill={PLATFORM_COLORS.instagram}
             fillOpacity={0.85}
             dot={false}
-            activeDot={(props: any) => (props.payload?.instagram ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.instagram} strokeWidth={0} /> : <g />}
+            activeDot={(props: ActiveDotProps) => (props.payload?.instagram ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.instagram} strokeWidth={0} /> : <g />}
             name="instagram"
           />
         )}
@@ -128,7 +134,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
             fill={PLATFORM_COLORS.tiktok}
             fillOpacity={0.85}
             dot={false}
-            activeDot={(props: any) => (props.payload?.tiktok ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.tiktok} strokeWidth={0} /> : <g />}
+            activeDot={(props: ActiveDotProps) => (props.payload?.tiktok ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.tiktok} strokeWidth={0} /> : <g />}
             name="tiktok"
           />
         )}
@@ -142,7 +148,7 @@ export function PostVolumeChart({ data, multiPlatform = false }: PostVolumeChart
             fill={PLATFORM_COLORS.youtube}
             fillOpacity={0.85}
             dot={false}
-            activeDot={(props: any) => (props.payload?.youtube ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.youtube} strokeWidth={0} /> : <g />}
+            activeDot={(props: ActiveDotProps) => (props.payload?.youtube ?? 0) > 0 ? <circle cx={props.cx} cy={props.cy} r={3} fill={PLATFORM_COLORS.youtube} strokeWidth={0} /> : <g />}
             name="youtube"
           />
         )}

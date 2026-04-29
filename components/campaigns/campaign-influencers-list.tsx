@@ -175,12 +175,8 @@ export function CampaignInfluencersList({
       )
   )
 
-  const totalPages = Math.max(1, Math.ceil(optimisticItems.length / PAGE_SIZE))
-  const safePage = Math.min(currentPage, totalPages)
-  const paginated = optimisticItems.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
-
   const filtered = query.trim()
-    ? paginated.filter((row) => {
+    ? optimisticItems.filter((row) => {
         const q = query.toLowerCase()
         return (
           row.influencer.ig_handle?.toLowerCase().includes(q) ||
@@ -188,7 +184,11 @@ export function CampaignInfluencersList({
           row.influencer.youtube_handle?.toLowerCase().includes(q)
         )
       })
-    : paginated
+    : optimisticItems
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   function handleToggle(id: string, currentValue: boolean) {
     if (currentValue) {
@@ -260,7 +260,7 @@ export function CampaignInfluencersList({
             type="text"
             placeholder="Search influencers..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setCurrentPage(1) }}
             className="pl-7 h-7 text-[12px]"
           />
         </div>
@@ -432,8 +432,8 @@ export function CampaignInfluencersList({
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-border px-5 py-3">
           <p className="text-[11px] text-foreground-muted">
-            Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, optimisticItems.length)} of{' '}
-            {optimisticItems.length} influencers
+            Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of{' '}
+            {filtered.length} influencer{filtered.length !== 1 ? 's' : ''}{query.trim() ? ' found' : ''}
           </p>
           <div className="flex items-center gap-1.5">
             <button

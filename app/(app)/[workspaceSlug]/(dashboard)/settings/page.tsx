@@ -57,6 +57,7 @@ async function MembersSection({
           .from('invitations')
           .select('id, email, role, expires_at, accepted_at, created_at')
           .eq('workspace_id', workspaceId)
+          .is('accepted_at', null)
           .order('created_at', { ascending: false })
       : Promise.resolve({ data: [] as Invitation[] }),
   ])

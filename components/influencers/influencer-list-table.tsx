@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useTransition } from 'react'
+import React, { useState, useTransition, useEffect, useRef } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   CaretRight,
@@ -59,6 +59,7 @@ interface InfluencerListTableProps {
   influencers: InfluencerWithCampaigns[]
   workspaceCampaigns: Array<{ id: string; name: string }>
   campaignFilter: string
+  search: string
   canEdit: boolean
   workspaceSlug: string
   workspaceId: string
@@ -110,6 +111,7 @@ export function InfluencerListTable({
   influencers,
   workspaceCampaigns,
   campaignFilter,
+  search,
   canEdit,
   workspaceSlug,
   workspaceId,
@@ -122,7 +124,8 @@ export function InfluencerListTable({
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  const [search, setSearch] = useState('')
+  const [localSearch, setLocalSearch] = useState(search)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isPending, startTransition] = useTransition()
 
   // Remove from workspace confirmation state
@@ -139,6 +142,23 @@ export function InfluencerListTable({
   const [addCampaignId, setAddCampaignId] = useState('')
   const [addProductSentAt, setAddProductSentAt] = useState('')
   const [isAddingToCampaign, startAddTransition] = useTransition()
+
+  // ── Debounced search → URL ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (localSearch.trim()) {
+        params.set('search', localSearch.trim())
+      } else {
+        params.delete('search')
+      }
+      params.set('page', '1')
+      router.push(`${pathname}?${params.toString()}`)
+    }, 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localSearch])
 
   // ── URL helpers ────────────────────────────────────────────────────────────
   function buildUrl(updates: Record<string, string>) {
@@ -157,18 +177,6 @@ export function InfluencerListTable({
   function handlePageChange(newPage: number) {
     router.push(buildUrl({ page: String(newPage) }))
   }
-
-  // ── Local search filter ────────────────────────────────────────────────────
-  const filtered = influencers.filter((inf) => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      inf.ig_handle?.toLowerCase().includes(q) ||
-      inf.tiktok_handle?.toLowerCase().includes(q) ||
-      inf.youtube_handle?.toLowerCase().includes(q) ||
-      getInfluencerLabel(inf).toLowerCase().includes(q)
-    )
-  })
 
   // ── Mutations ──────────────────────────────────────────────────────────────
   function handleRemoveFromWorkspace() {
@@ -235,21 +243,16 @@ export function InfluencerListTable({
         {/* Left group: search + campaign filter + active chip */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
-          <div className="flex flex-col gap-0">
-            <div className="relative">
-              <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name or handle…"
-                aria-label="Search influencers"
-                className="h-9 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:w-64"
-              />
-            </div>
-            {search && (
-              <span className="pl-1 pt-0.5 text-[11px] italic text-foreground-muted">Searching this page only</span>
-            )}
+          <div className="relative">
+            <MagnifyingGlass size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
+            <input
+              type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder="Search by name or handle…"
+              aria-label="Search influencers"
+              className="h-9 w-full rounded-lg border border-border bg-background-muted pl-8 pr-3 text-[12px] text-foreground placeholder:text-foreground-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:w-64"
+            />
           </div>
 
           {/* Campaign filter */}
@@ -306,7 +309,7 @@ export function InfluencerListTable({
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 && (
+              {influencers.length === 0 && (
                 <tr>
                   <td colSpan={canEdit ? 4 : 3} className="px-5 py-12 text-center text-[13px] text-foreground-lighter">
                     {search
@@ -318,7 +321,7 @@ export function InfluencerListTable({
                 </tr>
               )}
 
-              {filtered.map((inf) => {
+              {influencers.map((inf) => {
                 const label = getInfluencerLabel(inf)
                 const activeCampaigns = inf.campaigns.filter(c => c.monitoring_status !== 'removed')
 

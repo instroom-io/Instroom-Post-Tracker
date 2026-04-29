@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import {
   PieChart,
   Pie,
@@ -90,11 +91,14 @@ export function PlatformBreakdown({ data }: PlatformBreakdownProps) {
 
       {/* Platform metric cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {colored.map((d) => {
+        {colored.map((d, i) => {
           const pct = totalPosts > 0 ? Math.round((d.posts / totalPosts) * 100) : 0
           return (
-            <div
+            <motion.div
               key={d.platform}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: i * 0.06 }}
               className="rounded-lg border border-border bg-background-surface p-3 transition-colors hover:bg-background-muted/50"
             >
               <div className="mb-1 flex items-center gap-1.5">
@@ -110,7 +114,7 @@ export function PlatformBreakdown({ data }: PlatformBreakdownProps) {
                 <p className="text-[10px] text-foreground-lighter">{formatEMV(d.emv)} EMV</p>
                 <p className="text-[10px] font-semibold text-foreground-muted">{pct}%</p>
               </div>
-            </div>
+            </motion.div>
           )
         })}
       </div>

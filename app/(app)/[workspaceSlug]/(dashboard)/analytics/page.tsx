@@ -33,42 +33,41 @@ async function AnalyticsBody({
   plan: string
 }) {
   const supabase = await createClient()
-  const { data: metrics } = await supabase
-    .from('post_metrics')
+  const { data: posts } = await supabase
+    .from('posts')
     .select(
       `
-      views,
-      engagement_rate,
-      emv,
-      post:posts(
-        id,
-        platform,
-        posted_at,
-        campaign_id,
-        influencer:influencers(tiktok_handle, ig_handle, youtube_handle)
-      )
+      id,
+      platform,
+      posted_at,
+      campaign_id,
+      influencer:influencers(id, tiktok_handle, ig_handle, youtube_handle),
+      metrics:post_metrics(views, engagement_rate, emv, fetched_at)
     `
     )
     .eq('workspace_id', workspaceId)
-    .limit(500)
+    .order('posted_at', { ascending: false })
+    .limit(1000)
 
-  type InfluencerShape = { tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null }
-  const metricsData = (metrics ?? []).map((m) => {
-    const rawPost = (Array.isArray(m.post) ? (m.post[0] ?? null) : m.post) as {
-      id: string; platform: string; posted_at: string; campaign_id: string | null;
-      influencer: InfluencerShape | InfluencerShape[] | null
-    } | null
+  type InfluencerShape = { id: string; tiktok_handle: string | null; ig_handle: string | null; youtube_handle: string | null }
+  type MetricShape = { views: number; engagement_rate: number; emv: number; fetched_at: string }
+  const metricsData = (posts ?? []).map((p) => {
+    const rawInfluencer = (Array.isArray(p.influencer) ? (p.influencer[0] ?? null) : p.influencer) as InfluencerShape | null
+    const rawMetrics = (Array.isArray(p.metrics) ? p.metrics : (p.metrics ? [p.metrics] : [])) as MetricShape[]
+    const latestMetric = rawMetrics.length > 0
+      ? rawMetrics.reduce((best, m) => new Date(m.fetched_at) > new Date(best.fetched_at) ? m : best)
+      : null
     return {
-      views: Number(m.views),
-      engagement_rate: Number(m.engagement_rate),
-      emv: Number(m.emv),
-      post: rawPost ? {
-        id: rawPost.id,
-        platform: rawPost.platform as Platform,
-        posted_at: rawPost.posted_at,
-        campaign_id: rawPost.campaign_id,
-        influencer: (Array.isArray(rawPost.influencer) ? (rawPost.influencer[0] ?? null) : rawPost.influencer) as InfluencerShape | null,
-      } : null,
+      views: latestMetric ? Number(latestMetric.views) : 0,
+      engagement_rate: latestMetric ? Number(latestMetric.engagement_rate) : 0,
+      emv: latestMetric ? Number(latestMetric.emv) : 0,
+      post: {
+        id: p.id,
+        platform: p.platform as Platform,
+        posted_at: p.posted_at,
+        campaign_id: p.campaign_id,
+        influencer: rawInfluencer,
+      },
     }
   })
 

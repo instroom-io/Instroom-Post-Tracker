@@ -6,8 +6,8 @@ import { PageHeader } from '@/components/layout/page-header'
 import { Badge } from '@/components/ui/badge'
 import { AnimatedBadge } from '@/components/ui/animated-badge'
 import { Button } from '@/components/ui/button'
-import { Tooltip } from '@/components/ui/tooltip'
 import { CampaignTabs } from '@/components/campaigns/campaign-tabs'
+import { ActivateCampaignButton } from '@/components/campaigns/activate-campaign-button'
 import { CampaignTourWrapper, CampaignTourButton } from '@/components/campaigns/campaign-tour-wrapper'
 import { AutoRefresh } from '@/components/ui/auto-refresh'
 import { formatDateRange } from '@/lib/utils'
@@ -133,43 +133,10 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
     const config = trackingConfigs?.find((c) => c.platform === platform)
     return !config || !config.hashtags?.length || !config.mentions?.length
   })
-  const canActivate = missingPlatforms.length === 0
-
   const endDateBlocking =
     campaign.end_date !== null && campaign.end_date < today
 
-  async function activateCampaign() {
-    'use server'
-    // Re-fetch inside the action — never rely on RSC closure variables for security guards.
-    // Note: return values from <form action={fn}> are discarded by Next.js.
-    // Client-side disabled state handles UX; this guard stops bypassed requests.
-    const supabase = await createClient()
-    const today = new Date().toISOString().split('T')[0]
-
-    const [{ data: freshCampaign }, { data: configs }] = await Promise.all([
-      supabase
-        .from('campaigns')
-        .select('platforms, end_date')
-        .eq('id', campaignId)
-        .single(),
-      supabase
-        .from('campaign_tracking_configs')
-        .select('platform, hashtags, mentions')
-        .eq('campaign_id', campaignId),
-    ])
-
-    if (!freshCampaign) return
-
-    const incomplete = (freshCampaign.platforms as string[]).filter((platform) => {
-      const config = configs?.find((c) => c.platform === platform)
-      return !config || !config.hashtags?.length || !config.mentions?.length
-    })
-    if (incomplete.length > 0) return
-
-    if (freshCampaign.end_date && freshCampaign.end_date < today) return
-
-    await updateCampaign(workspace!.id, campaignId, { status: 'active' })
-  }
+  const influencerCount = influencers?.length ?? 0
 
   async function endCampaign() {
     'use server'
@@ -247,30 +214,16 @@ export default async function CampaignDetailPage({ params, searchParams }: PageP
                 {campaign.status}
               </Badge>
             )}
-            {canEdit && (campaign.status === 'draft' || campaign.status === 'ended') && (() => {
-              const tooltipMsg = !canActivate
-                ? `Complete tracking config (# and @) for: ${missingPlatforms.join(', ')}`
-                : endDateBlocking
-                ? 'End date has passed — update or clear it before re-activating'
-                : null
-
-              const button = (
-                <form action={activateCampaign}>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="sm"
-                    disabled={!canActivate || endDateBlocking}
-                  >
-                    {campaign.status === 'ended' ? 'Re-activate' : 'Activate'}
-                  </Button>
-                </form>
-              )
-
-              return tooltipMsg ? (
-                <Tooltip content={tooltipMsg}>{button}</Tooltip>
-              ) : button
-            })()}
+            {canEdit && (campaign.status === 'draft' || campaign.status === 'ended') && (
+              <ActivateCampaignButton
+                campaignId={campaignId}
+                workspaceId={workspace.id}
+                campaignStatus={campaign.status}
+                missingPlatforms={missingPlatforms}
+                endDateBlocking={endDateBlocking}
+                influencerCount={influencerCount}
+              />
+            )}
             {canEdit && campaign.status === 'active' && (
               <form action={endCampaign}>
                 <Button type="submit" variant="secondary" size="sm">

@@ -171,7 +171,15 @@ export function InfluencerProfileModal({
 
   const totalPosts = profile?.platformStats.reduce((s, p) => s + p.post_count, 0) ?? null
   const totalViews = profile?.platformStats.reduce((s, p) => s + p.total_views, 0) ?? null
+  const totalLikes = profile?.platformStats.reduce((s, p) => s + p.total_likes, 0) ?? null
+  const totalComments = profile?.platformStats.reduce((s, p) => s + p.total_comments, 0) ?? null
+  const totalShares = profile?.platformStats.reduce((s, p) => s + p.total_shares, 0) ?? null
+  const totalSaves = profile?.platformStats.reduce((s, p) => s + p.total_saves, 0) ?? null
   const totalEmv = profile?.platformStats.reduce((s, p) => s + p.total_emv, 0) ?? null
+  const latestFollowers = profile?.platformStats.reduce<number | null>((max, p) => {
+    if (p.latest_follower_count === null) return max
+    return max === null ? p.latest_follower_count : Math.max(max, p.latest_follower_count)
+  }, null) ?? null
   const avgEr =
     profile && profile.platformStats.length > 0
       ? profile.platformStats.reduce((s, p) => s + p.avg_er, 0) / profile.platformStats.length
@@ -264,7 +272,7 @@ export function InfluencerProfileModal({
             </p>
             {loading ? (
               <div className="grid grid-cols-4 gap-3">
-                {Array.from({ length: 4 }).map((_, i) => (
+                {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="skeleton h-14 rounded-lg" />
                 ))}
               </div>
@@ -272,19 +280,35 @@ export function InfluencerProfileModal({
               <>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <MetricCell
-                    label="Total Posts"
-                    value={totalPosts !== null ? String(totalPosts) : '—'}
-                  />
-                  <MetricCell
-                    label="Total Views"
+                    label="Views"
                     value={totalViews !== null ? formatNumber(totalViews) : '—'}
                   />
                   <MetricCell
-                    label="Avg ER%"
+                    label="Likes"
+                    value={totalLikes !== null ? formatNumber(totalLikes) : '—'}
+                  />
+                  <MetricCell
+                    label="Comments"
+                    value={totalComments !== null ? formatNumber(totalComments) : '—'}
+                  />
+                  <MetricCell
+                    label="Shares"
+                    value={totalShares !== null ? formatNumber(totalShares) : '—'}
+                  />
+                  <MetricCell
+                    label="Saves"
+                    value={totalSaves !== null ? formatNumber(totalSaves) : '—'}
+                  />
+                  <MetricCell
+                    label="Followers"
+                    value={latestFollowers !== null ? formatNumber(latestFollowers) : '—'}
+                  />
+                  <MetricCell
+                    label="ER%"
                     value={avgEr !== null ? formatPercent(avgEr) : '—'}
                   />
                   <MetricCell
-                    label="Total EMV"
+                    label="EMV"
                     value={totalEmv !== null ? formatEMV(totalEmv) : '—'}
                   />
                 </div>

@@ -584,7 +584,7 @@ export async function getInfluencerProfile(
 
     supabase
       .from('posts')
-      .select('platform, post_metrics(views, emv, engagement_rate)')
+      .select('platform, posted_at, post_metrics(views, likes, comments, shares, saves, follower_count, emv, engagement_rate)')
       .eq('influencer_id', influencerId)
       .eq('workspace_id', workspaceId),
 
@@ -602,17 +602,46 @@ export async function getInfluencerProfile(
   if (recentPostsResult.error) return { error: 'Failed to load recent posts.' }
 
   // Aggregate platform stats client-side
-  const statsMap = new Map<string, { post_count: number; total_views: number; total_emv: number; er_sum: number; er_count: number }>()
+  const statsMap = new Map<string, {
+    post_count: number
+    total_views: number
+    total_likes: number
+    total_comments: number
+    total_shares: number
+    total_saves: number
+    total_emv: number
+    er_sum: number
+    er_count: number
+    latest_posted_at: string | null
+    latest_follower_count: number | null
+  }>()
   for (const p of metricsResult.data ?? []) {
     const m = Array.isArray(p.post_metrics) ? p.post_metrics[0] : p.post_metrics
     const key = p.platform
-    const existing = statsMap.get(key) ?? { post_count: 0, total_views: 0, total_emv: 0, er_sum: 0, er_count: 0 }
+    const existing = statsMap.get(key) ?? {
+      post_count: 0, total_views: 0, total_likes: 0, total_comments: 0,
+      total_shares: 0, total_saves: 0, total_emv: 0, er_sum: 0, er_count: 0,
+      latest_posted_at: null, latest_follower_count: null,
+    }
     existing.post_count += 1
     if (m) {
       existing.total_views += Number(m.views ?? 0)
+      existing.total_likes += Number(m.likes ?? 0)
+      existing.total_comments += Number(m.comments ?? 0)
+      existing.total_shares += Number(m.shares ?? 0)
+      existing.total_saves += Number(m.saves ?? 0)
       existing.total_emv += Number(m.emv ?? 0)
       existing.er_sum += Number(m.engagement_rate ?? 0)
       existing.er_count += 1
+      // Track follower count from the most recently posted post
+      const postedAt = (p as unknown as { posted_at: string }).posted_at
+      if (
+        m.follower_count != null &&
+        (existing.latest_posted_at === null || postedAt > existing.latest_posted_at)
+      ) {
+        existing.latest_posted_at = postedAt
+        existing.latest_follower_count = Number(m.follower_count)
+      }
     }
     statsMap.set(key, existing)
   }
@@ -620,6 +649,11 @@ export async function getInfluencerProfile(
     platform: platform as Platform,
     post_count: s.post_count,
     total_views: s.total_views,
+    total_likes: s.total_likes,
+    total_comments: s.total_comments,
+    total_shares: s.total_shares,
+    total_saves: s.total_saves,
+    latest_follower_count: s.latest_follower_count,
     total_emv: s.total_emv,
     avg_er: s.er_count > 0 ? s.er_sum / s.er_count : 0,
   }))

@@ -14,12 +14,12 @@ const PAGE_SIZE = 20
 
 interface PageProps {
   params: Promise<{ workspaceSlug: string }>
-  searchParams: Promise<{ page?: string; campaign?: string }>
+  searchParams: Promise<{ page?: string; campaign?: string; search?: string }>
 }
 
 export default async function InfluencersPage({ params, searchParams }: PageProps) {
   const { workspaceSlug } = await params
-  const { page: pageParam, campaign: campaignFilter = '' } = await searchParams
+  const { page: pageParam, campaign: campaignFilter = '', search: searchQuery = '' } = await searchParams
 
   const page = Math.max(1, parseInt(pageParam ?? '1', 10))
   const offset = (page - 1) * PAGE_SIZE
@@ -111,6 +111,10 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
     if (filteredInfluencerIds !== null && filteredInfluencerIds.length > 0) {
       q = q.in('id', filteredInfluencerIds)
     }
+    if (searchQuery.trim()) {
+      const s = `%${searchQuery.trim()}%`
+      q = q.or(`ig_handle.ilike.${s},tiktok_handle.ilike.${s},youtube_handle.ilike.${s}`)
+    }
     return q
   }
 
@@ -122,6 +126,10 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
 
     if (filteredInfluencerIds !== null && filteredInfluencerIds.length > 0) {
       q = q.in('id', filteredInfluencerIds)
+    }
+    if (searchQuery.trim()) {
+      const s = `%${searchQuery.trim()}%`
+      q = q.or(`ig_handle.ilike.${s},tiktok_handle.ilike.${s},youtube_handle.ilike.${s}`)
     }
     return q
   }
@@ -177,9 +185,11 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
       <PageHeader
         title="Influencers"
         description={
-          activeCampaign
-            ? `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in ${activeCampaign.name}`
-            : `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in this workspace`
+          searchQuery.trim()
+            ? `${totalCount} result${totalCount !== 1 ? 's' : ''} for "${searchQuery.trim()}"`
+            : activeCampaign
+              ? `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in ${activeCampaign.name}`
+              : `${totalCount} influencer${totalCount !== 1 ? 's' : ''} in this workspace`
         }
         actions={<AddInfluencerDialog workspaceId={workspace.id} />}
       />
@@ -189,6 +199,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
           influencers={influencers}
           workspaceCampaigns={campaigns ?? []}
           campaignFilter={campaignFilter}
+          search={searchQuery}
           canEdit={canEdit}
           workspaceSlug={workspaceSlug}
           workspaceId={workspace.id}

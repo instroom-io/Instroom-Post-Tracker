@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { UserPlus, ArrowLeft, CheckCircle, Warning, XCircle, DownloadSimple, UploadSimple } from '@phosphor-icons/react'
+import { UserPlus, ArrowLeft, CheckCircle, Warning, XCircle, DownloadSimple, UploadSimple, Info } from '@phosphor-icons/react'
+import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,6 +21,7 @@ import {
 } from '@/lib/actions/influencers'
 import { getInfluencerLabel, getInitials } from '@/lib/utils'
 import { PlatformIcon } from '@/components/ui/platform-icon'
+import { Tooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { Platform } from '@/lib/types'
 
@@ -418,23 +420,6 @@ export function AddInfluencerToCampaignDialog({
                 >
                   + Add new influencers
                 </button>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-foreground-muted">
-                    Product sent date <span className="normal-case text-foreground-subtle">(optional)</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={productSentAt}
-                    onChange={(e) => setProductSentAt(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                  <p className="text-[11px] text-foreground-subtle">
-                    {campaignPlatforms.includes('tiktok')
-                      ? 'When products were delivered — limits how far back TikTok is scraped. Defaults to the date the influencer is added if left blank.'
-                      : 'When products were delivered — sets the monitoring start date. Defaults to the date the influencer is added if left blank.'}
-                  </p>
-                </div>
               </DialogBody>
 
               <DialogFooter>
@@ -458,47 +443,46 @@ export function AddInfluencerToCampaignDialog({
           {mode === 'batch' && (
             <>
               <DialogBody className="space-y-4">
-                {/* Platform tabs — filtered to campaign platforms */}
-                {batchTabs.length > 1 && (
-                  <div className="flex gap-1.5">
-                    {batchTabs.map((tab) => (
-                      <button
+                {/* Platform tabs — full-width animated tiles, auto-fill for 1/2/3 platforms */}
+                <div className="flex gap-2">
+                  {batchTabs.map((tab) => {
+                    const isActive = batchPlatform === tab.key
+                    return (
+                      <motion.button
                         key={tab.key}
                         type="button"
                         onClick={() => setBatchPlatform(tab.key)}
+                        whileTap={batchTabs.length > 1 ? { scale: 0.97 } : undefined}
+                        transition={{ duration: 0.1 }}
                         className={cn(
-                          'flex items-center justify-center rounded-lg border px-2.5 py-1.5 transition-colors',
-                          batchPlatform === tab.key
-                            ? 'border-brand/40 bg-brand/10'
-                            : 'border-border bg-background-surface text-foreground-muted hover:text-foreground hover:bg-background-muted'
+                          'relative flex flex-1 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border py-4 transition-all duration-200',
+                          isActive
+                            ? 'border-brand/30 bg-background-surface shadow-sm cursor-default'
+                            : 'border-border bg-background-muted hover:bg-background-muted/80 cursor-pointer'
                         )}
                       >
-                        <PlatformIcon platform={tab.key} size={14} />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {batchTabs.length === 1 && (
-                  <p className="text-[11px] text-foreground-muted">
-                    Platform: <span className="inline-flex items-center gap-1 font-medium text-foreground"><PlatformIcon platform={batchTabs[0].key} size={13} />{batchTabs[0].label}</span>
-                  </p>
-                )}
-
-                {/* Product sent date */}
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-foreground-muted">
-                    Product sent date <span className="normal-case text-foreground-subtle">(optional)</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={productSentAt}
-                    onChange={(e) => setProductSentAt(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                  <p className="text-[11px] text-foreground-subtle">
-                    {getProductSentHint(batchPlatform)}
-                  </p>
+                        {isActive && (
+                          <motion.div
+                            layoutId="platform-active-line"
+                            className="absolute inset-x-0 top-0 h-0.5 bg-brand"
+                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                          />
+                        )}
+                        <motion.div
+                          animate={{ scale: isActive ? 1.1 : 1, opacity: isActive ? 1 : 0.4 }}
+                          transition={{ duration: 0.18, ease: 'easeOut' }}
+                        >
+                          <PlatformIcon platform={tab.key} size={22} />
+                        </motion.div>
+                        <span className={cn(
+                          'text-[11px] font-medium transition-colors duration-200',
+                          isActive ? 'text-foreground' : 'text-foreground-muted'
+                        )}>
+                          {tab.label}
+                        </span>
+                      </motion.button>
+                    )
+                  })}
                 </div>
 
                 {/* Manual textarea */}
@@ -567,19 +551,35 @@ export function AddInfluencerToCampaignDialog({
                 </div>
               </DialogBody>
 
-              <DialogFooter>
-                <Button variant="secondary" size="md" onClick={() => handleOpenChange(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  size="md"
-                  disabled={parsedHandles.length === 0 || isPending}
-                  loading={isPending}
-                  onClick={handleValidate}
-                >
-                  Verify
-                </Button>
+              <DialogFooter className="justify-between">
+                <div className="flex items-center gap-2">
+                  <label className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-foreground-muted">
+                    Product sent
+                    <Tooltip content={getProductSentHint(batchPlatform)}>
+                      <Info size={11} className="cursor-help text-foreground-subtle" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="date"
+                    value={productSentAt}
+                    onChange={(e) => setProductSentAt(e.target.value)}
+                    className="w-[130px] shrink-0 rounded-lg border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:border-brand transition-colors"
+                  />
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button variant="secondary" size="md" onClick={() => handleOpenChange(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    disabled={parsedHandles.length === 0 || isPending}
+                    loading={isPending}
+                    onClick={handleValidate}
+                  >
+                    Verify
+                  </Button>
+                </div>
               </DialogFooter>
             </>
           )}

@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { ChartBar } from '@phosphor-icons/react/dist/ssr'
 import { formatPercent } from '@/lib/utils'
 import { ER_BENCHMARK_COLORS } from '@/lib/constants/platform-colors'
@@ -58,7 +59,7 @@ export function ErBenchmarkChart({ data }: ErBenchmarkChartProps) {
 
       {/* Dot plot rows */}
       <div className="space-y-3">
-        {sorted.map((item) => {
+        {sorted.map((item, index) => {
           const pct = Math.min((item.er / scale) * 100, 96)
           return (
             <div key={item.handle} className="flex items-center gap-3">
@@ -72,16 +73,19 @@ export function ErBenchmarkChart({ data }: ErBenchmarkChartProps) {
                   <div style={{ width: `${midPct}%`, background: `${ER_BENCHMARK_COLORS.mid}28` }} />
                   <div className="flex-1" style={{ background: '#1FAE5B28' }} />
                 </div>
-                {/* Dot */}
+                {/* Dot — outer div handles position, inner motion.div handles entrance */}
                 <div
-                  className="absolute h-3 w-3 rounded-full ring-2 ring-background-surface"
-                  style={{
-                    top: '50%',
-                    left: `${pct}%`,
-                    transform: 'translate(-50%, -50%)',
-                    background: getDotColor(item.er),
-                  }}
-                />
+                  className="absolute h-3 w-3"
+                  style={{ top: '50%', left: `${pct}%`, transform: 'translate(-50%, -50%)' }}
+                >
+                  <motion.div
+                    className="h-full w-full rounded-full ring-2 ring-background-surface"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: index * 0.06 }}
+                    style={{ background: getDotColor(item.er) }}
+                  />
+                </div>
               </div>
               <span className="w-10 shrink-0 text-right text-[12px] font-semibold tabular-nums text-foreground">
                 {formatPercent(item.er)}

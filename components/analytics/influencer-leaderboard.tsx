@@ -1,6 +1,18 @@
+'use client'
+
+import { motion } from 'framer-motion'
 import { ChartBar } from '@phosphor-icons/react/dist/ssr'
 import { formatNumber, formatEMV, formatPercent } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+
+const rowVariant = {
+  hidden: { opacity: 0, y: 4 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const, delay: i * 0.04 },
+  }),
+}
 
 interface LeaderboardRow {
   rank: number
@@ -80,9 +92,13 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr
+          {rows.map((row, i) => (
+            <motion.tr
               key={row.fullName}
+              custom={i}
+              variants={rowVariant}
+              initial="hidden"
+              animate="show"
               className={cn(
                 'border-b border-border/50 last:border-0 transition-colors hover:bg-background-muted/30',
                 row.rank === 1 && 'bg-warning/[0.03]'
@@ -109,7 +125,7 @@ export function InfluencerLeaderboard({ rows }: InfluencerLeaderboardProps) {
               <td className="px-4 py-3 text-right text-[12px] font-semibold text-foreground">
                 {formatEMV(row.totalEmv)}
               </td>
-            </tr>
+            </motion.tr>
           ))}
         </tbody>
       </table>

@@ -185,6 +185,34 @@ export async function deleteCampaign(
   revalidatePath('/', 'layout')
 }
 
+export async function activateCampaignById(
+  workspaceId: string,
+  campaignId: string
+): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const today = new Date().toISOString().split('T')[0]
+
+  const [{ data: freshCampaign }, { data: configs }] = await Promise.all([
+    supabase.from('campaigns').select('platforms, end_date').eq('id', campaignId).single(),
+    supabase.from('campaign_tracking_configs').select('platform, hashtags, mentions').eq('campaign_id', campaignId),
+  ])
+
+  if (!freshCampaign) return
+
+  const incomplete = (freshCampaign.platforms as string[]).filter((platform) => {
+    const config = configs?.find((c) => c.platform === platform)
+    return !config || !config.hashtags?.length || !config.mentions?.length
+  })
+  if (incomplete.length > 0) return
+
+  if (freshCampaign.end_date && freshCampaign.end_date < today) return
+
+  await updateCampaign(workspaceId, campaignId, { status: 'active' })
+}
+
 export async function upsertTrackingConfig(
   workspaceId: string,
   data: unknown
