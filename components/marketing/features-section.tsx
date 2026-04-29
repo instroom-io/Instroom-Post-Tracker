@@ -1,20 +1,20 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
-import {
-  UsersThree,
-  DownloadSimple,
-  FolderOpen,
-  HashStraight,
-  Images,
-  Briefcase,
-} from '@phosphor-icons/react'
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
+
+import usersAnim     from '@/public/icons/feature-users.json'
+import downloadAnim  from '@/public/icons/feature-download.json'
+import folderAnim    from '@/public/icons/feature-folder.json'
+import hashtagAnim   from '@/public/icons/feature-hashtag.json'
+import galleryAnim   from '@/public/icons/feature-gallery.json'
+import briefcaseAnim from '@/public/icons/feature-briefcase.json'
 
 interface FeatureCard {
   tag: string
   title: string
-  icon: React.ElementType
+  animationData: object
   description: string
 }
 
@@ -22,46 +22,116 @@ const features: FeatureCard[] = [
   {
     tag: 'Core differentiator',
     title: 'Influencer-specific monitoring',
-    icon: UsersThree,
+    animationData: usersAnim,
     description:
       "Unlike generic hashtag trackers that surface everyone who used your tag, Post Tracker monitors only the influencers you've hired. No irrelevant noise. No stranger content cluttering your library.",
   },
   {
     tag: 'Automation',
     title: 'Automatic content download',
-    icon: DownloadSimple,
+    animationData: downloadAnim,
     description:
       'When usage rights are confirmed, content is automatically pulled from Instagram, TikTok, and YouTube. No watermarks, no manual saves.',
   },
   {
     tag: 'Organization',
     title: 'Structured Google Drive sync',
-    icon: FolderOpen,
+    animationData: folderAnim,
     description:
       'Every piece of content is automatically organized in your Google Drive by influencer, platform, and campaign. Your team always knows exactly where to find it.',
   },
   {
     tag: 'Monitoring',
     title: 'Hashtag + mention tracking',
-    icon: HashStraight,
+    animationData: hashtagAnim,
     description:
       'Track branded hashtags and account mentions across Instagram, TikTok, and YouTube simultaneously. Post Tracker catches everything your influencers publish under your campaign.',
   },
   {
     tag: 'Repurposing',
     title: 'Paid ads–ready UGC library',
-    icon: Images,
+    animationData: galleryAnim,
     description:
       "Every approved asset builds your creative library automatically. Hand it straight to your media buyer or ads team. It's already organized and ready.",
   },
   {
     tag: 'Multi-client',
     title: 'Built for agencies and freelancers',
-    icon: Briefcase,
+    animationData: briefcaseAnim,
     description:
       "Purchase your own plan or request access to a brand's existing account. Once approved, all your brands live under one login. No account juggling. If the brand is already subscribed, you join at no extra cost.",
   },
 ]
+
+function FeatureCardItem({
+  feature,
+  index,
+  shouldReduce,
+  isInView,
+}: {
+  feature: FeatureCard
+  index: number
+  shouldReduce: boolean | null
+  isInView: boolean
+}) {
+  const lottieRef = useRef<LottieRefCurrentProps>(null)
+
+  useEffect(() => {
+    if (!isInView || shouldReduce) return
+    const timer = setTimeout(() => {
+      lottieRef.current?.goToAndPlay(0, true)
+    }, index * 80)
+    return () => clearTimeout(timer)
+  }, [isInView, index, shouldReduce])
+
+  return (
+    <motion.div
+      initial={shouldReduce ? {} : { opacity: 0, y: 24 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+      transition={{
+        duration: 0.5,
+        delay: shouldReduce ? 0 : index * 0.07,
+        ease: 'easeOut',
+      }}
+      onMouseEnter={() => lottieRef.current?.goToAndPlay(0, true)}
+      onMouseLeave={() => lottieRef.current?.stop()}
+      className="flex flex-col rounded-[14px] border border-border bg-background p-7 transition-shadow hover:border-border-strong hover:shadow-md dark:border-white/8 dark:bg-white/5 dark:hover:border-white/15"
+    >
+      {/* Icon + number */}
+      <div className="mb-5 flex items-start justify-between">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand">
+          <div className="brightness-0 invert">
+            <Lottie
+              lottieRef={lottieRef}
+              animationData={feature.animationData}
+              loop={false}
+              autoplay={false}
+              style={{ width: 22, height: 22 }}
+            />
+          </div>
+        </div>
+        <span className="font-display text-[0.7rem] font-bold tabular-nums text-foreground-muted">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+      </div>
+
+      {/* Category label */}
+      <span className="mb-1.5 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-foreground-muted">
+        {feature.tag}
+      </span>
+
+      {/* Heading */}
+      <h3 className="mb-2 font-display text-[1rem] font-bold leading-snug tracking-tight text-foreground">
+        {feature.title}
+      </h3>
+
+      {/* Description */}
+      <p className="text-[0.84rem] leading-relaxed text-foreground-lighter">
+        {feature.description}
+      </p>
+    </motion.div>
+  )
+}
 
 export function FeaturesSection() {
   const shouldReduce = useReducedMotion()
@@ -92,50 +162,20 @@ export function FeaturesSection() {
           </p>
         </motion.div>
 
-        {/* 3×2 grid — all 6 features, equal hierarchy */}
+        {/* 3×2 grid */}
         <div
           ref={ref}
           className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {features.map((feature, index) => {
-            const Icon = feature.icon
-            return (
-              <motion.div
-                key={feature.title}
-                initial={shouldReduce ? {} : { opacity: 0, y: 24 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-                transition={{
-                  duration: 0.5,
-                  delay: shouldReduce ? 0 : index * 0.07,
-                  ease: 'easeOut',
-                }}
-                className="flex flex-col rounded-[14px] border border-border bg-background p-7 transition-shadow hover:border-border-strong hover:shadow-md dark:border-white/8 dark:bg-white/5 dark:hover:border-white/15"
-              >
-                {/* Icon + number */}
-                <div className="mb-5 flex items-start justify-between">
-                  <Icon size={22} weight="duotone" className="text-brand" />
-                  <span className="font-display text-[0.7rem] font-bold tabular-nums text-foreground-muted">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                </div>
-
-                {/* Category label */}
-                <span className="mb-1.5 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-foreground-muted">
-                  {feature.tag}
-                </span>
-
-                {/* Heading */}
-                <h3 className="mb-2 font-display text-[1rem] font-bold leading-snug tracking-tight text-foreground">
-                  {feature.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-[0.84rem] leading-relaxed text-foreground-lighter">
-                  {feature.description}
-                </p>
-              </motion.div>
-            )
-          })}
+          {features.map((feature, index) => (
+            <FeatureCardItem
+              key={feature.title}
+              feature={feature}
+              index={index}
+              shouldReduce={shouldReduce}
+              isInView={isInView}
+            />
+          ))}
         </div>
       </div>
     </section>

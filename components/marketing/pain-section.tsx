@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
-import { motion, useReducedMotion, type Variants } from 'framer-motion'
+import { useRef, useEffect } from 'react'
+import { motion, useInView, useReducedMotion, type Variants } from 'framer-motion'
 import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
 
 import searchAnim   from '@/public/icons/icon-search.json'
@@ -71,15 +71,27 @@ const painPoints = [
 
 function PainCard({
   point,
+  index,
+  isInView,
   shouldReduce,
   itemVariants,
 }: {
   point: (typeof painPoints)[number]
+  index: number
+  isInView: boolean
   shouldReduce: boolean | null
   itemVariants: Variants
 }) {
   const lottieRef = useRef<LottieRefCurrentProps>(null)
   const accent = accentStyles[point.accent]
+
+  useEffect(() => {
+    if (!isInView || shouldReduce) return
+    const timer = setTimeout(() => {
+      lottieRef.current?.goToAndPlay(0, true)
+    }, index * 80)
+    return () => clearTimeout(timer)
+  }, [isInView, index, shouldReduce])
 
   return (
     <motion.div variants={itemVariants}>
@@ -121,6 +133,8 @@ function PainCard({
 
 export function PainSection() {
   const shouldReduce = useReducedMotion()
+  const gridRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(gridRef, { once: true, amount: 0.1 })
 
   const containerVariants: Variants = {
     hidden: {},
@@ -157,11 +171,13 @@ export function PainSection() {
           </motion.div>
 
           {/* Card grid */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {painPoints.map((point) => (
+          <div ref={gridRef} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {painPoints.map((point, index) => (
               <PainCard
                 key={point.title}
                 point={point}
+                index={index}
+                isInView={isInView}
                 shouldReduce={shouldReduce}
                 itemVariants={itemVariants}
               />
