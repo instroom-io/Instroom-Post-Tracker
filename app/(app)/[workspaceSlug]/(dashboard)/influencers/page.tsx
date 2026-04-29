@@ -88,6 +88,7 @@ export default async function InfluencersPage({ params, searchParams }: PageProp
           influencers={[]}
           workspaceCampaigns={campaigns ?? []}
           campaignFilter={campaignFilter}
+          search={searchQuery}
           canEdit={canEdit}
           workspaceSlug={workspaceSlug}
           workspaceId={workspace.id}
