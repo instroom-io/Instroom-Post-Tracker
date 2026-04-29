@@ -17,12 +17,15 @@ function getServiceAuth() {
   return _serviceAuth
 }
 
-function getOAuthClient(accessToken: string) {
+function getOAuthClient(accessToken: string, refreshToken?: string) {
   const oauth2 = new google.auth.OAuth2(
     process.env.GOOGLE_OAUTH_CLIENT_ID,
     process.env.GOOGLE_OAUTH_CLIENT_SECRET
   )
-  oauth2.setCredentials({ access_token: accessToken })
+  oauth2.setCredentials({
+    access_token: accessToken,
+    ...(refreshToken ? { refresh_token: refreshToken } : {}),
+  })
   return oauth2
 }
 
@@ -116,6 +119,7 @@ export async function uploadToDrive({
   rootFolderId,
   sharedDriveId,
   accessToken,
+  refreshToken,
 }: {
   fileBuffer: ArrayBuffer
   fileName: string
@@ -125,8 +129,9 @@ export async function uploadToDrive({
   // be passed here — they are not valid Shared Drive IDs and cause API errors.
   sharedDriveId?: string
   accessToken?: string
+  refreshToken?: string
 }): Promise<{ fileId: string; webViewLink: string; folderPath: string }> {
-  const auth = accessToken ? getOAuthClient(accessToken) : getServiceAuth()
+  const auth = accessToken ? getOAuthClient(accessToken, refreshToken) : getServiceAuth()
   const drive = google.drive({ version: 'v3', auth })
 
   const pathSegments = folderPath.split('/').filter(Boolean)

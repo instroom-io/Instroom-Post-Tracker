@@ -124,12 +124,17 @@ export async function processPostDownload(
   const agency = workspace?.agency ?? null
 
   let accessToken: string | null = null
+  let refreshToken: string | undefined = undefined
   let rootFolderId: string | undefined = undefined
   let sharedDriveId: string | undefined = undefined
 
   if (agency?.id && agency?.drive_folder_id) {
     // Agency workspace: Shared Drive — rootFolderId IS the Shared Drive ID
-    accessToken = await getAgencyFreshAccessToken(agency.id, supabase)
+    const agencyTokens = await getAgencyFreshAccessToken(agency.id, supabase)
+    if (agencyTokens) {
+      accessToken = agencyTokens.accessToken
+      refreshToken = agencyTokens.refreshToken
+    }
     rootFolderId = agency.drive_folder_id
     sharedDriveId = agency.drive_folder_id
   } else {
@@ -144,20 +149,32 @@ export async function processPostDownload(
     if (ownerMember?.user_id) {
       const { data: ownerProfile } = await supabase
         .from('users')
-        .select('personal_drive_folder_id')
+        .select('personal_drive_folder_id, google_refresh_token')
         .eq('id', ownerMember.user_id)
         .single()
 
-      accessToken = await getFreshAccessToken(ownerMember.user_id, supabase)
+      const hasGoogleConnected = !!(ownerProfile as { google_refresh_token: string | null } | null)
+        ?.google_refresh_token
       const configuredFolder = (ownerProfile as { personal_drive_folder_id: string | null } | null)
         ?.personal_drive_folder_id ?? null
-      // Personal Drive folder — never a Shared Drive ID, so sharedDriveId stays undefined.
-      // Fall back to 'root' (user's My Drive root) if no folder is configured, so the
-      // file lands in the owner's personal Drive instead of Instroom's service account drive.
-      rootFolderId = configuredFolder ?? 'root'
+
+      if (hasGoogleConnected) {
+        const tokens = await getFreshAccessToken(ownerMember.user_id, supabase)
+        if (!tokens) {
+          throw new Error(
+            `Google Drive token could not be refreshed for workspace owner ${ownerMember.user_id}. ` +
+            `The owner must reconnect Google Drive in account settings.`
+          )
+        }
+        accessToken = tokens.accessToken
+        refreshToken = tokens.refreshToken
+        // Personal Drive — sharedDriveId stays undefined (not a Shared Drive).
+        // Fall back to 'root' (My Drive root) if no specific folder is configured.
+        rootFolderId = configuredFolder ?? 'root'
+      }
+      // hasGoogleConnected = false → owner never connected Drive
+      // → accessToken stays null → uploadToDrive falls back to service account
     }
-    // If owner has no Google OAuth → accessToken stays null
-    // → uploadToDrive falls back to service account (GOOGLE_DRIVE_ROOT_FOLDER_ID)
   }
 
   const { fileId, folderPath: savedFolderPath } = await uploadToDrive({
@@ -167,6 +184,7 @@ export async function processPostDownload(
     rootFolderId,
     sharedDriveId,
     accessToken: accessToken ?? undefined,
+    refreshToken,
   })
 
   await supabase
