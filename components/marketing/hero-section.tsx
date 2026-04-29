@@ -39,9 +39,12 @@ export function HeroSection() {
 
             <motion.div
               {...fadeIn(0)}
-              className="mb-5 text-[0.68rem] font-semibold uppercase tracking-widest text-brand"
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/[0.08] px-3.5 py-1"
             >
-              Instroom Post Tracker
+              <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+              <span className="text-[0.7rem] font-semibold tracking-wide text-brand">
+                Built by marketers, for marketers
+              </span>
             </motion.div>
 
             <motion.h1
