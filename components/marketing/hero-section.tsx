@@ -29,7 +29,7 @@ export function HeroSection() {
       <HeroBackground />
 
       <div
-        className="relative z-10 mx-auto flex w-full max-w-[1180px] items-center px-[5%]"
+        className="relative z-10 mx-auto flex w-full max-w-[1180px] items-center px-[5%] pt-16"
         style={{ minHeight: '100svh' }}
       >
         <div className="grid w-full grid-cols-1 items-center gap-10 py-28 lg:grid-cols-[1fr_1.05fr] lg:gap-12 lg:py-0">

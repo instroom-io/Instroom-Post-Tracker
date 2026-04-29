@@ -45,7 +45,7 @@ export function MarketingNav() {
         {/* Wordmark */}
         <Link href="/">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-9 w-auto" />
+          <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-16 w-auto" />
         </Link>
 
         {/* Desktop nav links — absolutely centered */}
