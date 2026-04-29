@@ -32,7 +32,7 @@ export function HeroSection() {
         className="relative z-10 mx-auto flex w-full max-w-[1180px] items-center px-[5%] pt-16"
         style={{ minHeight: '100svh' }}
       >
-        <div className="grid w-full grid-cols-1 items-center gap-10 py-28 lg:grid-cols-[1fr_1.05fr] lg:gap-12 lg:py-0">
+        <div className="grid w-full grid-cols-1 items-center gap-10 py-28 lg:grid-cols-[1fr_1.05fr] lg:gap-12 lg:pt-0 lg:pb-20">
 
           {/* ── Left: copy ───────────────────────────────────────── */}
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">

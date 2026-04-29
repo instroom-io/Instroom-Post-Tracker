@@ -114,7 +114,7 @@ export function PainSection() {
   }
 
   return (
-    <section className="bg-marketing-dark py-20" id="pain">
+    <section className="bg-marketing-dark py-24" id="pain">
       <div className="mx-auto max-w-[1060px] px-[5%]">
         <motion.div
           variants={containerVariants}

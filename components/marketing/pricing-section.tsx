@@ -40,7 +40,7 @@ export function PricingSection() {
   const teamPrice = PRICING.team[period]
 
   return (
-    <section id="pricing" className="py-20">
+    <section id="pricing" className="py-28">
       <div className="mx-auto max-w-[1060px] px-[5%]">
         <motion.div
           variants={containerVariants}

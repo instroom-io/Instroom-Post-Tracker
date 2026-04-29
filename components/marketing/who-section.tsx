@@ -142,7 +142,7 @@ export function WhoSection() {
   const hoverProp = shouldReduce ? undefined : ('hover' as const)
 
   return (
-    <section className="bg-background-surface py-20">
+    <section className="bg-background-surface py-24">
       <div className="mx-auto max-w-[1060px] px-[5%]">
 
         {/* ── Section header ──────────────────────────────────────────── */}
