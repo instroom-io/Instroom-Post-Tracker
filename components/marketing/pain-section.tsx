@@ -1,23 +1,23 @@
 'use client'
 
+import { useRef } from 'react'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import {
-  MagnifyingGlass,
-  FilmSlate,
-  FileText,
-  UploadSimple,
-  Warning,
-  ShieldWarning,
-} from '@phosphor-icons/react'
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
+
+import searchAnim   from '@/public/icons/icon-search.json'
+import filmAnim     from '@/public/icons/icon-film.json'
+import documentAnim from '@/public/icons/icon-document.json'
+import uploadAnim   from '@/public/icons/icon-upload.json'
+import warningAnim  from '@/public/icons/icon-warning.json'
+import shieldAnim   from '@/public/icons/icon-shield.json'
 
 type AccentKey = 'green' | 'amber' | 'indigo'
 
-const accentStyles: Record<AccentKey, { bg: string; color: string }> = {
-  green:  { bg: 'rgba(31,174,91,0.12)',   color: '#1FAE5B' },
-  amber:  { bg: 'rgba(244,183,64,0.12)',  color: '#F4B740' },
-  indigo: { bg: 'rgba(91,111,230,0.12)',  color: '#5B6FE6' },
+const accentStyles: Record<AccentKey, { bg: string }> = {
+  green:  { bg: 'rgba(31,174,91,0.12)' },
+  amber:  { bg: 'rgba(244,183,64,0.12)' },
+  indigo: { bg: 'rgba(91,111,230,0.12)' },
 }
-
 
 const cardVariants: Variants = {
   rest:  { y: 0 },
@@ -26,48 +26,98 @@ const cardVariants: Variants = {
 
 const painPoints = [
   {
-    icon: MagnifyingGlass,
+    animationData: searchAnim,
     accent: 'green' as AccentKey,
     title: "You're checking profiles manually",
     description:
       'Every day, someone opens Instagram or TikTok to check if an influencer posted. That time adds up, and posts still get missed.',
   },
   {
-    icon: FilmSlate,
+    animationData: filmAnim,
     accent: 'amber' as AccentKey,
     title: 'Content comes back watermarked',
     description:
       "TikTok watermarks are burned in. Without a proper download pipeline, the UGC you paid for isn't usable in paid ads.",
   },
   {
-    icon: FileText,
+    animationData: documentAnim,
     accent: 'indigo' as AccentKey,
     title: 'Chasing influencers for deliverables',
     description:
       'Day 10, still no post. No system to know when to follow up, who to contact, or how late they actually are.',
   },
   {
-    icon: UploadSimple,
+    animationData: uploadAnim,
     accent: 'indigo' as AccentKey,
     title: 'Manually uploading to Drive',
     description:
       'Someone downloads the video, renames it, drags it into the right folder. Every. Single. Post.',
   },
   {
-    icon: Warning,
+    animationData: warningAnim,
     accent: 'amber' as AccentKey,
     title: 'Posts fall through the cracks',
     description:
       "One influencer posts at 2am. Nobody sees it. It doesn't get logged. You find out weeks later when the client asks.",
   },
   {
-    icon: ShieldWarning,
+    animationData: shieldAnim,
     accent: 'green' as AccentKey,
     title: 'Usage rights tracked in a spreadsheet',
     description:
       "Granting usage rights should unlock downloads automatically. Instead, it's a note in a Google Sheet that someone might check.",
   },
 ]
+
+function PainCard({
+  point,
+  shouldReduce,
+  itemVariants,
+}: {
+  point: (typeof painPoints)[number]
+  shouldReduce: boolean | null
+  itemVariants: Variants
+}) {
+  const lottieRef = useRef<LottieRefCurrentProps>(null)
+  const accent = accentStyles[point.accent]
+
+  return (
+    <motion.div variants={itemVariants}>
+      <motion.div
+        initial="rest"
+        whileHover="hover"
+        variants={shouldReduce ? undefined : cardVariants}
+        onMouseEnter={() => lottieRef.current?.goToAndPlay(0, true)}
+        onMouseLeave={() => lottieRef.current?.stop()}
+        className="flex h-full cursor-default flex-col gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 transition-colors duration-200 hover:border-white/[0.14] hover:bg-white/[0.07]"
+      >
+        {/* Icon container */}
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-xl"
+          style={{ background: accent.bg }}
+        >
+          <Lottie
+            lottieRef={lottieRef}
+            animationData={point.animationData}
+            loop={false}
+            autoplay={false}
+            style={{ width: 24, height: 24 }}
+          />
+        </div>
+
+        {/* Copy */}
+        <div>
+          <h3 className="mb-1.5 font-display text-[0.9375rem] font-semibold leading-snug text-white">
+            {point.title}
+          </h3>
+          <p className="text-[0.8125rem] leading-relaxed text-white/50">
+            {point.description}
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
 
 export function PainSection() {
   const shouldReduce = useReducedMotion()
@@ -108,38 +158,14 @@ export function PainSection() {
 
           {/* Card grid */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {painPoints.map((point) => {
-              const accent = accentStyles[point.accent]
-
-              return (
-                <motion.div key={point.title} variants={itemVariants}>
-                  <motion.div
-                    initial="rest"
-                    whileHover="hover"
-                    variants={shouldReduce ? undefined : cardVariants}
-                    className="flex h-full cursor-default flex-col gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 transition-colors duration-200 hover:border-white/[0.14] hover:bg-white/[0.07]"
-                  >
-                    {/* Icon container */}
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl"
-                      style={{ background: accent.bg }}
-                    >
-                      <point.icon size={18} weight="duotone" style={{ color: accent.color }} />
-                    </div>
-
-                    {/* Copy */}
-                    <div>
-                      <h3 className="mb-1.5 font-display text-[0.9375rem] font-semibold leading-snug text-white">
-                        {point.title}
-                      </h3>
-                      <p className="text-[0.8125rem] leading-relaxed text-white/50">
-                        {point.description}
-                      </p>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )
-            })}
+            {painPoints.map((point) => (
+              <PainCard
+                key={point.title}
+                point={point}
+                shouldReduce={shouldReduce}
+                itemVariants={itemVariants}
+              />
+            ))}
           </div>
         </motion.div>
       </div>
