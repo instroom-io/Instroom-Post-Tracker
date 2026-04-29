@@ -36,7 +36,7 @@ export default function MarketingLayout({
             {/* Top row: logo + product nav */}
             <div className="mb-10 flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-10 w-auto brightness-0 invert" />
+              <img src="/POST_TRACKER.svg" alt="Instroom Post Tracker" className="h-14 w-auto brightness-0 invert" />
               <div className="flex flex-wrap gap-x-8 gap-y-3">
                 {(
                   [
