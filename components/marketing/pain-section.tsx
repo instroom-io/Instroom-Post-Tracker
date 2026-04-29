@@ -14,9 +14,9 @@ import shieldAnim   from '@/public/icons/icon-shield.json'
 type AccentKey = 'green' | 'amber' | 'indigo'
 
 const accentStyles: Record<AccentKey, { bg: string }> = {
-  green:  { bg: 'rgba(31,174,91,0.12)' },
-  amber:  { bg: 'rgba(244,183,64,0.12)' },
-  indigo: { bg: 'rgba(91,111,230,0.12)' },
+  green:  { bg: 'rgba(31,174,91,0.18)' },
+  amber:  { bg: 'rgba(244,183,64,0.18)' },
+  indigo: { bg: 'rgba(91,111,230,0.18)' },
 }
 
 const cardVariants: Variants = {
@@ -101,7 +101,7 @@ function PainCard({
             animationData={point.animationData}
             loop={false}
             autoplay={false}
-            style={{ width: 24, height: 24 }}
+            style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }}
           />
         </div>
 
