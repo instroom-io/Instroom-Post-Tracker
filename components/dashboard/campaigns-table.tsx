@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Megaphone,
@@ -9,12 +9,13 @@ import {
   ArrowUp,
   ArrowDown,
   DotsThree,
-  Archive,
   ArrowCounterClockwise,
-  Trash,
   Eye,
   EyeSlash,
 } from '@phosphor-icons/react'
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
+import archiveAnim from 'react-useanimations/lib/archive'
+import trashAnim   from 'react-useanimations/lib/trash2'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { AnimatedBadge } from '@/components/ui/animated-badge'
@@ -69,6 +70,67 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return dir === 'asc'
     ? <ArrowUp size={12} className="text-foreground" />
     : <ArrowDown size={12} className="text-foreground" />
+}
+
+interface CampaignRowActionsProps {
+  campaign: { id: string; name: string; status: CampaignStatus; post_count: number }
+  onArchive: (id: string) => void
+  onRestore: (id: string) => void
+  onDelete: (id: string, name: string) => void
+}
+
+function CampaignRowActions({ campaign, onArchive, onRestore, onDelete }: CampaignRowActionsProps) {
+  const archiveRef = useRef<LottieRefCurrentProps>(null)
+  const trashRef   = useRef<LottieRefCurrentProps>(null)
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Actions for ${campaign.name}`}
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm opacity-0 transition-all group-hover:opacity-100 hover:bg-background-muted hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <DotsThree size={16} weight="bold" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {campaign.status !== 'archived' ? (
+          <DropdownMenuItem
+            onClick={() => onArchive(campaign.id)}
+            onMouseEnter={() => archiveRef.current?.goToAndPlay(0, true)}
+            onMouseLeave={() => archiveRef.current?.stop()}
+          >
+            <div className="[filter:brightness(0)_opacity(0.5)] dark:[filter:brightness(0)_invert(1)_opacity(0.5)]">
+              <Lottie lottieRef={archiveRef} animationData={archiveAnim.animationData} loop={false} autoplay={false} style={{ width: 15, height: 15 }} />
+            </div>
+            Archive
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={() => onRestore(campaign.id)}>
+            <ArrowCounterClockwise size={14} />
+            Restore
+          </DropdownMenuItem>
+        )}
+        {(campaign.post_count === 0 || campaign.status === 'archived') && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(campaign.id, campaign.name)}
+              onMouseEnter={() => trashRef.current?.goToAndPlay(0, true)}
+              onMouseLeave={() => trashRef.current?.stop()}
+            >
+              <div className="[filter:brightness(0)_saturate(100%)_invert(27%)_sepia(89%)_saturate(1167%)_hue-rotate(333deg)_brightness(92%)_contrast(92%)]">
+                <Lottie lottieRef={trashRef} animationData={trashAnim.animationData} loop={false} autoplay={false} style={{ width: 15, height: 15 }} />
+              </div>
+              Delete
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 }
 
 export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole }: CampaignsTableProps) {
@@ -268,42 +330,12 @@ export function CampaignsTable({ campaigns, workspaceSlug, workspaceId, userRole
                     </td>
                     {showActions && (
                       <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              type="button"
-                              aria-label={`Actions for ${campaign.name}`}
-                              className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm opacity-0 transition-all group-hover:opacity-100 hover:bg-background-muted hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            >
-                              <DotsThree size={16} weight="bold" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {campaign.status !== 'archived' ? (
-                              <DropdownMenuItem onClick={() => handleArchive(campaign.id)}>
-                                <Archive size={14} />
-                                Archive
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem onClick={() => handleRestore(campaign.id)}>
-                                <ArrowCounterClockwise size={14} />
-                                Restore
-                              </DropdownMenuItem>
-                            )}
-                            {(campaign.post_count === 0 || campaign.status === 'archived') && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  variant="destructive"
-                                  onClick={() => setDeleteTarget({ id: campaign.id, name: campaign.name })}
-                                >
-                                  <Trash size={14} />
-                                  Delete
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <CampaignRowActions
+                          campaign={campaign}
+                          onArchive={handleArchive}
+                          onRestore={handleRestore}
+                          onDelete={(id, name) => setDeleteTarget({ id, name })}
+                        />
                       </td>
                     )}
                   </tr>

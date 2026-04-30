@@ -179,6 +179,8 @@ export function DropdownMenuContent({
 interface DropdownMenuItemProps {
   children: ReactNode
   onClick?: () => void
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
   variant?: 'default' | 'destructive'
   disabled?: boolean
   className?: string
@@ -187,6 +189,8 @@ interface DropdownMenuItemProps {
 export function DropdownMenuItem({
   children,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   variant = 'default',
   disabled = false,
   className,
@@ -204,6 +208,8 @@ export function DropdownMenuItem({
       type="button"
       role="menuitem"
       onClick={handleClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       disabled={disabled}
       className={cn(
         'flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
