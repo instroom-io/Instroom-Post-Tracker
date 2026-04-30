@@ -5,14 +5,15 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   CaretRight,
   DotsThree,
-  Trash,
   MagnifyingGlass,
   Users,
-
   CaretLeft,
-  FolderPlus,
   X,
 } from '@phosphor-icons/react'
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
+import folderAnim  from 'react-useanimations/lib/folder'
+import plusToXAnim from 'react-useanimations/lib/plusToX'
+import trash2Anim  from 'react-useanimations/lib/trash2'
 
 import { toast } from 'sonner'
 import {
@@ -85,6 +86,96 @@ const STATUS_LABEL: Record<MonitoringStatus, string> = {
   stopped: 'text-foreground-muted',
 }
 
+
+// ─── Row action sub-components ────────────────────────────────────────────────
+
+interface RemoveCampaignItemProps {
+  campaign: { campaign_influencer_id: string; name: string }
+  influencerLabel: string
+  onConfirm: (ciId: string, campaignName: string, influencerLabel: string) => void
+}
+
+function RemoveCampaignItem({ campaign, influencerLabel, onConfirm }: RemoveCampaignItemProps) {
+  const undoRef = useRef<LottieRefCurrentProps>(null)
+  return (
+    <DropdownMenuItem
+      variant="destructive"
+      onClick={() => onConfirm(campaign.campaign_influencer_id, campaign.name, influencerLabel)}
+      onMouseEnter={() => undoRef.current?.goToAndPlay(0, true)}
+      onMouseLeave={() => undoRef.current?.stop()}
+    >
+      <div className="[filter:brightness(0)_saturate(100%)_invert(27%)_sepia(89%)_saturate(1167%)_hue-rotate(333deg)_brightness(92%)_contrast(92%)]">
+        <Lottie lottieRef={undoRef} animationData={plusToXAnim.animationData} loop={false} autoplay={false} style={{ width: 13, height: 13 }} />
+      </div>
+      <span className="max-w-[160px] truncate">Remove from &ldquo;{campaign.name}&rdquo;</span>
+    </DropdownMenuItem>
+  )
+}
+
+interface InfluencerRowActionsProps {
+  label: string
+  activeCampaigns: CampaignEntry[]
+  onAddToCampaign: () => void
+  onRemoveCampaign: (ciId: string, campaignName: string, influencerLabel: string) => void
+  onRemoveFromWorkspace: () => void
+}
+
+function InfluencerRowActions({ label, activeCampaigns, onAddToCampaign, onRemoveCampaign, onRemoveFromWorkspace }: InfluencerRowActionsProps) {
+  const folderRef = useRef<LottieRefCurrentProps>(null)
+  const trashRef  = useRef<LottieRefCurrentProps>(null)
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <button
+          type="button"
+          aria-label={`Actions for @${label}`}
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <DotsThree size={16} weight="bold" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          onClick={onAddToCampaign}
+          onMouseEnter={() => folderRef.current?.goToAndPlay(0, true)}
+          onMouseLeave={() => folderRef.current?.stop()}
+        >
+          <div className="[filter:brightness(0)_opacity(0.4)] dark:[filter:brightness(0)_invert(1)_opacity(0.4)]">
+            <Lottie lottieRef={folderRef} animationData={folderAnim.animationData} loop={false} autoplay={false} style={{ width: 13, height: 13 }} />
+          </div>
+          Add to campaign
+        </DropdownMenuItem>
+        {activeCampaigns.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            {activeCampaigns.map((c) => (
+              <RemoveCampaignItem
+                key={c.campaign_influencer_id}
+                campaign={c}
+                influencerLabel={label}
+                onConfirm={onRemoveCampaign}
+              />
+            ))}
+          </>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={onRemoveFromWorkspace}
+          onMouseEnter={() => trashRef.current?.goToAndPlay(0, true)}
+          onMouseLeave={() => trashRef.current?.stop()}
+        >
+          <div className="[filter:brightness(0)_saturate(100%)_invert(27%)_sepia(89%)_saturate(1167%)_hue-rotate(333deg)_brightness(92%)_contrast(92%)]">
+            <Lottie lottieRef={trashRef} animationData={trash2Anim.animationData} loop={false} autoplay={false} style={{ width: 13, height: 13 }} />
+          </div>
+          Remove from workspace
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function InfluencerAvatar({ picUrl, label }: { picUrl: string | null; label: string }) {
   const [failed, setFailed] = useState(false)
@@ -386,52 +477,13 @@ export function InfluencerListTable({
                       {/* Actions cell */}
                       {canEdit && (
                         <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger>
-                              <button
-                                type="button"
-                                aria-label={`Actions for @${label}`}
-                                className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background-surface text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              >
-                                <DotsThree size={16} weight="bold" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setAddToCampaignInfluencer(inf)
-                                  setAddCampaignId('')
-                                  setAddProductSentAt('')
-                                }}
-                              >
-                                <FolderPlus size={13} />
-                                Add to campaign
-                              </DropdownMenuItem>
-                              {activeCampaigns.length > 0 && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  {activeCampaigns.map((c) => (
-                                    <DropdownMenuItem
-                                      key={c.campaign_influencer_id}
-                                      variant="destructive"
-                                      onClick={() => setRemoveCampaignConfirm({ ciId: c.campaign_influencer_id, campaignName: c.name, influencerLabel: label })}
-                                    >
-                                      <X size={13} />
-                                      <span className="max-w-[160px] truncate">Remove from &ldquo;{c.name}&rdquo;</span>
-                                    </DropdownMenuItem>
-                                  ))}
-                                </>
-                              )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => setRemoveConfirmInfluencer({ id: inf.id, label, campaigns: activeCampaigns })}
-                              >
-                                <Trash size={13} />
-                                Remove from workspace
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <InfluencerRowActions
+                            label={label}
+                            activeCampaigns={activeCampaigns}
+                            onAddToCampaign={() => { setAddToCampaignInfluencer(inf); setAddCampaignId(''); setAddProductSentAt('') }}
+                            onRemoveCampaign={(ciId, campaignName, influencerLabel) => setRemoveCampaignConfirm({ ciId, campaignName, influencerLabel })}
+                            onRemoveFromWorkspace={() => setRemoveConfirmInfluencer({ id: inf.id, label, campaigns: activeCampaigns })}
+                          />
                         </td>
                       )}
                     </tr>
