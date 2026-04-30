@@ -91,7 +91,7 @@ function JoinLinkCopy({ workspaceSlug }: { workspaceSlug: string }) {
           </>
         ) : (
           <>
-            <div className="[filter:brightness(0)_opacity(0.4)]">
+            <div className="[filter:brightness(0)_opacity(0.4)] dark:[filter:brightness(0)_invert(1)_opacity(0.4)]">
               <Lottie
                 lottieRef={lottieRef}
                 animationData={shareLinkAnim}
