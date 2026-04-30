@@ -454,7 +454,7 @@ export function InfluencerListTable({
                 type="button"
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page <= 1}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground disabled:opacity-40"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-border-strong text-foreground-light transition-colors hover:bg-background-muted hover:text-foreground disabled:opacity-40"
               >
                 <CaretLeft size={13} />
               </button>
@@ -487,7 +487,7 @@ export function InfluencerListTable({
                 type="button"
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page >= totalPages}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-foreground-muted transition-colors hover:bg-background-muted hover:text-foreground disabled:opacity-40"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-border-strong text-foreground-light transition-colors hover:bg-background-muted hover:text-foreground disabled:opacity-40"
               >
                 <CaretRight size={13} />
               </button>
