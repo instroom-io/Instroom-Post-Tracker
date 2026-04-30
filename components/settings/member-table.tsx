@@ -1,6 +1,6 @@
 'use client'
 
-import { useTransition, useState } from 'react'
+import { useTransition, useState, useRef } from 'react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -12,7 +12,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { removeMember, approveJoinRequest, denyJoinRequest, revokeInvitation, resendInvitation } from '@/lib/actions/workspace'
 import { getInitials } from '@/lib/utils'
-import { DotsThree, Link as LinkIcon, Check, Clock, UserPlus, EnvelopeSimple } from '@phosphor-icons/react'
+import { DotsThree, Check, Clock, UserPlus, EnvelopeSimple } from '@phosphor-icons/react'
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
+import shareLinkAnim from '@/public/icons/icon-share-link.json'
 import type { WorkspaceRole, WorkspaceJoinRequest, Invitation } from '@/lib/types'
 
 interface Member {
@@ -54,6 +56,7 @@ const roleLabel: Record<WorkspaceRole, string> = {
 
 function JoinLinkCopy({ workspaceSlug }: { workspaceSlug: string }) {
   const [copied, setCopied] = useState(false)
+  const lottieRef = useRef<LottieRefCurrentProps>(null)
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     (typeof window !== 'undefined' ? window.location.origin : '')
@@ -77,6 +80,8 @@ function JoinLinkCopy({ workspaceSlug }: { workspaceSlug: string }) {
       <button
         type="button"
         onClick={handleCopy}
+        onMouseEnter={() => lottieRef.current?.goToAndPlay(0, true)}
+        onMouseLeave={() => lottieRef.current?.stop()}
         className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border border-border bg-background-surface px-2.5 text-[11px] font-medium text-foreground-light shadow-sm transition-colors hover:bg-background-muted hover:text-foreground"
       >
         {copied ? (
@@ -86,8 +91,16 @@ function JoinLinkCopy({ workspaceSlug }: { workspaceSlug: string }) {
           </>
         ) : (
           <>
-            <LinkIcon size={12} />
-            Copy link
+            <div className="[filter:brightness(0)_opacity(0.4)]">
+              <Lottie
+                lottieRef={lottieRef}
+                animationData={shareLinkAnim}
+                loop={false}
+                autoplay={false}
+                style={{ width: 14, height: 14 }}
+              />
+            </div>
+            Share link
           </>
         )}
       </button>
