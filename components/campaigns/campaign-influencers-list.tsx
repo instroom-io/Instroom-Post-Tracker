@@ -2,7 +2,10 @@
 
 import { useOptimistic, useTransition, useState } from 'react'
 import { toast } from 'sonner'
-import { DotsThree, Trash, WarningCircle, Users, ArrowClockwise, MagnifyingGlass, Prohibit, Info } from '@phosphor-icons/react'
+import { DotsThree, Trash, Users, ArrowClockwise, MagnifyingGlass, Prohibit } from '@phosphor-icons/react'
+import Lottie from 'lottie-react'
+import alertTriangleAnim from 'react-useanimations/lib/alertTriangle'
+import infoAnim from 'react-useanimations/lib/info'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { PlatformLogo } from '@/components/ui/platform-icon'
@@ -266,7 +269,9 @@ export function CampaignInfluencersList({
         </div>
       </div>
       <div className="flex items-center gap-1.5 px-5 py-2.5 border-b border-border/50">
-        <Info size={11} className="flex-shrink-0 text-foreground-muted" />
+        <div className="flex-shrink-0 [filter:brightness(0)_opacity(0.4)] dark:[filter:brightness(0)_invert(1)_opacity(0.4)]">
+          <Lottie animationData={infoAnim.animationData} loop={false} autoplay style={{ width: 11, height: 11 }} />
+        </div>
         <p className="text-[11px] text-foreground-muted">
           Posts are tracked from the date each influencer is added, not from the campaign start date.
         </p>
@@ -338,7 +343,9 @@ export function CampaignInfluencersList({
                       {item.monitoring_status === 'active' &&
                         (postCountsByInfluencerId?.[item.influencer.id] ?? 0) === 0 && (
                           <span title="No matching posts yet — check captions for tracking keywords">
-                            <WarningCircle size={13} className="flex-shrink-0 text-warning" />
+                            <div className="flex-shrink-0 [filter:brightness(0)_saturate(100%)_invert(73%)_sepia(81%)_saturate(450%)_hue-rotate(15deg)]">
+                              <Lottie animationData={alertTriangleAnim.animationData} loop={false} autoplay style={{ width: 13, height: 13 }} />
+                            </div>
                           </span>
                         )}
                     </div>
@@ -346,7 +353,9 @@ export function CampaignInfluencersList({
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
                       {!item.usage_rights && (
-                        <WarningCircle size={13} className="text-warning flex-shrink-0" />
+                        <div className="flex-shrink-0 [filter:brightness(0)_saturate(100%)_invert(73%)_sepia(81%)_saturate(450%)_hue-rotate(15deg)]">
+                          <Lottie animationData={alertTriangleAnim.animationData} loop={false} autoplay style={{ width: 13, height: 13 }} />
+                        </div>
                       )}
                       <Switch
                         size="md"

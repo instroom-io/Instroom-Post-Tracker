@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Info } from '@phosphor-icons/react'
+import { Plus } from '@phosphor-icons/react'
+import Lottie from 'lottie-react'
+import infoAnim from 'react-useanimations/lib/info'
 import { PlatformIcon } from '@/components/ui/platform-icon'
 import { toast } from 'sonner'
 import {
@@ -237,7 +239,9 @@ export function CreateCampaignDialog({ workspaceId, defaultOpen = false }: Creat
                       </div>
                     }
                   >
-                    <Info size={12} className="cursor-help text-foreground-muted" />
+                    <div className="cursor-help [filter:brightness(0)_opacity(0.4)] dark:[filter:brightness(0)_invert(1)_opacity(0.4)]">
+                      <Lottie animationData={infoAnim.animationData} loop={false} autoplay style={{ width: 12, height: 12 }} />
+                    </div>
                   </Tooltip>
                 </div>
                 <Input

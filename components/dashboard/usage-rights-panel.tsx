@@ -2,7 +2,9 @@
 
 import { useOptimistic, useTransition } from 'react'
 import { toast } from 'sonner'
-import { WarningCircle, Users } from '@phosphor-icons/react'
+import { Users } from '@phosphor-icons/react'
+import Lottie from 'lottie-react'
+import alertTriangleAnim from 'react-useanimations/lib/alertTriangle'
 import { toggleUsageRights } from '@/lib/actions/usage-rights'
 import { getInfluencerLabel } from '@/lib/utils'
 import { Switch } from '@/components/ui/switch'
@@ -86,7 +88,9 @@ export function UsageRightsPanel({ items, canEdit }: UsageRightsPanelProps) {
 
           <div className="ml-4 flex items-center gap-2">
             {!item.usage_rights && (
-              <WarningCircle size={13} className="text-warning flex-shrink-0" />
+              <div className="flex-shrink-0 [filter:brightness(0)_saturate(100%)_invert(73%)_sepia(81%)_saturate(450%)_hue-rotate(15deg)]">
+                <Lottie animationData={alertTriangleAnim.animationData} loop={false} autoplay style={{ width: 13, height: 13 }} />
+              </div>
             )}
             <Switch
               size="sm"

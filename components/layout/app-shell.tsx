@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
+import helpAnim from 'react-useanimations/lib/help'
 import type { User } from '@supabase/supabase-js'
-import { Question, SquaresFour, Megaphone, Users, ChartBar, GearSix, SidebarSimple, List } from '@phosphor-icons/react'
+import { SquaresFour, Megaphone, Users, ChartBar, GearSix, SidebarSimple, List } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { useTour } from '@/lib/hooks/use-tour'
 import { TourProvider } from '@/components/tour/tour-provider'
@@ -40,6 +42,7 @@ interface NavItemsProps {
 }
 
 function NavItems({ workspaceSlug, pathname, isCollapsed, startTour, onItemClick }: NavItemsProps) {
+  const helpRef = useRef<LottieRefCurrentProps>(null)
   return (
     <>
       {NAV_ITEMS.map((item) => {
@@ -86,12 +89,16 @@ function NavItems({ workspaceSlug, pathname, isCollapsed, startTour, onItemClick
           variant="ghost"
           size="sm"
           onClick={() => { startTour('workspace'); onItemClick?.() }}
+          onMouseEnter={() => helpRef.current?.goToAndPlay(0, true)}
+          onMouseLeave={() => helpRef.current?.stop()}
           className={cn(
             'w-full text-foreground-muted hover:text-brand',
             isCollapsed ? 'justify-center px-0' : 'justify-start gap-2'
           )}
         >
-          <Question size={14} className="flex-shrink-0" />
+          <div className="flex-shrink-0 [filter:brightness(0)_opacity(0.45)] dark:[filter:brightness(0)_invert(1)_opacity(0.45)]">
+            <Lottie lottieRef={helpRef} animationData={helpAnim.animationData} loop={false} autoplay={false} style={{ width: 14, height: 14 }} />
+          </div>
           <AnimatePresence>
             {!isCollapsed && (
               <motion.span

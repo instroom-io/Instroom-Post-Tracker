@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { UserPlus, ArrowLeft, CheckCircle, Warning, XCircle, DownloadSimple, UploadSimple, Info } from '@phosphor-icons/react'
+import { UserPlus, ArrowLeft, CheckCircle, XCircle, DownloadSimple, UploadSimple } from '@phosphor-icons/react'
+import Lottie from 'lottie-react'
+import alertTriangleAnim from 'react-useanimations/lib/alertTriangle'
+import infoAnim from 'react-useanimations/lib/info'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -556,7 +559,9 @@ export function AddInfluencerToCampaignDialog({
                   <label className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-foreground-muted">
                     Product sent
                     <Tooltip content={getProductSentHint(batchPlatform)}>
-                      <Info size={11} className="cursor-help text-foreground-subtle" />
+                      <div className="cursor-help [filter:brightness(0)_opacity(0.35)] dark:[filter:brightness(0)_invert(1)_opacity(0.35)]">
+                        <Lottie animationData={infoAnim.animationData} loop={false} autoplay style={{ width: 11, height: 11 }} />
+                      </div>
                     </Tooltip>
                   </label>
                   <input
@@ -648,7 +653,9 @@ export function AddInfluencerToCampaignDialog({
                           )}
                           {r.status === 'private' && (
                             <span className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">
-                              <Warning size={10} />
+                              <div className="[filter:brightness(0)_saturate(100%)_invert(73%)_sepia(81%)_saturate(450%)_hue-rotate(15deg)]">
+                                <Lottie animationData={alertTriangleAnim.animationData} loop={false} autoplay style={{ width: 10, height: 10 }} />
+                              </div>
                               Private
                             </span>
                           )}
@@ -667,7 +674,9 @@ export function AddInfluencerToCampaignDialog({
                 {/* Warning banner if any issues */}
                 {warningResults.length > 0 && (
                   <div className="flex gap-2.5 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2.5">
-                    <Warning size={13} className="mt-0.5 flex-shrink-0 text-warning" />
+                    <div className="mt-0.5 flex-shrink-0 [filter:brightness(0)_saturate(100%)_invert(73%)_sepia(81%)_saturate(450%)_hue-rotate(15deg)]">
+                      <Lottie animationData={alertTriangleAnim.animationData} loop={false} autoplay style={{ width: 13, height: 13 }} />
+                    </div>
                     <p className="text-[11px] leading-relaxed text-foreground-light">
                       {warningResults.filter((r) => r.status === 'private').length > 0 && (
                         <span>Private accounts may not return posts. </span>
